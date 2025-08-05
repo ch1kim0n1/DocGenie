@@ -1,38 +1,21 @@
 # DocGenie
 
-**Auto-documentation tool for any codebase - Generate comprehensive README files and beautiful HTML documentation in minutes!**
+A simple Python tool to automatically generate documentation for your codebase. Supports both Markdown (README.md) and HTML formats.
 
-<img width="660" height="338" alt="image" src="https://github.com/user-attachments/assets/7f32a0a7-8360-459c-a20e-5d34b74b8c43" />
+## Quick Guide
 
-DocGenie is a powerful Python library that automatically analyzes your codebase and generates comprehensive, professional documentation. Choose between README.md files, beautiful HTML documentation, or both formats. Simply run one command and get detailed documentation with project structure, dependencies, API documentation, and more!
+### Installation
 
-## Features
-
-- **🔍 Multi-language Support**: Analyzes Python, JavaScript, TypeScript, Java, C++, Go, Rust, and more
-- **📊 Comprehensive Analysis**: Extracts functions, classes, dependencies, and project structure
-- **🎨 Beautiful Templates**: Generates professional README files with modern formatting
-- **🌐 HTML Documentation**: Creates responsive HTML documentation with interactive navigation
-- **⚡ One-Command Operation**: `docgenie .` - that's it!
-- **📱 Multiple Formats**: Generate README.md, HTML docs, or both simultaneously
-- **🔧 Highly Configurable**: Customize ignore patterns, output format, and more
-- **📈 Smart Detection**: Automatically detects project type, main language, and features
-- **🌐 Git Integration**: Includes repository information and contributor statistics
-- **📦 Dependency Analysis**: Supports requirements.txt, package.json, Cargo.toml, go.mod, and more
-
-## Requirements
-
-- Python 3.8 or higher
-- Git (optional, for repository information)
-
-## Installation
-
-### Install from PyPI (Coming Soon)
+1. Make sure you have Python 3.8 or higher installed.
+2. Install dependencies:
 
 ```bash
-pip install docgenie
+pip install -r requirements.txt
 ```
 
-### Install from Source
+### Setup
+
+Clone the repository (if not using PyPI):
 
 ```bash
 git clone https://github.com/yourusername/DocGenie.git
@@ -40,44 +23,54 @@ cd DocGenie
 pip install -e .
 ```
 
-## Quick Start
+### Usage
 
-## Simple CLI Usage
+#### Generate Markdown README
 
 ```bash
-# Generate HTML documentation only
+docgenie /path/to/project --format markdown
+```
+
+#### Generate HTML Documentation
+
+```bash
 docgenie /path/to/project --format html
-
-# Generate both README.md and HTML
-docgenie /path/to/project --format both
-
-# Convert existing README to HTML
-docgenie-html README.md --source readme --open-browser
-
-# Preview HTML without saving
-docgenie /path/to/project --format html --preview
 ```
 
-### Generate Documentation
+#### Generate Both Formats
 
 ```bash
-# Generate README.md only (default)
-docgenie .
-
-# Generate HTML documentation only
-docgenie . --format html
-
-# Generate both README.md and HTML documentation
-docgenie . --format both
-
-# Preview without saving
-docgenie . --preview
-
-# Specify custom output location
-docgenie . --output /path/to/custom/README.md
+docgenie /path/to/project --format both
 ```
 
-### HTML Documentation Features
+#### Convert Existing README to HTML
+
+```bash
+docgenie-html README.md --source readme --output docs.html
+```
+
+#### Programmatic Usage (Python API)
+
+```python
+from docgenie.core import CodebaseAnalyzer
+from docgenie.html_generator import HTMLGenerator
+
+analyzer = CodebaseAnalyzer('/path/to/project')
+data = analyzer.analyze()
+
+html_generator = HTMLGenerator()
+html_content = html_generator.generate_from_analysis(data, 'output.html')
+```
+
+## Troubleshooting
+
+- Ensure all dependencies are installed
+- Check write permissions for output directory
+- Use UTF-8 encoding for source files
+
+## License
+
+MIT License. See LICENSE file for details.
 
 ```bash
 # Generate HTML documentation

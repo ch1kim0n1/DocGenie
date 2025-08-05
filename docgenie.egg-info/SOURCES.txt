@@ -1,0 +1,16 @@
+LICENSE
+README.md
+setup.py
+docgenie/__init__.py
+docgenie/cli.py
+docgenie/core.py
+docgenie/generator.py
+docgenie/parsers.py
+docgenie/utils.py
+docgenie.egg-info/PKG-INFO
+docgenie.egg-info/SOURCES.txt
+docgenie.egg-info/dependency_links.txt
+docgenie.egg-info/entry_points.txt
+docgenie.egg-info/not-zip-safe
+docgenie.egg-info/requires.txt
+docgenie.egg-info/top_level.txt

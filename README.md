@@ -24,7 +24,7 @@ DocGenie is a powerful Python library that automatically analyzes your codebase 
 - Python 3.8 or higher
 - Git (optional, for repository information)
 
-## 🛠️ Installation
+## Installation
 
 ### Install from PyPI (Coming Soon)
 
@@ -40,7 +40,23 @@ cd DocGenie
 pip install -e .
 ```
 
-## 📖 Quick Start
+## Quick Start
+
+## Simple CLI Usage
+
+```bash
+# Generate HTML documentation only
+docgenie /path/to/project --format html
+
+# Generate both README.md and HTML
+docgenie /path/to/project --format both
+
+# Convert existing README to HTML
+docgenie-html README.md --source readme --open-browser
+
+# Preview HTML without saving
+docgenie /path/to/project --format html --preview
+```
 
 ### Generate Documentation
 

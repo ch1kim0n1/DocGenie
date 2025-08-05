@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from jinja2 import Template
 
-from .utils import get_project_type, create_directory_tree, format_file_size
+from .utils import get_project_type, create_directory_tree, format_file_size, is_website_project
 
 
 class ReadmeGenerator:
@@ -35,21 +35,25 @@ class ReadmeGenerator:
         
         # Render template
         readme_content = self.template.render(**context)
-        
-        # Save to file if path provided
+          # Save to file if path provided
         if output_path:
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(readme_content)
-            print(f"📝 README generated: {output_path}")
+            
+            # Check if website was detected and inform user
+            if is_website_project(analysis_data):
+                print(f"✅ Website detected! Generated website-specific documentation: {output_path}")
+            else:
+                print(f"📝 README generated: {output_path}")
         
         return readme_content
     
     def _prepare_context(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
         """Prepare template context from analysis data."""
-        
-        # Basic project info
+          # Basic project info
         project_name = self._get_project_name(analysis_data)
         project_type = get_project_type(analysis_data)
+        is_website = is_website_project(analysis_data)
         
         # Language statistics
         languages = analysis_data.get('languages', {})
@@ -67,8 +71,7 @@ class ReadmeGenerator:
         
         # Code statistics
         functions = analysis_data.get('functions', [])
-        classes = analysis_data.get('classes', [])
-        
+        classes = analysis_data.get('classes', [])        
         # Installation commands
         install_commands = self._generate_install_commands(analysis_data)
         
@@ -81,6 +84,7 @@ class ReadmeGenerator:
         return {
             'project_name': project_name,
             'project_type': project_type,
+            'is_website': is_website,
             'description': self._generate_description(analysis_data),
             'languages': languages,
             'main_language': main_language,
@@ -99,6 +103,7 @@ class ReadmeGenerator:
             'has_tests': self._has_tests(analysis_data),
             'has_docs': len(analysis_data.get('documentation_files', [])) > 0,
             'config_files': analysis_data.get('config_files', []),
+            'website_info': self._get_website_info(analysis_data) if is_website else None,
         }
     
     def _get_project_name(self, analysis_data: Dict[str, Any]) -> str:
@@ -109,8 +114,7 @@ class ReadmeGenerator:
             repo_name = git_info['repo_name']
             if '/' in repo_name:
                 return repo_name.split('/')[-1]
-            return repo_name
-        
+            return repo_name        
         # Fall back to directory name
         root_path = analysis_data.get('root_path', '')
         if root_path:
@@ -123,7 +127,41 @@ class ReadmeGenerator:
         project_type = get_project_type(analysis_data)
         main_language = analysis_data.get('main_language', 'unknown')
         
-        # Try to infer purpose from structure and dependencies
+        # Check if it's a website
+        if is_website_project(analysis_data):
+            dependencies = analysis_data.get('dependencies', {})
+            dep_strings = [str(deps).lower() for deps in dependencies.values()]
+            
+            # Determine website type and purpose
+            if any('ecommerce' in deps or 'shop' in deps or 'cart' in deps for deps in dep_strings):
+                purpose = "e-commerce website"
+            elif any('blog' in deps or 'cms' in deps or 'wordpress' in deps for deps in dep_strings):
+                purpose = "blog/content management website"
+            elif any('portfolio' in deps or 'gallery' in deps for deps in dep_strings):
+                purpose = "portfolio website"
+            elif any('dashboard' in deps or 'admin' in deps for deps in dep_strings):
+                purpose = "web dashboard application"
+            elif any('doc' in deps or 'guide' in deps for deps in dep_strings):
+                purpose = "documentation website"
+            else:
+                purpose = "modern web application"
+            
+            # Add framework info if detected
+            framework_info = ""
+            if 'react' in str(dependencies).lower():
+                framework_info = " built with React"
+            elif 'vue' in str(dependencies).lower():
+                framework_info = " built with Vue.js"
+            elif 'angular' in str(dependencies).lower():
+                framework_info = " built with Angular"
+            elif 'gatsby' in str(dependencies).lower():
+                framework_info = " powered by Gatsby"
+            elif 'next' in str(dependencies).lower():
+                framework_info = " powered by Next.js"
+            
+            return f"A responsive {purpose}{framework_info} with modern features and user-friendly interface."
+        
+        # Non-website projects
         dependencies = analysis_data.get('dependencies', {})
         dep_strings = [str(deps).lower() for deps in dependencies.values()]
         
@@ -385,8 +423,7 @@ class ReadmeGenerator:
         root_files = structure.get('root', {}).get('files', [])
         for file in root_files:
             if 'test' in file.lower() or file.startswith('test_') or file.endswith('_test.py'):
-                return True
-        
+                return True        
         return False
     
     def _get_template(self) -> Template:
@@ -395,19 +432,48 @@ class ReadmeGenerator:
 
 {{ description }}
 
-## 🚀 Features
+{% if is_website %}
+*🌐 Website project detected - Documentation format optimized for web applications*
+
+{% if website_info.framework_detected %}
+## �️ Technology Stack
+
+**Frontend Framework:** {{ website_info.framework_detected }}
+{% if website_info.build_system %}**Build System:** {{ website_info.build_system }}{% endif %}
+{% if website_info.static_site_generator %}**Static Site Generator:** {{ website_info.static_site_generator }}{% endif %}
+
+{% endif %}
+
+{% if website_info.entry_points %}
+## 🏠 Entry Points
+
+{% for entry in website_info.entry_points %}
+- `{{ entry }}` - Main entry point
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+## Features
 
 {% for feature in features %}
 - {{ feature }}
 {% endfor %}
 
-## 📋 Requirements
+{% if is_website and website_info.has_responsive_design %}
+- Responsive design for all devices
+{% endif %}
+{% if is_website and website_info.deployment_platforms %}
+- Ready for deployment on: {{ website_info.deployment_platforms|join(', ') }}
+{% endif %}
+
+## Requirements
 
 {% for req in requirements %}
 - {{ req }}
 {% endfor %}
 
-## 🛠️ Installation
+## Installation
 
 {% for cmd in install_commands %}
 ### {{ cmd.title }}
@@ -418,7 +484,57 @@ class ReadmeGenerator:
 
 {% endfor %}
 
-## 📖 Usage
+{% if is_website %}
+{% if website_info.build_system %}
+## Build and Development
+
+### Development Server
+```bash
+{% if website_info.framework_detected == 'React' or website_info.framework_detected == 'Vue.js' %}
+npm start
+{% elif website_info.build_system == 'Vite' %}
+npm run dev
+{% elif website_info.build_system == 'Next.js' %}
+npm run dev
+{% elif website_info.build_system == 'Gatsby' %}
+gatsby develop
+{% else %}
+npm run serve
+{% endif %}
+```
+
+### Build for Production
+```bash
+{% if website_info.build_system == 'Gatsby' %}
+gatsby build
+{% elif website_info.build_system == 'Next.js' %}
+npm run build
+{% else %}
+npm run build
+{% endif %}
+```
+{% endif %}
+
+{% if website_info.deployment_platforms %}
+## Deployment
+
+This website is configured for deployment on:
+{% for platform in website_info.deployment_platforms %}
+- **{{ platform }}**: {% if platform == 'Netlify' %}Drag and drop the `dist` folder or connect your Git repository{% elif platform == 'Vercel' %}Import project from Git repository{% elif platform == 'GitHub Actions' %}Automated deployment via GitHub Actions{% elif platform == 'Firebase' %}Use `firebase deploy` command{% elif platform == 'Docker' %}Build and run the Docker container{% else %}Follow platform-specific instructions{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if website_info.asset_directories %}
+## Project Structure
+
+### Asset Directories
+{% for dir in website_info.asset_directories %}
+- `{{ dir }}/` - {% if 'public' in dir.lower() or 'static' in dir.lower() %}Static assets{% elif 'css' in dir.lower() %}Stylesheets{% elif 'js' in dir.lower() %}JavaScript files{% elif 'image' in dir.lower() or 'img' in dir.lower() %}Images and media{% elif 'font' in dir.lower() %}Web fonts{% else %}Project assets{% endif %}
+{% endfor %}
+{% endif %}
+
+{% else %}
+## Usage
 
 {% for example in usage_examples %}
 ### {{ example.title }}
@@ -428,14 +544,15 @@ class ReadmeGenerator:
 ```
 
 {% endfor %}
+{% endif %}
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 {{ directory_tree }}
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 This {{ project_type.lower() }} is built with {{ main_language }} and consists of:
 
@@ -450,8 +567,8 @@ This {{ project_type.lower() }} is built with {{ main_language }} and consists o
 - **{{ lang.title() }}**: {{ count }} files
 {% endfor %}
 
-{% if api_docs.functions %}
-## 🔧 API Reference
+{% if api_docs.functions and not is_website %}
+## API Reference
 
 ### Functions
 
@@ -467,7 +584,7 @@ Function defined in `{{ func.file }}` at line {{ func.line }}.
 {% endfor %}
 {% endif %}
 
-{% if api_docs.classes %}
+{% if api_docs.classes and not is_website %}
 ### Classes
 
 {% for cls in api_docs.classes %}
@@ -490,7 +607,7 @@ Class defined in `{{ cls.file }}` at line {{ cls.line }}.
 {% endif %}
 
 {% if dependencies %}
-## 📦 Dependencies
+## Dependencies
 
 {% for dep_file, deps in dependencies.items() %}
 ### {{ dep_file }}
@@ -512,7 +629,7 @@ Class defined in `{{ cls.file }}` at line {{ cls.line }}.
 {% endif %}
 
 {% if has_tests %}
-## 🧪 Testing
+## Testing
 
 This project includes comprehensive tests. Run them with:
 
@@ -534,7 +651,7 @@ mvn test
 {% endif %}
 
 {% if config_files %}
-## ⚙️ Configuration
+## Configuration
 
 Configuration files:
 {% for config in config_files %}
@@ -542,7 +659,7 @@ Configuration files:
 {% endfor %}
 {% endif %}
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -551,16 +668,16 @@ Configuration files:
 5. Open a Pull Request
 
 {% if git_info.contributor_count %}
-## 👥 Contributors
+## Contributors
 
 This project has {{ git_info.contributor_count }} contributor{{ 's' if git_info.contributor_count != 1 else '' }}.
 {% endif %}
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Contact
+## Contact
 
 {% if git_info.remote_url %}
 - Repository: [{{ git_info.repo_name }}]({{ git_info.remote_url }})
@@ -575,3 +692,110 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 """
         
         return Template(template_content)
+    
+    def _get_website_info(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract website-specific information."""
+        files = analysis_data.get('project_structure', {}).get('root', {}).get('files', [])
+        structure = analysis_data.get('project_structure', {})
+        dependencies = analysis_data.get('dependencies', {})
+        
+        # Detect entry points
+        entry_points = []
+        website_files = ['index.html', 'index.htm', 'home.html', 'main.html', 'default.html']
+        for entry in website_files:
+            if entry in files:
+                entry_points.append(entry)
+        
+        # Detect build system
+        build_system = None
+        if 'webpack.config.js' in files:
+            build_system = "Webpack"
+        elif 'vite.config.js' in files or 'vite.config.ts' in files:
+            build_system = "Vite"
+        elif 'rollup.config.js' in files:
+            build_system = "Rollup"
+        elif 'parcel.json' in files or any('parcel' in str(deps).lower() for deps in dependencies.values()):
+            build_system = "Parcel"
+        elif 'gatsby-config.js' in files:
+            build_system = "Gatsby"
+        elif 'next.config.js' in files:
+            build_system = "Next.js"
+        
+        # Detect static site generator
+        ssg = None
+        if '_config.yml' in files:
+            ssg = "Jekyll"
+        elif 'hugo.toml' in files or 'hugo.yaml' in files:
+            ssg = "Hugo"
+        elif 'mkdocs.yml' in files:
+            ssg = "MkDocs"
+        elif 'docusaurus.config.js' in files:
+            ssg = "Docusaurus"
+        
+        # Find asset directories
+        asset_dirs = []
+        common_asset_dirs = ['public', 'static', 'assets', 'dist', 'build', 'css', 'js', 'images', 'img', 'fonts']
+        for path in structure.keys():
+            for asset_dir in common_asset_dirs:
+                if asset_dir in path.lower():
+                    asset_dirs.append(path)
+                    break
+        
+        # Detect hosting/deployment info
+        deployment = []
+        if '.github/workflows' in structure or any('github' in path for path in structure.keys()):
+            deployment.append("GitHub Actions")
+        if 'netlify.toml' in files or '_redirects' in files:
+            deployment.append("Netlify")
+        if 'vercel.json' in files:
+            deployment.append("Vercel")
+        if 'firebase.json' in files:
+            deployment.append("Firebase")
+        if 'Dockerfile' in files:
+            deployment.append("Docker")
+        
+        return {
+            'entry_points': entry_points,
+            'build_system': build_system,
+            'static_site_generator': ssg,
+            'asset_directories': asset_dirs[:5],  # Limit to 5
+            'deployment_platforms': deployment,
+            'has_responsive_design': self._check_responsive_design(analysis_data),
+            'framework_detected': self._detect_frontend_framework(dependencies)
+        }
+    
+    def _check_responsive_design(self, analysis_data: Dict[str, Any]) -> bool:
+        """Check if website uses responsive design patterns."""
+        # This is a simple heuristic - in practice you'd analyze CSS files
+        dependencies = analysis_data.get('dependencies', {})
+        
+        responsive_indicators = [
+            'bootstrap', 'tailwind', 'bulma', 'foundation', 'semantic-ui',
+            'material-ui', 'chakra-ui', 'ant-design'
+        ]
+        
+        return any(
+            indicator in str(deps).lower()
+            for deps in dependencies.values()
+            for indicator in responsive_indicators
+        )
+    
+    def _detect_frontend_framework(self, dependencies: Dict[str, Any]) -> Optional[str]:
+        """Detect the primary frontend framework."""
+        frameworks = {
+            'react': 'React',
+            'vue': 'Vue.js',
+            'angular': 'Angular',
+            'svelte': 'Svelte',
+            'ember': 'Ember.js',
+            'backbone': 'Backbone.js',
+            'jquery': 'jQuery'
+        }
+        
+        for deps in dependencies.values():
+            deps_str = str(deps).lower()
+            for framework_key, framework_name in frameworks.items():
+                if framework_key in deps_str:
+                    return framework_name
+        
+        return None

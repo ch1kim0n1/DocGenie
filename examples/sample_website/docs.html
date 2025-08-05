@@ -1,167 +1,13 @@
-"""
-HTML documentation generator for DocGenie.
-Converts README content to beautiful HTML documentation.
-"""
-
-import os
-import re
-from pathlib import Path
-from typing import Dict, Any, Optional
-from datetime import datetime
-import markdown
-from markdown.extensions import codehilite, toc, tables, fenced_code
-from .utils import is_website_project
-
-
-class HTMLGenerator:
-    """
-    Generates beautiful HTML documentation from README content or analysis data.
-    """
-    
-    def __init__(self):
-        self.markdown_processor = markdown.Markdown(
-            extensions=[
-                'codehilite',
-                'toc',
-                'tables',
-                'fenced_code',
-                'attr_list',
-                'def_list',
-                'abbr',
-                'footnotes'
-            ],
-            extension_configs={
-                'codehilite': {
-                    'css_class': 'highlight',
-                    'linenums': False
-                },
-                'toc': {
-                    'permalink': True,
-                    'baselevel': 1
-                }
-            }
-        )
-    
-    def generate_from_readme(self, readme_content: str, output_path: Optional[str] = None, 
-                           project_name: str = "Project Documentation") -> str:
-        """
-        Generate HTML documentation from README markdown content.
-        
-        Args:
-            readme_content: Markdown content from README
-            output_path: Optional path to save the HTML file
-            project_name: Name of the project for the HTML title
-            
-        Returns:
-            Generated HTML content as string
-        """
-        # Convert markdown to HTML
-        html_content = self.markdown_processor.convert(readme_content)
-        
-        # Create full HTML document
-        full_html = self._create_html_document(html_content, project_name)
-        
-        # Save to file if path provided
-        if output_path:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(full_html)
-            print(f"🌐 HTML documentation generated: {output_path}")
-        
-        return full_html
-    
-    def generate_from_analysis(self, analysis_data: Dict[str, Any], 
-                             output_path: Optional[str] = None) -> str:
-        """
-        Generate HTML documentation directly from analysis data.
-        
-        Args:
-            analysis_data: Results from CodebaseAnalyzer
-            output_path: Optional path to save the HTML file
-            
-        Returns:
-            Generated HTML content as string
-        """        # First generate README content, then convert to HTML
-        from .generator import ReadmeGenerator
-        
-        readme_gen = ReadmeGenerator()
-        readme_content = readme_gen.generate(analysis_data)
-        
-        project_name = self._extract_project_name(analysis_data)
-        
-        # Check if website and inform user
-        if is_website_project(analysis_data):
-            html_content = self.generate_from_readme(readme_content, output_path, project_name)
-            if output_path:
-                print(f"✅ Website detected! Generated website-optimized HTML documentation: {output_path}")
-            return html_content
-        else:
-            return self.generate_from_readme(readme_content, output_path, project_name)
-    
-    def _create_html_document(self, content: str, project_name: str) -> str:
-        """Create a complete HTML document with styling."""
-        
-        # Extract table of contents if available
-        toc_html = getattr(self.markdown_processor, 'toc', '')
-        
-        html_template = f"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{project_name}</title>
+    <title>ch1kim0n1/DocGenie</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        {self._get_css_styles()}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-file-alt"></i> {project_name}</h2>
-                <p class="sidebar-subtitle">Documentation</p>
-            </div>
-            <div class="toc">
-                {toc_html}
-            </div>
-        </nav>
         
-        <main class="content">
-            <div class="content-header">
-                <h1 class="main-title">{project_name}</h1>
-                <p class="generation-info">
-                    <i class="fas fa-robot"></i> Generated with DocGenie on {datetime.now().strftime("%B %d, %Y")}
-                </p>
-            </div>
-            
-            <div class="markdown-content">
-                {content}
-            </div>
-            
-            <footer class="content-footer">
-                <p>
-                    <i class="fas fa-magic"></i> 
-                    Documentation automatically generated by 
-                    <a href="https://github.com/your-repo/docgenie" target="_blank">DocGenie</a>
-                </p>
-            </footer>
-        </main>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script>
-        {self._get_javascript()}
-    </script>
-</body>
-</html>"""
-        
-        return html_template
-    
-    def _get_css_styles(self) -> str:
-        """Get CSS styles for the HTML documentation."""
-        return """
         :root {
             --primary-color: #2563eb;
             --secondary-color: #64748b;
@@ -436,11 +282,135 @@ class HTMLGenerator:
             padding: 1rem;
             margin: 1rem 0;
         }
-        """
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-file-alt"></i> ch1kim0n1/DocGenie</h2>
+                <p class="sidebar-subtitle">Documentation</p>
+            </div>
+            <div class="toc">
+                <div class="toc">
+<ul>
+<li><a href="#docgenie">DocGenie</a><ul>
+<li><a href="#entry-points">🏠 Entry Points</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#architecture">Architecture</a><ul>
+<li><a href="#language-distribution">Language Distribution</a></li>
+</ul>
+</li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#contributors">Contributors</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#contact">Contact</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+            </div>
+        </nav>
+        
+        <main class="content">
+            <div class="content-header">
+                <h1 class="main-title">ch1kim0n1/DocGenie</h1>
+                <p class="generation-info">
+                    <i class="fas fa-robot"></i> Generated with DocGenie on August 05, 2025
+                </p>
+            </div>
+            
+            <div class="markdown-content">
+                <h1 id="docgenie">DocGenie<a class="headerlink" href="#docgenie" title="Permanent link">&para;</a></h1>
+<p>A responsive modern web application with modern features and user-friendly interface.</p>
+<p><em>🌐 Website project detected - Documentation format optimized for web applications</em></p>
+<h2 id="entry-points">🏠 Entry Points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>index.html</code> - Main entry point</li>
+</ul>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<ul>
+<li>👥 Collaborative development</li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>See installation instructions below</li>
+</ul>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>├── index.html
+├── README.md
+├── script.js
+└── style.css
+</code></pre></div>
+
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p>This website is built with html and consists of:</p>
+<ul>
+<li><strong>0</strong> functions across the codebase</li>
+<li><strong>0</strong> classes/components</li>
+<li><strong>4</strong> source files analyzed</li>
+<li><strong>4</strong> programming languages used</li>
+</ul>
+<h3 id="language-distribution">Language Distribution<a class="headerlink" href="#language-distribution" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>Html</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Markdown</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Javascript</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Css</strong>: 1 files</p>
+</li>
+</ul>
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Fork the repository</li>
+<li>Create your feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
+<li>Commit your changes (<code>git commit -m 'Add some amazing feature'</code>)</li>
+<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
+<li>Open a Pull Request</li>
+</ol>
+<h2 id="contributors">Contributors<a class="headerlink" href="#contributors" title="Permanent link">&para;</a></h2>
+<p>This project has 2 contributors.</p>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>This project is licensed under the MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
+<h2 id="contact">Contact<a class="headerlink" href="#contact" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Repository: <a href="https://github.com/ch1kim0n1/DocGenie.git">ch1kim0n1/DocGenie</a></p>
+</li>
+<li>
+<p>Latest commit: readme update</p>
+</li>
+</ul>
+<hr />
+<p><em>This README was automatically generated by <a href="https://github.com/docgenie/docgenie">DocGenie</a> on 2025-08-05 17:09:35</em></p>
+            </div>
+            
+            <footer class="content-footer">
+                <p>
+                    <i class="fas fa-magic"></i> 
+                    Documentation automatically generated by 
+                    <a href="https://github.com/your-repo/docgenie" target="_blank">DocGenie</a>
+                </p>
+            </footer>
+        </main>
+    </div>
     
-    def _get_javascript(self) -> str:
-        """Get JavaScript for enhanced functionality."""
-        return """
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -495,15 +465,7 @@ class HTMLGenerator:
         document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
             observer.observe(heading);
         });
-        """
-    
-    def _extract_project_name(self, analysis_data: Dict[str, Any]) -> str:
-        """Extract project name from analysis data."""
-        # Try to get project name from various sources
-        if 'git_info' in analysis_data and analysis_data['git_info'].get('repo_name'):
-            return analysis_data['git_info']['repo_name']
         
-        if 'root_path' in analysis_data:
-            return Path(analysis_data['root_path']).name
-        
-        return "Project Documentation"
+    </script>
+</body>
+</html>

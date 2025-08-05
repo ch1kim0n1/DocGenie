@@ -239,6 +239,60 @@ def format_file_size(size_bytes: int) -> str:
     return f"{size_bytes:.1f} {size_names[i]}"
 
 
+def is_website_project(analysis_data: Dict[str, Any]) -> bool:
+    """
+    Detect if the project is a website/web application.
+    
+    Args:
+        analysis_data: Analysis results
+        
+    Returns:
+        True if website detected, False otherwise
+    """
+    files = analysis_data.get('project_structure', {}).get('root', {}).get('files', [])
+    dependencies = analysis_data.get('dependencies', {})
+    languages = analysis_data.get('languages', {})
+    
+    # Check for common website files
+    website_files = ['index.html', 'index.htm', 'home.html', 'main.html', 'default.html']
+    has_html_entry = any(f in files for f in website_files)
+    
+    # Check for CSS files
+    has_css = any(f.endswith('.css') for f in files)
+    
+    # Check for static website generators
+    static_generators = ['_config.yml', 'gatsby-config.js', 'next.config.js', 'nuxt.config.js', 
+                        'hugo.toml', 'hugo.yaml', '_config.toml', 'mkdocs.yml', 'docusaurus.config.js']
+    has_static_generator = any(f in files for f in static_generators)
+    
+    # Check for web framework dependencies
+    web_frameworks = ['react', 'vue', 'angular', 'svelte', 'gatsby', 'next', 'nuxt', 
+                     'hugo', 'jekyll', 'express', 'koa', 'fastify', 'django', 'flask', 
+                     'fastapi', 'rails', 'sinatra', 'laravel', 'symfony']
+    has_web_framework = any(
+        framework in str(deps).lower() 
+        for deps in dependencies.values() 
+        for framework in web_frameworks
+    )
+    
+    # Check for typical website directory structure
+    structure = analysis_data.get('project_structure', {})
+    web_dirs = ['public', 'static', 'assets', 'dist', 'build', 'www', 'html', 'css', 'js', 'images', 'img']
+    has_web_dirs = any(any(web_dir in path.lower() for web_dir in web_dirs) for path in structure.keys())
+    
+    # Check for high HTML/CSS/JS content
+    web_languages = languages.get('html', 0) + languages.get('css', 0) + languages.get('javascript', 0)
+    total_files = sum(languages.values()) if languages else 1
+    web_ratio = web_languages / total_files if total_files > 0 else 0
+    
+    # Website detection criteria
+    return (has_html_entry or 
+            has_static_generator or 
+            has_web_framework or 
+            (has_css and web_ratio > 0.3) or
+            (has_web_dirs and web_ratio > 0.2))
+
+
 def get_project_type(analysis_data: Dict[str, Any]) -> str:
     """
     Determine the type of project based on analysis data.
@@ -252,6 +306,31 @@ def get_project_type(analysis_data: Dict[str, Any]) -> str:
     languages = analysis_data.get('languages', {})
     dependencies = analysis_data.get('dependencies', {})
     files = analysis_data.get('project_structure', {}).get('root', {}).get('files', [])
+    
+    # First check if it's a website
+    if is_website_project(analysis_data):
+        # Determine specific website type
+        if 'package.json' in files:
+            if any('react' in str(deps).lower() for deps in dependencies.values()):
+                return "React Website"
+            elif any('vue' in str(deps).lower() for deps in dependencies.values()):
+                return "Vue.js Website"
+            elif any('angular' in str(deps).lower() for deps in dependencies.values()):
+                return "Angular Website"
+            elif any('gatsby' in str(deps).lower() for deps in dependencies.values()):
+                return "Gatsby Static Website"
+            elif any('next' in str(deps).lower() for deps in dependencies.values()):
+                return "Next.js Website"
+            else:
+                return "JavaScript Website"
+        elif any(f in files for f in ['_config.yml', 'hugo.toml', 'hugo.yaml']):
+            return "Static Website (Hugo/Jekyll)"
+        elif any('django' in str(deps).lower() for deps in dependencies.values()):
+            return "Django Website"
+        elif any('flask' in str(deps).lower() for deps in dependencies.values()):
+            return "Flask Website"
+        else:
+            return "Website"
     
     # Check for specific project types
     if 'package.json' in files:

@@ -45,6 +45,8 @@ class CodebaseAnalyzer:
         self.documentation_files = []
         self.config_files = []
         self.git_info = {}
+        self.is_website = False
+        self.website_detection_reason = ""
         
     def analyze(self) -> Dict[str, Any]:
         """
@@ -76,6 +78,9 @@ class CodebaseAnalyzer:
         
         # Detect dependencies
         self._detect_dependencies()
+
+        # Detect if it's a website
+        # Website detection moved to utils.py
         
         print(f"✅ Analysis complete! Processed {self.files_analyzed} files")
         print(f"📊 Languages detected: {dict(self.languages.most_common())}")
@@ -98,43 +103,75 @@ class CodebaseAnalyzer:
                     content = f.read()
             except (UnicodeDecodeError, PermissionError):
                 return
+
+            # Handle specific file types
+            if file_path.name == 'package.json':
+                self._parse_package_json(content)
+            elif file_path.name == 'requirements.txt':
+                self._parse_requirements_txt(content)
+            elif file_path.name.endswith(('.yml', '.yaml')):
+                self._parse_yaml(content)
+            elif file_path.name.endswith('.toml'):
+                self._parse_toml(content)
             
-            # Parse based on file type
-            if language in ['python', 'javascript', 'typescript', 'java', 'cpp', 'go', 'rust']:
-                self._parse_source_file(file_path, content, language)
-            elif file_path.name.lower() in ['readme.md', 'readme.rst', 'readme.txt', 'changelog.md', 'contributing.md']:
-                self.documentation_files.append(str(file_path.relative_to(self.root_path)))
-            elif file_path.suffix.lower() in ['.json', '.yaml', '.yml', '.toml', '.ini', '.cfg']:
-                self.config_files.append(str(file_path.relative_to(self.root_path)))
-                
+            # Parse for functions, classes, and imports if it's a source code file
+            if language in self.parser.parsers:
+                parsed_data = self.parser.parse_file(content, language)
+                self.functions.extend(parsed_data.get('functions', []))
+                self.classes.extend(parsed_data.get('classes', []))
+                for imp in parsed_data.get('imports', []):
+                    self.imports[language].add(imp)
         except Exception as e:
-            print(f"⚠️  Warning: Could not analyze {file_path}: {e}")
-    
-    def _parse_source_file(self, file_path: Path, content: str, language: str):
-        """Parse a source code file to extract functions, classes, and imports."""
-        try:
-            parsed_data = self.parser.parse_file(content, language)
-            
-            # Store functions and classes with file context
-            for func in parsed_data.get('functions', []):
-                func['file'] = str(file_path.relative_to(self.root_path))
-                func['language'] = language
-                self.functions.append(func)
-            
-            for cls in parsed_data.get('classes', []):
-                cls['file'] = str(file_path.relative_to(self.root_path))
-                cls['language'] = language
-                self.classes.append(cls)
-            
-            # Store imports
-            for imp in parsed_data.get('imports', []):
-                self.imports[language].add(imp)
-                
-        except Exception as e:
-            print(f"⚠️  Warning: Could not parse {file_path}: {e}")
-    
+            print(f"⚠️  Could not analyze file {file_path}: {e}")
+
+    def _detect_website(self):
+        """Detects if the codebase is a website based on files and dependencies."""
+        website_indicators = {
+            # JavaScript frameworks
+            'react': "React framework detected in package.json",
+            'vue': "Vue.js framework detected in package.json",
+            'angular': "Angular framework detected in package.json",
+            'next': "Next.js framework detected in package.json",
+            'vite': "Vite build tool detected in package.json",
+            'svelte': "Svelte framework detected in package.json",
+            'express': "Express.js framework detected in package.json",
+            # Python frameworks
+            'django': "Django framework detected",
+            'flask': "Flask framework detected",
+            # Other indicators
+            'index.html': "Root index.html found",
+        }
+
+        # Check dependencies from package.json
+        if 'package.json' in self.dependencies:
+            all_deps = {**self.dependencies['package.json'].get('dependencies', {}), 
+                        **self.dependencies['package.json'].get('devDependencies', {})}
+            for dep, reason in website_indicators.items():
+                if dep in all_deps:
+                    self.is_website = True
+                    self.website_detection_reason = reason
+                    return
+
+        # Check dependencies from requirements.txt
+        if 'requirements.txt' in self.dependencies:
+            for dep in self.dependencies['requirements.txt']:
+                if 'django' in dep.lower():
+                    self.is_website = True
+                    self.website_detection_reason = website_indicators['django']
+                    return
+                if 'flask' in dep.lower():
+                    self.is_website = True
+                    self.website_detection_reason = website_indicators['flask']
+                    return
+        
+        # Check for root index.html
+        if (self.root_path / 'index.html').exists():
+            self.is_website = True
+            self.website_detection_reason = website_indicators['index.html']
+            return
+
     def _analyze_project_structure(self):
-        """Analyze the overall project structure."""
+        """Builds a directory tree of the project."""
         structure = {}
         
         for root, dirs, files in os.walk(self.root_path):
@@ -306,11 +343,12 @@ class CodebaseAnalyzer:
         return deps
     
     def _compile_results(self) -> Dict[str, Any]:
-        """Compile all analysis results into a single dictionary."""
+        """Compiles all analysis data into a single dictionary."""
         return {
-            'root_path': str(self.root_path),
+            'project_name': self.root_path.name,
             'files_analyzed': self.files_analyzed,
-            'languages': dict(self.languages),
+            'languages': dict(self.languages.most_common()),
+            'main_language': self.languages.most_common(1)[0][0] if self.languages else 'N/A',
             'dependencies': self.dependencies,
             'project_structure': self.project_structure,
             'functions': self.functions,
@@ -319,6 +357,6 @@ class CodebaseAnalyzer:
             'documentation_files': self.documentation_files,
             'config_files': self.config_files,
             'git_info': self.git_info,
-            'main_language': self.languages.most_common(1)[0][0] if self.languages else 'unknown',
-            'total_languages': len(self.languages),
+            'is_website': self.is_website,
+            'website_detection_reason': self.website_detection_reason,
         }

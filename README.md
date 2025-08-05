@@ -1,4 +1,4 @@
-# DocGenie 🧞
+# DocGenie
 
 **Auto-documentation tool for any codebase - Generate comprehensive README files and beautiful HTML documentation in minutes!**
 
@@ -6,7 +6,7 @@
 
 DocGenie is a powerful Python library that automatically analyzes your codebase and generates comprehensive, professional documentation. Choose between README.md files, beautiful HTML documentation, or both formats. Simply run one command and get detailed documentation with project structure, dependencies, API documentation, and more!
 
-## 🚀 Features
+## Features
 
 - **🔍 Multi-language Support**: Analyzes Python, JavaScript, TypeScript, Java, C++, Go, Rust, and more
 - **📊 Comprehensive Analysis**: Extracts functions, classes, dependencies, and project structure
@@ -19,7 +19,7 @@ DocGenie is a powerful Python library that automatically analyzes your codebase 
 - **🌐 Git Integration**: Includes repository information and contributor statistics
 - **📦 Dependency Analysis**: Supports requirements.txt, package.json, Cargo.toml, go.mod, and more
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.8 or higher
 - Git (optional, for repository information)
@@ -62,14 +62,6 @@ docgenie . --output /path/to/custom/README.md
 ```
 
 ### HTML Documentation Features
-
-DocGenie now supports beautiful HTML documentation with:
-
-- **🎨 Modern Design**: Responsive layout with professional styling
-- **📱 Mobile Friendly**: Works perfectly on all devices
-- **🔍 Interactive Navigation**: Sidebar table of contents with smooth scrolling
-- **💻 Syntax Highlighting**: Code blocks with proper language highlighting
-- **🌙 Multiple Themes**: Built-in themes with more coming soon
 
 ```bash
 # Generate HTML documentation
@@ -211,14 +203,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by the need for better automated documentation tools
 - Built with love for the open-source community
 
-## 📞 Contact
-
-- **GitHub**: [DocGenie Repository](https://github.com/yourusername/DocGenie)
-- **Issues**: [Report bugs or request features](https://github.com/yourusername/DocGenie/issues)
-- **Discussions**: [Join the community](https://github.com/yourusername/DocGenie/discussions)
-
 ---
 
 **⭐ If DocGenie helps you, please star this repository to support the project!**
-
-_Made with 🧞 by the DocGenie team_

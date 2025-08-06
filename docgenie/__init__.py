@@ -11,6 +11,6 @@ __email__ = "contact@docgenie.dev"
 
 from .core import CodebaseAnalyzer
 from .generator import ReadmeGenerator
-from .cli import main
+from .cli import cli
 
-__all__ = ["CodebaseAnalyzer", "ReadmeGenerator", "main"]
+__all__ = ["CodebaseAnalyzer", "ReadmeGenerator", "cli"]

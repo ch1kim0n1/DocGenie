@@ -3,8 +3,10 @@ README.md
 setup.py
 docgenie/__init__.py
 docgenie/cli.py
+docgenie/config.py
 docgenie/core.py
 docgenie/generator.py
+docgenie/html_generator.py
 docgenie/parsers.py
 docgenie/utils.py
 docgenie.egg-info/PKG-INFO

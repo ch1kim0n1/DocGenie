@@ -37,8 +37,7 @@ setup(
     python_requires=">=3.8",
     install_requires=requirements,    entry_points={
         "console_scripts": [
-            "docgenie=docgenie.cli:main",
-            "docgenie-html=convert_to_html:convert_to_html",
+            "docgenie=docgenie.cli:cli",
         ],
     },
     include_package_data=True,

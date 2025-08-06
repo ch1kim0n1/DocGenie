@@ -1,2 +1,2 @@
 [console_scripts]
-docgenie = docgenie.cli:main
+docgenie = docgenie.cli:cli

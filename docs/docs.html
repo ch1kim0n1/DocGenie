@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ch1kim0n1/DocGenie</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --accent-color: #0ea5e9;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-background: #f1f5f9;
+            --sidebar-width: 280px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-background);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .toc {
+            padding: 1.5rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            display: block;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+        
+        .toc a:hover {
+            background-color: var(--code-background);
+            color: var(--primary-color);
+        }
+        
+        .content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 3rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+        
+        .content-header {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .generation-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content {
+            max-width: none;
+        }
+        
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        
+        .markdown-content h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .markdown-content pre {
+            background-color: var(--code-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content code {
+            background-color: var(--code-background);
+            color: var(--text-primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-family: 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            border-radius: 0;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .markdown-content th,
+        .markdown-content td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-content th {
+            background-color: var(--code-background);
+            font-weight: 600;
+        }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            background-color: var(--code-background);
+            padding: 1rem;
+            border-radius: 0.375rem;
+        }
+        
+        .markdown-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .content-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .content {
+                margin-left: 0;
+                padding: 1rem 1.5rem;
+                max-width: 100vw;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Emoji enhancement */
+        .markdown-content h1:before,
+        .markdown-content h2:before {
+            margin-right: 0.5rem;
+        }
+        
+        /* Code syntax highlighting improvements */
+        .highlight {
+            background: var(--code-background) !important;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-file-alt"></i> ch1kim0n1/DocGenie</h2>
+                <p class="sidebar-subtitle">Documentation</p>
+            </div>
+            <div class="toc">
+                <div class="toc">
+<ul>
+<li><a href="#docgenie">DocGenie</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#install-python-dependencies">Install Python dependencies</a></li>
+</ul>
+</li>
+<li><a href="#usage">Usage</a><ul>
+<li><a href="#run-the-application">Run the application</a></li>
+</ul>
+</li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#architecture">Architecture</a><ul>
+<li><a href="#language-distribution">Language Distribution</a></li>
+</ul>
+</li>
+<li><a href="#api-reference">API Reference</a><ul>
+<li><a href="#functions">Functions</a><ul>
+<li><a href="#convert_to_htmlinput_path-output-source-title-force-open_browser-verbose-config">convert_to_html(input_path, output, source, title, force, open_browser, verbose, config)</a></li>
+<li><a href="#cli">cli()</a></li>
+<li><a href="#init_configoutput">init_config(output)</a></li>
+<li><a href="#readme_to_htmlreadme_path-output-title-theme-config">readme_to_html(readme_path, output, title, theme, config)</a></li>
+<li><a href="#codebase_to_htmlcodebase_path-output-config">codebase_to_html(codebase_path, output, config)</a></li>
+<li><a href="#mainpath-output-format-ignore-force-preview-verbose">main(path, output, format, ignore, force, preview, verbose)</a></li>
+<li><a href="#cli_1">cli()</a></li>
+<li><a href="#analyzepath-format">analyze(path, format)</a></li>
+<li><a href="#init">init()</a></li>
+<li><a href="#load_configproject_path">load_config(project_path)</a></li>
+</ul>
+</li>
+<li><a href="#classes">Classes</a><ul>
+<li><a href="#docgenieconfig">DocGenieConfig</a></li>
+<li><a href="#codebaseanalyzer">CodebaseAnalyzer</a></li>
+<li><a href="#readmegenerator">ReadmeGenerator</a></li>
+<li><a href="#htmlgenerator">HTMLGenerator</a></li>
+<li><a href="#languageparser">LanguageParser</a></li>
+<li><a href="#user">User</a></li>
+<li><a href="#usercreate">UserCreate</a></li>
+<li><a href="#task">Task</a></li>
+<li><a href="#userservice">UserService</a></li>
+<li><a href="#taskservice">TaskService</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#dependencies">Dependencies</a><ul>
+<li><a href="#requirementstxt">requirements.txt</a></li>
+</ul>
+</li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#contributors">Contributors</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#contact">Contact</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+            </div>
+        </nav>
+        
+        <main class="content">
+            <div class="content-header">
+                <h1 class="main-title">ch1kim0n1/DocGenie</h1>
+                <p class="generation-info">
+                    <i class="fas fa-robot"></i> Generated with DocGenie on August 06, 2025
+                </p>
+            </div>
+            
+            <div class="markdown-content">
+                <h1 id="docgenie">DocGenie<a class="headerlink" href="#docgenie" title="Permanent link">&para;</a></h1>
+<p>A python command-line tool with comprehensive functionality and modern architecture.</p>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>🏗️ Object-oriented architecture</p>
+</li>
+<li>
+<p>👥 Collaborative development</p>
+</li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Python 3.8 or higher</p>
+</li>
+<li>
+<p>pip</p>
+</li>
+</ul>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="install-python-dependencies">Install Python dependencies<a class="headerlink" href="#install-python-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="run-the-application">Run the application<a class="headerlink" href="#run-the-application" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">main</span><span class="o">.</span><span class="n">py</span>
+</code></pre></div>
+
+<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>├── .docgenie.example.yml
+├── CONFIGURATION_GUIDE.md
+├── convert_to_html.py
+├── HOW_TO_RUN_DOCGENIE.md
+├── HTML_DOCUMENTATION_GUIDE.md
+├── HTML_SYSTEM_OVERVIEW.md
+├── LICENSE
+├── README.md
+├── requirements.txt
+└── setup.py
+<span class="k">...</span> and 2 more files
+├── docgenie/
+│   ├── cli.py
+│   ├── config.py
+│   ├── core.py
+│   ├── generator.py
+│   └── html_generator.py
+├── docs/
+├── examples/
+│   ├── sample_project/
+│   │   ├── docs.html
+│   │   ├── main.py
+│   │   ├── requirements.txt
+│   │   └── utils.py
+│   ├── sample_website/
+│   │   ├── docs.html
+│   │   ├── index.html
+│   │   ├── README.md
+│   │   ├── script.js
+│   │   └── style.css
+</code></pre></div>
+
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p>This python application is built with python and consists of:</p>
+<ul>
+<li><strong>104</strong> functions across the codebase</li>
+<li><strong>11</strong> classes/components</li>
+<li><strong>28</strong> source files analyzed</li>
+<li><strong>7</strong> programming languages used</li>
+</ul>
+<h3 id="language-distribution">Language Distribution<a class="headerlink" href="#language-distribution" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>Python</strong>: 12 files</p>
+</li>
+<li>
+<p><strong>Markdown</strong>: 6 files</p>
+</li>
+<li>
+<p><strong>Yaml</strong>: 3 files</p>
+</li>
+<li>
+<p><strong>Html</strong>: 3 files</p>
+</li>
+<li>
+<p><strong>Text</strong>: 2 files</p>
+</li>
+<li>
+<p><strong>Javascript</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Css</strong>: 1 files</p>
+</li>
+</ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<h4 id="convert_to_htmlinput_path-output-source-title-force-open_browser-verbose-config"><code>convert_to_html(input_path, output, source, title, force, open_browser, verbose, config)</code><a class="headerlink" href="#convert_to_htmlinput_path-output-source-title-force-open_browser-verbose-config" title="Permanent link">&para;</a></h4>
+<p>Convert README.md to HTML documentation or generate HTML from codebase analysis.</p>
+<p>INPUT_PATH: Path to README.md file or codebase directory</p>
+<h4 id="cli"><code>cli()</code><a class="headerlink" href="#cli" title="Permanent link">&para;</a></h4>
+<p>DocGenie HTML Documentation Tools.</p>
+<h4 id="init_configoutput"><code>init_config(output)</code><a class="headerlink" href="#init_configoutput" title="Permanent link">&para;</a></h4>
+<p>Create a sample configuration file.</p>
+<h4 id="readme_to_htmlreadme_path-output-title-theme-config"><code>readme_to_html(readme_path, output, title, theme, config)</code><a class="headerlink" href="#readme_to_htmlreadme_path-output-title-theme-config" title="Permanent link">&para;</a></h4>
+<p>Convert a README.md file to HTML documentation.</p>
+<h4 id="codebase_to_htmlcodebase_path-output-config"><code>codebase_to_html(codebase_path, output, config)</code><a class="headerlink" href="#codebase_to_htmlcodebase_path-output-config" title="Permanent link">&para;</a></h4>
+<p>Generate HTML documentation from codebase analysis.</p>
+<h4 id="mainpath-output-format-ignore-force-preview-verbose"><code>main(path, output, format, ignore, force, preview, verbose)</code><a class="headerlink" href="#mainpath-output-format-ignore-force-preview-verbose" title="Permanent link">&para;</a></h4>
+<p>DocGenie - Auto-documentation tool for codebases.</p>
+<p>Generate comprehensive documentation for any codebase by analyzing
+source code, dependencies, and project structure. Output as README.md,
+HTML documentation, or both formats.</p>
+<p>PATH: Path to the codebase to analyze (default: current directory)</p>
+<h4 id="cli_1"><code>cli()</code><a class="headerlink" href="#cli_1" title="Permanent link">&para;</a></h4>
+<p>DocGenie - Auto-documentation tool for codebases.</p>
+<h4 id="analyzepath-format"><code>analyze(path, format)</code><a class="headerlink" href="#analyzepath-format" title="Permanent link">&para;</a></h4>
+<p>Analyze a codebase and output detailed information.</p>
+<p>This command performs the same analysis as the main command but outputs
+the raw analysis data instead of generating a README.</p>
+<h4 id="init"><code>init()</code><a class="headerlink" href="#init" title="Permanent link">&para;</a></h4>
+<p>Initialize a new project with a basic README template.</p>
+<p>Creates a basic README.md file with standard sections that can be
+customized manually.</p>
+<h4 id="load_configproject_path"><code>load_config(project_path)</code><a class="headerlink" href="#load_configproject_path" title="Permanent link">&para;</a></h4>
+<p>Load DocGenie configuration.</p>
+<p>Args:
+    project_path: Path to the project directory</p>
+<p>Returns:
+    DocGenieConfig instance</p>
+<h3 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h3>
+<h4 id="docgenieconfig"><code>DocGenieConfig</code><a class="headerlink" href="#docgenieconfig" title="Permanent link">&para;</a></h4>
+<p>Configuration manager for DocGenie HTML converter.</p>
+<p>Supports configuration files in YAML, JSON, and TOML formats.
+Configuration is loaded in this priority order:
+1. Command line arguments (highest priority)
+2. Environment variables
+3. Project-specific config file (.docgenie.yml, .docgenie.json, .docgenie.toml)
+4. User-specific config file (~/.docgenie/config.yml)
+5. Default values (lowest priority)</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, project_path)</code></p>
+</li>
+<li>
+<p><code>_load_config(self)</code></p>
+</li>
+<li>
+<p><code>_load_user_config(self)</code></p>
+</li>
+<li>
+<p><code>_load_project_config(self)</code></p>
+</li>
+<li>
+<p><code>_load_env_config(self)</code></p>
+</li>
+</ul>
+<h4 id="codebaseanalyzer"><code>CodebaseAnalyzer</code><a class="headerlink" href="#codebaseanalyzer" title="Permanent link">&para;</a></h4>
+<p>Analyzes a codebase to extract comprehensive information for documentation generation.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, root_path, ignore_patterns, config)</code></p>
+</li>
+<li>
+<p><code>analyze(self)</code></p>
+</li>
+<li>
+<p><code>_analyze_file(self, file_path)</code></p>
+</li>
+<li>
+<p><code>_detect_website(self)</code></p>
+</li>
+<li>
+<p><code>_analyze_project_structure(self)</code></p>
+</li>
+</ul>
+<h4 id="readmegenerator"><code>ReadmeGenerator</code><a class="headerlink" href="#readmegenerator" title="Permanent link">&para;</a></h4>
+<p>Generates comprehensive README.md files based on codebase analysis.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self)</code></p>
+</li>
+<li>
+<p><code>generate(self, analysis_data, output_path)</code></p>
+</li>
+<li>
+<p><code>_prepare_context(self, analysis_data)</code></p>
+</li>
+<li>
+<p><code>_get_project_name(self, analysis_data)</code></p>
+</li>
+<li>
+<p><code>_generate_description(self, analysis_data)</code></p>
+</li>
+</ul>
+<h4 id="htmlgenerator"><code>HTMLGenerator</code><a class="headerlink" href="#htmlgenerator" title="Permanent link">&para;</a></h4>
+<p>Generates beautiful HTML documentation from README content or analysis data.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self)</code></p>
+</li>
+<li>
+<p><code>generate_from_readme(self, readme_content, output_path, project_name)</code></p>
+</li>
+<li>
+<p><code>generate_from_analysis(self, analysis_data, output_path)</code></p>
+</li>
+<li>
+<p><code>_create_html_document(self, content, project_name)</code></p>
+</li>
+<li>
+<p><code>_get_css_styles(self)</code></p>
+</li>
+</ul>
+<h4 id="languageparser"><code>LanguageParser</code><a class="headerlink" href="#languageparser" title="Permanent link">&para;</a></h4>
+<p>Multi-language parser that extracts functions, classes, and imports from source code.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self)</code></p>
+</li>
+<li>
+<p><code>parse_file(self, content, language)</code></p>
+</li>
+<li>
+<p><code>_parse_python(self, content)</code></p>
+</li>
+<li>
+<p><code>_get_decorator_name(self, decorator)</code></p>
+</li>
+<li>
+<p><code>_get_base_name(self, base)</code></p>
+</li>
+</ul>
+<h4 id="user"><code>User</code><a class="headerlink" href="#user" title="Permanent link">&para;</a></h4>
+<p>User model for the API.</p>
+<h4 id="usercreate"><code>UserCreate</code><a class="headerlink" href="#usercreate" title="Permanent link">&para;</a></h4>
+<p>Model for creating new users.</p>
+<h4 id="task"><code>Task</code><a class="headerlink" href="#task" title="Permanent link">&para;</a></h4>
+<p>Task model.</p>
+<h4 id="userservice"><code>UserService</code><a class="headerlink" href="#userservice" title="Permanent link">&para;</a></h4>
+<p>Service class for user operations.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, db_connection)</code></p>
+</li>
+<li>
+<p><code>create_user(self, user_data)</code></p>
+</li>
+<li>
+<p><code>get_user(self, user_id)</code></p>
+</li>
+<li>
+<p><code>list_users(self)</code></p>
+</li>
+</ul>
+<h4 id="taskservice"><code>TaskService</code><a class="headerlink" href="#taskservice" title="Permanent link">&para;</a></h4>
+<p>Service class for task operations.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, db_connection)</code></p>
+</li>
+<li>
+<p><code>get_task(self, task_id)</code></p>
+</li>
+<li>
+<p><code>complete_task(self, task_id)</code></p>
+</li>
+</ul>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<h3 id="requirementstxt">requirements.txt<a class="headerlink" href="#requirementstxt" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>click</p>
+</li>
+<li>
+<p>gitpython</p>
+</li>
+<li>
+<p>tree-sitter</p>
+</li>
+<li>
+<p>tree-sitter-python</p>
+</li>
+<li>
+<p>tree-sitter-javascript</p>
+</li>
+<li>
+<p>tree-sitter-java</p>
+</li>
+<li>
+<p>tree-sitter-cpp</p>
+</li>
+<li>
+<p>tree-sitter-go</p>
+</li>
+<li>
+<p>tree-sitter-rust</p>
+</li>
+<li>
+<p>jinja2</p>
+</li>
+<li>
+<p>pyyaml</p>
+</li>
+<li>
+<p>toml</p>
+</li>
+<li>
+<p>tomli</p>
+</li>
+<li>
+<p>pygments</p>
+</li>
+<li>
+<p>pathspec</p>
+</li>
+<li>
+<p>requests</p>
+</li>
+<li>
+<p>markdown</p>
+</li>
+</ul>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
+<p>This project includes comprehensive tests. Run them with:</p>
+<div class="highlight"><pre><span></span><code>pytest
+</code></pre></div>
+
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>Configuration files:</p>
+<ul>
+<li>
+<p><code>{'path': 'C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\.docgenie.example.yml', 'type': 'yaml', 'data': {'output': {'directory': 'documentation', 'filename': 'index.html', 'theme': 'default'}, 'generation': {'title': 'My Project Documentation', 'force_overwrite': False, 'open_browser': True, 'verbose': True}, 'codebase': {'exclude_patterns': ['.git/**', '__pycache__/**', 'node_modules/**', '.venv/**', 'venv/**', 'build/**', 'dist/**', 'target/**', '.idea/**', '.vscode/**', '*.pyc', '*.pyo', '*.log', '*.min.js', '*.min.css', 'coverage/**', '.pytest_cache/**', '*.egg-info/**', 'temp/**', 'backup/**'], 'exclude_files': ['secret_config.py', 'temp_file.py'], 'exclude_directories': ['private_docs', 'legacy_code'], 'include_patterns': ['src/important_file.py', 'docs/**/*.md']}, 'html': {'custom_css': 'assets/custom.css', 'custom_js': 'assets/custom.js', 'favicon': 'assets/favicon.ico', 'meta_description': 'Comprehensive documentation for my amazing project', 'meta_keywords': 'documentation, project, api, guide'}}}</code></p>
+</li>
+<li>
+<p><code>{'path': 'C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\test-config.yml', 'type': 'yaml', 'data': {'output': {'directory': 'docs', 'filename': 'docs.html', 'theme': 'default'}, 'generation': {'title': None, 'force_overwrite': False, 'open_browser': False, 'verbose': False}, 'codebase': {'exclude_patterns': ['.git/**', '__pycache__/**', 'node_modules/**', '.venv/**', 'venv/**', 'build/**', 'dist/**', 'target/**', '.idea/**', '.vscode/**', '*.pyc', '*.pyo', '*.log', '*.min.js', '*.min.css', 'coverage/**', '.pytest_cache/**', '*.egg-info/**'], 'exclude_files': None, 'exclude_directories': None, 'include_patterns': None}, 'html': {'custom_css': None, 'custom_js': None, 'favicon': None, 'meta_description': None, 'meta_keywords': None}}}</code></p>
+</li>
+<li>
+<p><code>{'path': 'C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\test-docgenie.yml', 'type': 'yaml', 'data': {'output': {'directory': 'test-docs', 'filename': 'my-documentation.html', 'theme': 'default'}, 'generation': {'title': 'DocGenie Test Documentation', 'verbose': True, 'open_browser': False}, 'codebase': {'exclude_patterns': ['__pycache__/**', 'test-config.yml', 'test-docs/**'], 'exclude_files': ['convert_to_html.py'], 'include_patterns': ['docgenie/**/*.py']}}}</code></p>
+</li>
+</ul>
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Fork the repository</li>
+<li>Create your feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
+<li>Commit your changes (<code>git commit -m 'Add some amazing feature'</code>)</li>
+<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
+<li>Open a Pull Request</li>
+</ol>
+<h2 id="contributors">Contributors<a class="headerlink" href="#contributors" title="Permanent link">&para;</a></h2>
+<p>This project has 2 contributors.</p>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>This project is licensed under the MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
+<h2 id="contact">Contact<a class="headerlink" href="#contact" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Repository: <a href="https://github.com/ch1kim0n1/DocGenie.git">ch1kim0n1/DocGenie</a></p>
+</li>
+<li>
+<p>Latest commit: web-doc support</p>
+</li>
+</ul>
+<hr />
+<p><em>This README was automatically generated by <a href="https://github.com/docgenie/docgenie">DocGenie</a> on 2025-08-06 14:00:53</em></p>
+            </div>
+            
+            <footer class="content-footer">
+                <p>
+                    <i class="fas fa-magic"></i> 
+                    Documentation automatically generated by 
+                    <a href="https://github.com/your-repo/docgenie" target="_blank">DocGenie</a>
+                </p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // Add mobile menu button if needed
+        if (window.innerWidth <= 768) {
+            const menuButton = document.createElement('button');
+            menuButton.innerHTML = '<i class="fas fa-bars"></i>';
+            menuButton.className = 'mobile-menu-btn';
+            menuButton.onclick = toggleSidebar;
+            document.body.appendChild(menuButton);
+        }
+        
+        // Highlight current section in TOC
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    if (id) {
+                        // Remove active class from all TOC links
+                        document.querySelectorAll('.toc a').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                        
+                        // Add active class to current link
+                        const currentLink = document.querySelector(`.toc a[href="#${id}"]`);
+                        if (currentLink) {
+                            currentLink.classList.add('active');
+                        }
+                    }
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        // Observe all headings
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+            observer.observe(heading);
+        });
+        
+    </script>
+</body>
+</html>

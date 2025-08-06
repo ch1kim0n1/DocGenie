@@ -1,0 +1,63 @@
+# DocGenie Configuration Example
+# This file demonstrates the configuration options available in DocGenie
+
+# Output configuration
+output:
+  directory: documentation        # Output directory for HTML files
+  filename: index.html           # Output filename
+  theme: default                 # HTML theme: default, dark, minimal
+
+# Generation settings
+generation:
+  title: "My Project Documentation"  # Custom title for documentation
+  force_overwrite: false            # Always overwrite existing files without prompting
+  open_browser: true                # Open generated HTML in browser automatically
+  verbose: true                     # Enable verbose output
+
+# Codebase analysis configuration
+codebase:
+  # Patterns to exclude from analysis (supports glob patterns)
+  exclude_patterns:
+    - .git/**
+    - __pycache__/**
+    - node_modules/**
+    - .venv/**
+    - venv/**
+    - build/**
+    - dist/**
+    - target/**
+    - .idea/**
+    - .vscode/**
+    - "*.pyc"
+    - "*.pyo"
+    - "*.log"
+    - "*.min.js"
+    - "*.min.css"
+    - coverage/**
+    - .pytest_cache/**
+    - "*.egg-info/**"
+    - temp/**
+    - backup/**
+  
+  # Specific files to exclude
+  exclude_files:
+    - secret_config.py
+    - temp_file.py
+  
+  # Specific directories to exclude  
+  exclude_directories:
+    - private_docs
+    - legacy_code
+  
+  # Patterns to explicitly include (overrides exclude patterns)
+  include_patterns:
+    - "src/important_file.py"
+    - "docs/**/*.md"
+
+# HTML customization
+html:
+  custom_css: assets/custom.css      # Path to custom CSS file
+  custom_js: assets/custom.js        # Path to custom JavaScript file
+  favicon: assets/favicon.ico        # Path to favicon file
+  meta_description: "Comprehensive documentation for my amazing project"
+  meta_keywords: "documentation, project, api, guide"

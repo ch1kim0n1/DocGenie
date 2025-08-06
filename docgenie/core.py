@@ -15,6 +15,7 @@ import subprocess
 
 from .parsers import LanguageParser
 from .utils import get_file_language, should_ignore_file, extract_git_info
+from .config import DocGenieConfig
 
 
 class CodebaseAnalyzer:
@@ -22,16 +23,22 @@ class CodebaseAnalyzer:
     Analyzes a codebase to extract comprehensive information for documentation generation.
     """
     
-    def __init__(self, root_path: str, ignore_patterns: Optional[List[str]] = None):
+    def __init__(self, root_path: str, ignore_patterns: Optional[List[str]] = None, config: Optional[DocGenieConfig] = None):
         """
         Initialize the analyzer with a root path and optional ignore patterns.
         
         Args:
             root_path: Path to the root of the codebase
             ignore_patterns: Additional patterns to ignore beyond standard ones
+            config: DocGenie configuration instance
         """
         self.root_path = Path(root_path).resolve()
-        self.ignore_patterns = ignore_patterns or []
+        self.config = config or DocGenieConfig(root_path)
+        
+        # Combine ignore patterns from config and parameters
+        config_patterns = self.config.get_exclude_patterns()
+        self.ignore_patterns = config_patterns + (ignore_patterns or [])
+        
         self.parser = LanguageParser()
         
         # Analysis results
@@ -59,16 +66,19 @@ class CodebaseAnalyzer:
         
         # Extract git information
         self.git_info = extract_git_info(self.root_path)
+          # Walk through all files
+        include_patterns = self.config.get_include_patterns()
         
-        # Walk through all files
         for root, dirs, files in os.walk(self.root_path):
             # Filter out ignored directories
-            dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
+            dirs[:] = [d for d in dirs if not should_ignore_file(
+                os.path.join(root, d), self.ignore_patterns, include_patterns, str(self.root_path)
+            )]
             
             for file in files:
                 file_path = Path(root) / file
                 
-                if should_ignore_file(str(file_path), self.ignore_patterns):
+                if should_ignore_file(str(file_path), self.ignore_patterns, include_patterns, str(self.root_path)):
                     continue
                 
                 self._analyze_file(file_path)
@@ -102,17 +112,15 @@ class CodebaseAnalyzer:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
             except (UnicodeDecodeError, PermissionError):
-                return
-
-            # Handle specific file types
+                return            # Handle specific file types
             if file_path.name == 'package.json':
-                self._parse_package_json(content)
+                self._parse_package_json(file_path)
             elif file_path.name == 'requirements.txt':
-                self._parse_requirements_txt(content)
+                self._parse_requirements_txt(file_path)
             elif file_path.name.endswith(('.yml', '.yaml')):
-                self._parse_yaml(content)
+                self._parse_yaml(file_path)
             elif file_path.name.endswith('.toml'):
-                self._parse_toml(content)
+                self._parse_toml(file_path)
             
             # Parse for functions, classes, and imports if it's a source code file
             if language in self.parser.parsers:
@@ -173,10 +181,13 @@ class CodebaseAnalyzer:
     def _analyze_project_structure(self):
         """Builds a directory tree of the project."""
         structure = {}
+        include_patterns = self.config.get_include_patterns()
         
         for root, dirs, files in os.walk(self.root_path):
             # Filter ignored directories
-            dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
+            dirs[:] = [d for d in dirs if not should_ignore_file(
+                os.path.join(root, d), self.ignore_patterns, include_patterns, str(self.root_path)
+            )]
             
             level = root.replace(str(self.root_path), '').count(os.sep)
             indent = ' ' * 2 * level
@@ -184,12 +195,16 @@ class CodebaseAnalyzer:
             
             if rel_path == '.':
                 structure['root'] = {
-                    'files': [f for f in files if not should_ignore_file(f, self.ignore_patterns)],
+                    'files': [f for f in files if not should_ignore_file(
+                        os.path.join(root, f), self.ignore_patterns, include_patterns, str(self.root_path)
+                    )],
                     'dirs': dirs
                 }
             else:
                 structure[rel_path] = {
-                    'files': [f for f in files if not should_ignore_file(f, self.ignore_patterns)],
+                    'files': [f for f in files if not should_ignore_file(
+                        os.path.join(root, f), self.ignore_patterns, include_patterns, str(self.root_path)
+                    )],
                     'dirs': dirs
                 }
         
@@ -342,6 +357,42 @@ class CodebaseAnalyzer:
         
         return deps
     
+    def _parse_yaml(self, file_path: Path) -> Dict[str, Any]:
+        """Parse YAML configuration files."""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f)
+            
+            # Store as config file
+            self.config_files.append({
+                'path': str(file_path),
+                'type': 'yaml',
+                'data': data
+            })
+            
+            return data or {}
+        except Exception as e:
+            print(f"⚠️  Warning: Could not parse YAML file {file_path}: {e}")
+            return {}
+    
+    def _parse_toml(self, file_path: Path) -> Dict[str, Any]:
+        """Parse TOML configuration files."""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = toml.load(f)
+            
+            # Store as config file  
+            self.config_files.append({
+                'path': str(file_path),
+                'type': 'toml',
+                'data': data
+            })
+            
+            return data
+        except Exception as e:
+            print(f"⚠️  Warning: Could not parse TOML file {file_path}: {e}")
+            return {}
+
     def _compile_results(self) -> Dict[str, Any]:
         """Compiles all analysis data into a single dictionary."""
         return {

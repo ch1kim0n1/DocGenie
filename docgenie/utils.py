@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 import fnmatch
+import pathspec
 
 
 # Default ignore patterns
@@ -90,13 +91,16 @@ def get_file_language(file_path: Path) -> Optional[str]:
     return LANGUAGE_EXTENSIONS.get(suffix)
 
 
-def should_ignore_file(file_path: str, additional_patterns: Optional[List[str]] = None) -> bool:
+def should_ignore_file(file_path: str, additional_patterns: Optional[List[str]] = None, 
+                      include_patterns: Optional[List[str]] = None, root_path: Optional[str] = None) -> bool:
     """
     Check if a file or directory should be ignored based on ignore patterns.
     
     Args:
         file_path: Path to check
         additional_patterns: Additional patterns to check
+        include_patterns: Patterns that should be explicitly included (overrides ignore)
+        root_path: Root path for relative pattern matching
         
     Returns:
         True if the file should be ignored
@@ -105,15 +109,39 @@ def should_ignore_file(file_path: str, additional_patterns: Optional[List[str]] 
     if additional_patterns:
         patterns.extend(additional_patterns)
     
-    file_path = str(file_path)
+    file_path_str = str(file_path)
     
-    # Check against all patterns
+    # Make path relative to root_path if provided
+    if root_path:
+        try:
+            relative_path = os.path.relpath(file_path_str, root_path)
+            # Use relative path for pattern matching
+            check_path = relative_path.replace(os.sep, '/')
+        except ValueError:
+            # If paths are on different drives, use absolute path
+            check_path = file_path_str.replace(os.sep, '/')
+    else:
+        check_path = file_path_str.replace(os.sep, '/')
+    
+    # Check include patterns first (they override ignore patterns)
+    if include_patterns:
+        include_spec = pathspec.PathSpec.from_lines('gitwildmatch', include_patterns)
+        if include_spec.match_file(check_path):
+            return False
+    
+    # Check ignore patterns using pathspec for better glob support
+    if patterns:
+        ignore_spec = pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+        if ignore_spec.match_file(check_path):
+            return True
+    
+    # Fallback to original fnmatch logic for backward compatibility
     for pattern in patterns:
-        if fnmatch.fnmatch(file_path, pattern) or fnmatch.fnmatch(os.path.basename(file_path), pattern):
+        if fnmatch.fnmatch(file_path_str, pattern) or fnmatch.fnmatch(os.path.basename(file_path_str), pattern):
             return True
         
         # Check if any part of the path matches the pattern
-        path_parts = file_path.split(os.sep)
+        path_parts = file_path_str.split(os.sep)
         for part in path_parts:
             if fnmatch.fnmatch(part, pattern):
                 return True

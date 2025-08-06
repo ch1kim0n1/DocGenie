@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ch1kim0n1/DocGenie - Comprehensive Documentation</title>
+    <meta name="description" content="Detailed technical documentation for ch1kim0n1/DocGenie with comprehensive API reference, complexity analysis, and architectural insights.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --accent-color: #0ea5e9;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-background: #f1f5f9;
+            --sidebar-width: 280px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-background);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .toc {
+            padding: 1.5rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            display: block;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+        
+        .toc a:hover {
+            background-color: var(--code-background);
+            color: var(--primary-color);
+        }
+        
+        .content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 3rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+        
+        .content-header {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .generation-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content {
+            max-width: none;
+        }
+        
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        
+        .markdown-content h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .markdown-content pre {
+            background-color: var(--code-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content code {
+            background-color: var(--code-background);
+            color: var(--text-primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-family: 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            border-radius: 0;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .markdown-content th,
+        .markdown-content td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-content th {
+            background-color: var(--code-background);
+            font-weight: 600;
+        }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            background-color: var(--code-background);
+            padding: 1rem;
+            border-radius: 0.375rem;
+        }
+        
+        .markdown-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .content-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .content {
+                margin-left: 0;
+                padding: 1rem 1.5rem;
+                max-width: 100vw;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Emoji enhancement */
+        .markdown-content h1:before,
+        .markdown-content h2:before {
+            margin-right: 0.5rem;
+        }
+        
+        /* Code syntax highlighting improvements */
+        .highlight {
+            background: var(--code-background) !important;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .stats-sidebar {
+            padding: 1rem;
+            background: var(--code-background);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-sidebar h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-number {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .project-badges {
+            margin-bottom: 1rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        
+        .badge-language {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .badge-complexity {
+            color: white;
+        }
+        
+        .badge-basic { background-color: #10b981; }
+        .badge-intermediate { background-color: #f59e0b; }
+        .badge-advanced { background-color: #ef4444; }
+        .badge-expert { background-color: #7c3aed; }
+        
+        .analysis-summary {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-code-branch"></i> ch1kim0n1/DocGenie</h2>
+                <p class="sidebar-subtitle">Technical Documentation</p>
+            </div>
+            
+            
+            <div class="stats-sidebar">
+                <h3><i class="fas fa-chart-bar"></i> Project Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-number">24</span>
+                    <span class="stat-label">Functions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">23</span>
+                    <span class="stat-label">Classes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">7</span>
+                    <span class="stat-label">Languages</span>
+                </div>
+            </div>
+        
+            
+            <div class="toc">
+                <h3><i class="fas fa-list"></i> Table of Contents</h3>
+                <div class="toc">
+<ul>
+<li><a href="#polyglot_test-comprehensive-documentation">polyglot_test - Comprehensive Documentation</a><ul>
+<li><a href="#project-overview">Project Overview</a><ul>
+<li><a href="#project-characteristics">Project Characteristics</a></li>
+<li><a href="#language-distribution-analysis">Language Distribution Analysis</a></li>
+<li><a href="#project-architecture-summary">Project Architecture Summary</a></li>
+</ul>
+</li>
+<li><a href="#architecture-deep-dive">Architecture Deep Dive</a><ul>
+<li><a href="#system-architecture">System Architecture</a><ul>
+<li><a href="#component-overview">Component Overview</a></li>
+<li><a href="#identified-design-patterns">Identified Design Patterns</a></li>
+</ul>
+</li>
+<li><a href="#code-organization-strategy">Code Organization Strategy</a><ul>
+<li><a href="#module-structure-analysis">Module Structure Analysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#file-by-file-analysis">File-by-File Analysis</a><ul>
+<li><a href="#source-code-structure">Source Code Structure</a><ul>
+<li><a href="#go-files-1-files">Go Files (1 files)</a></li>
+<li><a href="#python-files-1-files">Python Files (1 files)</a></li>
+<li><a href="#markdown-files-1-files">Markdown Files (1 files)</a></li>
+<li><a href="#typescript-files-1-files">Typescript Files (1 files)</a></li>
+<li><a href="#java-files-1-files">Java Files (1 files)</a></li>
+<li><a href="#csharp-files-1-files">Csharp Files (1 files)</a></li>
+<li><a href="#javascript-files-1-files">Javascript Files (1 files)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#api-documentation">API Documentation</a><ul>
+<li><a href="#functions-and-methods-reference">Functions and Methods Reference</a></li>
+<li><a href="#complex-functions-detailed-analysis">Complex Functions (Detailed Analysis)</a><ul>
+<li><a href="#calculatehash-complex-function">calculateHash() - Complex Function</a></li>
+<li><a href="#calculate_metrics-complex-function">calculate_metrics() - Complex Function</a></li>
+<li><a href="#load_data-complex-function">load_data() - Complex Function</a></li>
+<li><a href="#processdata-complex-function">processData() - Complex Function</a></li>
+<li><a href="#calculatestats-complex-function">calculateStats() - Complex Function</a></li>
+</ul>
+</li>
+<li><a href="#classes-and-objects">Classes and Objects</a><ul>
+<li><a href="#user-class">User Class</a></li>
+<li><a href="#userservice-class">UserService Class</a></li>
+<li><a href="#cacheservice-class">CacheService Class</a></li>
+<li><a href="#httphandler-class">HTTPHandler Class</a></li>
+<li><a href="#dataprocessor-class">DataProcessor Class</a></li>
+<li><a href="#userservice-class_1">UserService Class</a></li>
+<li><a href="#apiutils-class">ApiUtils Class</a></li>
+<li><a href="#user-class_1">User Class</a></li>
+<li><a href="#role-class">Role Class</a></li>
+<li><a href="#permission-class">Permission Class</a></li>
+</ul>
+</li>
+<li><a href="#standard-functions">Standard Functions</a><ul>
+<li><a href="#newuserservice">NewUserService()</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#line-34-implements-functionality">Line 34 - Implements functionality</a><ul>
+<li><a href="#createuser">CreateUser()</a></li>
+</ul>
+</li>
+<li><a href="#line-43-creates-objects">Line 43 - Creates objects</a><ul>
+<li><a href="#getuser">GetUser()</a></li>
+</ul>
+</li>
+<li><a href="#line-66-retrieves-data">Line 66 - Retrieves data</a><ul>
+<li><a href="#getallusers">GetAllUsers()</a></li>
+</ul>
+</li>
+<li><a href="#line-79-retrieves-data">Line 79 - Retrieves data</a><ul>
+<li><a href="#updateuser">UpdateUser()</a></li>
+</ul>
+</li>
+<li><a href="#line-92-implements-functionality">Line 92 - Implements functionality</a><ul>
+<li><a href="#deleteuser">DeleteUser()</a></li>
+</ul>
+</li>
+<li><a href="#line-113-implements-functionality">Line 113 - Implements functionality</a><ul>
+<li><a href="#newcacheservice">NewCacheService()</a></li>
+</ul>
+</li>
+<li><a href="#line-131-implements-functionality">Line 131 - Implements functionality</a><ul>
+<li><a href="#set">Set()</a></li>
+</ul>
+</li>
+<li><a href="#line-142-sets-values">Line 142 - Sets values</a><ul>
+<li><a href="#get">Get()</a></li>
+</ul>
+</li>
+<li><a href="#line-152-retrieves-data">Line 152 - Retrieves data</a><ul>
+<li><a href="#newhttphandler">NewHTTPHandler()</a></li>
+</ul>
+</li>
+<li><a href="#line-168-implements-functionality">Line 168 - Implements functionality</a><ul>
+<li><a href="#getusers">GetUsers()</a></li>
+</ul>
+</li>
+<li><a href="#line-176-retrieves-data">Line 176 - Retrieves data</a><ul>
+<li><a href="#getuser_1">GetUser()</a></li>
+</ul>
+</li>
+<li><a href="#line-184-retrieves-data">Line 184 - Retrieves data</a><ul>
+<li><a href="#createuser_1">CreateUser()</a></li>
+</ul>
+</li>
+<li><a href="#line-202-creates-objects">Line 202 - Creates objects</a><ul>
+<li><a href="#setuproutes">setupRoutes()</a></li>
+</ul>
+</li>
+<li><a href="#line-225-sets-values">Line 225 - Sets values</a><ul>
+<li><a href="#main">main()</a></li>
+</ul>
+</li>
+<li><a href="#line-236-implements-functionality">Line 236 - Implements functionality</a><ul>
+<li><a href="#validateemail">validateEmail()</a></li>
+</ul>
+</li>
+<li><a href="#line-257-implements-functionality">Line 257 - Implements functionality</a><ul>
+<li><a href="#contains">contains()</a></li>
+</ul>
+</li>
+<li><a href="#line-263-implements-functionality">Line 263 - Implements functionality</a><ul>
+<li><a href="#__init__self-config">__init__(self, config)</a></li>
+</ul>
+</li>
+<li><a href="#line-13-implements-functionality">Line 13 - Implements functionality</a><ul>
+<li><a href="#multiplya-b">multiply(a, b)</a></li>
+</ul>
+</li>
+<li><a href="#line-113-implements-functionality_1">Line 113 - Implements functionality</a></li>
+<li><a href="#complexity-analysis">Complexity Analysis</a><ul>
+<li><a href="#code-complexity-metrics">Code Complexity Metrics</a></li>
+<li><a href="#overall-complexity-metrics">Overall Complexity Metrics</a></li>
+<li><a href="#complexity-distribution">Complexity Distribution</a></li>
+<li><a href="#optimization-recommendations">Optimization Recommendations</a></li>
+</ul>
+</li>
+<li><a href="#dependencies-and-integration">Dependencies and Integration</a><ul>
+<li><a href="#external-dependencies-analysis">External Dependencies Analysis</a></li>
+<li><a href="#import-pattern-analysis">Import Pattern Analysis</a></li>
+</ul>
+</li>
+<li><a href="#usage-examples-and-patterns">Usage Examples and Patterns</a><ul>
+<li><a href="#getting-started">Getting Started</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+            </div>
+        </nav>
+        
+        <main class="content">
+            <div class="content-header">
+                <h1 class="main-title">ch1kim0n1/DocGenie</h1>
+                <div class="project-badges">
+                    
+            <span class="badge badge-language">go</span>
+            <span class="badge badge-complexity badge-expert">Expert</span>
+        
+                </div>
+                <p class="generation-info">
+                    <i class="fas fa-robot"></i> Comprehensive analysis generated by DocGenie on August 06, 2025 at 02:27 PM
+                </p>
+            </div>
+            
+            <div class="markdown-content">
+                <h1 id="polyglot_test-comprehensive-documentation">polyglot_test - Comprehensive Documentation<a class="headerlink" href="#polyglot_test-comprehensive-documentation" title="Permanent link">&para;</a></h1>
+<h2 id="project-overview">Project Overview<a class="headerlink" href="#project-overview" title="Permanent link">&para;</a></h2>
+<p><strong>polyglot_test</strong> is a go application that demonstrates expert software architecture and design patterns. This project has been automatically analyzed to provide you with detailed insights into its structure, functionality, and implementation details.</p>
+<h3 id="project-characteristics">Project Characteristics<a class="headerlink" href="#project-characteristics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Primary Language</strong>: go</li>
+<li><strong>Project Type</strong>: Go Service</li>
+<li><strong>Complexity Level</strong>: expert</li>
+<li><strong>Files Analyzed</strong>: 7 source files</li>
+<li><strong>Multi-language Support</strong>: Yes (7 languages detected)</li>
+</ul>
+<h3 id="language-distribution-analysis">Language Distribution Analysis<a class="headerlink" href="#language-distribution-analysis" title="Permanent link">&para;</a></h3>
+<p>The codebase demonstrates a polyglot approach to software development:</p>
+<dl>
+<dt><strong>Go</strong> (1 files, 14.3%)</dt>
+<dd>High-performance backend services</dd>
+<dt><strong>Python</strong> (1 files, 14.3%)</dt>
+<dd>Core application logic and data processing</dd>
+<dt><strong>Markdown</strong> (1 files, 14.3%)</dt>
+<dd>Markdown development</dd>
+<dt><strong>Typescript</strong> (1 files, 14.3%)</dt>
+<dd>Type-safe frontend development</dd>
+<dt><strong>Java</strong> (1 files, 14.3%)</dt>
+<dd>Enterprise backend services and business logic</dd>
+<dt><strong>Csharp</strong> (1 files, 14.3%)</dt>
+<dd>.NET framework applications</dd>
+<dt><strong>Javascript</strong> (1 files, 14.3%)</dt>
+<dd>Frontend interactivity and user interface</dd>
+</dl>
+<h3 id="project-architecture-summary">Project Architecture Summary<a class="headerlink" href="#project-architecture-summary" title="Permanent link">&para;</a></h3>
+<p>This go project follows standard development patterns and implements:</p>
+<ul>
+<li><strong>Modular Design</strong>: Code is organized into logical modules and components</li>
+<li><strong>Separation of Concerns</strong>: Different aspects of functionality are properly separated</li>
+<li><strong>Code Reusability</strong>: Functions and classes are designed for reuse across the project</li>
+<li><strong>Documentation</strong>: Basic code documentation practices</li>
+</ul>
+<h2 id="architecture-deep-dive">Architecture Deep Dive<a class="headerlink" href="#architecture-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h3>
+<p>This project implements a multi-layered architecture with the following characteristics:</p>
+<h4 id="component-overview">Component Overview<a class="headerlink" href="#component-overview" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Total Functions</strong>: 24 (including methods)</li>
+<li><strong>Total Classes/Modules</strong>: 23</li>
+<li><strong>Import Dependencies</strong>: 13 total imports</li>
+<li><strong>Architectural Complexity</strong>: Medium - Well-structured modular design</li>
+</ul>
+<h4 id="identified-design-patterns">Identified Design Patterns<a class="headerlink" href="#identified-design-patterns" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Service Layer Pattern</strong>: Business logic in service classes</li>
+</ul>
+<h3 id="code-organization-strategy">Code Organization Strategy<a class="headerlink" href="#code-organization-strategy" title="Permanent link">&para;</a></h3>
+<p>The project follows a sophisticated organizational approach:</p>
+<h4 id="module-structure-analysis">Module Structure Analysis<a class="headerlink" href="#module-structure-analysis" title="Permanent link">&para;</a></h4>
+<dl>
+<dt><strong>Go Files</strong></dt>
+<dd>High-performance backend services - Contains 3 functions and 3 classes. This module is supporting to the overall system architecture.</dd>
+<dt><strong>Python Files</strong></dt>
+<dd>Core application logic and data processing - Contains 3 functions and 3 classes. This module is supporting to the overall system architecture.</dd>
+<dt><strong>Markdown Files</strong></dt>
+<dd>Markdown development - Contains 3 functions and 3 classes. This module is supporting to the overall system architecture.</dd>
+<dt><strong>Typescript Files</strong></dt>
+<dd>Type-safe frontend development - Contains 3 functions and 3 classes. This module is supporting to the overall system architecture.</dd>
+<dt><strong>Java Files</strong></dt>
+<dd>Enterprise backend services and business logic - Contains 3 functions and 3 classes. This module is supporting to the overall system architecture.</dd>
+</dl>
+<h2 id="file-by-file-analysis">File-by-File Analysis<a class="headerlink" href="#file-by-file-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="source-code-structure">Source Code Structure<a class="headerlink" href="#source-code-structure" title="Permanent link">&para;</a></h3>
+<p>Each file in this project serves a specific purpose in the overall system. Below is a detailed analysis of the most important files:</p>
+<h4 id="go-files-1-files">Go Files (1 files)<a class="headerlink" href="#go-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: High-performance backend services</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Go implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard go features and patterns</p>
+<hr />
+<h4 id="python-files-1-files">Python Files (1 files)<a class="headerlink" href="#python-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: Core application logic and data processing</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Python implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard python features and patterns</p>
+<hr />
+<h4 id="markdown-files-1-files">Markdown Files (1 files)<a class="headerlink" href="#markdown-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: Markdown development</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Markdown implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard markdown features and patterns</p>
+<hr />
+<h4 id="typescript-files-1-files">Typescript Files (1 files)<a class="headerlink" href="#typescript-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: Type-safe frontend development</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Typescript implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard typescript features and patterns</p>
+<hr />
+<h4 id="java-files-1-files">Java Files (1 files)<a class="headerlink" href="#java-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: Enterprise backend services and business logic</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Java implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard java features and patterns</p>
+<hr />
+<h4 id="csharp-files-1-files">Csharp Files (1 files)<a class="headerlink" href="#csharp-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: .NET framework applications</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Csharp implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard csharp features and patterns</p>
+<hr />
+<h4 id="javascript-files-1-files">Javascript Files (1 files)<a class="headerlink" href="#javascript-files-1-files" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose</strong>: Frontend interactivity and user interface</p>
+<p><strong>Complexity Level</strong>: Low</p>
+<p><strong>Key Components</strong>:
+- Functions
+- Classes
+- Imports</p>
+<p><strong>Role in System</strong>: Javascript implementation</p>
+<p><strong>Dependencies</strong>: 1 files with standard dependencies</p>
+<p><strong>Notable Features</strong>: Standard javascript features and patterns</p>
+<hr />
+<h2 id="api-documentation">API Documentation<a class="headerlink" href="#api-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="functions-and-methods-reference">Functions and Methods Reference<a class="headerlink" href="#functions-and-methods-reference" title="Permanent link">&para;</a></h3>
+<p>This section provides detailed documentation for all functions and methods in the codebase, including complexity analysis and usage patterns.</p>
+<h3 id="complex-functions-detailed-analysis">Complex Functions (Detailed Analysis)<a class="headerlink" href="#complex-functions-detailed-analysis" title="Permanent link">&para;</a></h3>
+<p>These functions implement sophisticated logic and require detailed explanation:</p>
+<h4 id="calculatehash-complex-function"><code>calculateHash()</code> - Complex Function<a class="headerlink" href="#calculatehash-complex-function" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 268
+<strong>Arguments</strong>: 0 parameters
+<strong>Purpose</strong>: Complex function implementation</p>
+<hr />
+<h4 id="calculate_metrics-complex-function"><code>calculate_metrics()</code> - Complex Function<a class="headerlink" href="#calculate_metrics-complex-function" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 52
+<strong>Arguments</strong>: 2 parameters
+<strong>Purpose</strong>: Calculate various metrics for the data.</p>
+<p>Args:
+    data: List of numerical data points
+    threshold: Threshold value for filtering</p>
+<p>Returns:
+    Dictionary containing calculated metrics</p>
+<hr />
+<h4 id="load_data-complex-function"><code>load_data()</code> - Complex Function<a class="headerlink" href="#load_data-complex-function" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 22
+<strong>Arguments</strong>: 2 parameters
+<strong>Purpose</strong>: Load data from file.</p>
+<p>Args:
+    filepath: Path to the data file</p>
+<p>Returns:
+    True if successful, False otherwise</p>
+<hr />
+<h4 id="processdata-complex-function"><code>processData()</code> - Complex Function<a class="headerlink" href="#processdata-complex-function" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 182
+<strong>Arguments</strong>: 1 parameters
+<strong>Purpose</strong>: Complex function implementation</p>
+<hr />
+<h4 id="calculatestats-complex-function"><code>calculateStats()</code> - Complex Function<a class="headerlink" href="#calculatestats-complex-function" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 73
+<strong>Arguments</strong>: 1 parameters
+<strong>Purpose</strong>: Complex function implementation</p>
+<hr />
+<h3 id="classes-and-objects">Classes and Objects<a class="headerlink" href="#classes-and-objects" title="Permanent link">&para;</a></h3>
+<h4 id="user-class"><code>User</code> Class<a class="headerlink" href="#user-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 18
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="userservice-class"><code>UserService</code> Class<a class="headerlink" href="#userservice-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 27
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="cacheservice-class"><code>CacheService</code> Class<a class="headerlink" href="#cacheservice-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 126
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="httphandler-class"><code>HTTPHandler</code> Class<a class="headerlink" href="#httphandler-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 162
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="dataprocessor-class"><code>DataProcessor</code> Class<a class="headerlink" href="#dataprocessor-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 10
+<strong>Methods</strong>: 2 methods
+<strong>Purpose</strong>: Processes data using various algorithms.</p>
+<hr />
+<h4 id="userservice-class_1"><code>UserService</code> Class<a class="headerlink" href="#userservice-class_1" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 72
+<strong>Methods</strong>: 3 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="apiutils-class"><code>ApiUtils</code> Class<a class="headerlink" href="#apiutils-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 139
+<strong>Methods</strong>: 3 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="user-class_1"><code>User</code> Class<a class="headerlink" href="#user-class_1" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 8
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="role-class"><code>Role</code> Class<a class="headerlink" href="#role-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 16
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h4 id="permission-class"><code>Permission</code> Class<a class="headerlink" href="#permission-class" title="Permanent link">&para;</a></h4>
+<p><strong>Location</strong>: Line 22
+<strong>Methods</strong>: 0 methods
+<strong>Purpose</strong>: Class implementation</p>
+<hr />
+<h3 id="standard-functions">Standard Functions<a class="headerlink" href="#standard-functions" title="Permanent link">&para;</a></h3>
+<h4 id="newuserservice"><code>NewUserService()</code><a class="headerlink" href="#newuserservice" title="Permanent link">&para;</a></h4>
+<h2 id="line-34-implements-functionality">Line 34 - Implements functionality<a class="headerlink" href="#line-34-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="createuser"><code>CreateUser()</code><a class="headerlink" href="#createuser" title="Permanent link">&para;</a></h4>
+<h2 id="line-43-creates-objects">Line 43 - Creates objects<a class="headerlink" href="#line-43-creates-objects" title="Permanent link">&para;</a></h2>
+<h4 id="getuser"><code>GetUser()</code><a class="headerlink" href="#getuser" title="Permanent link">&para;</a></h4>
+<h2 id="line-66-retrieves-data">Line 66 - Retrieves data<a class="headerlink" href="#line-66-retrieves-data" title="Permanent link">&para;</a></h2>
+<h4 id="getallusers"><code>GetAllUsers()</code><a class="headerlink" href="#getallusers" title="Permanent link">&para;</a></h4>
+<h2 id="line-79-retrieves-data">Line 79 - Retrieves data<a class="headerlink" href="#line-79-retrieves-data" title="Permanent link">&para;</a></h2>
+<h4 id="updateuser"><code>UpdateUser()</code><a class="headerlink" href="#updateuser" title="Permanent link">&para;</a></h4>
+<h2 id="line-92-implements-functionality">Line 92 - Implements functionality<a class="headerlink" href="#line-92-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="deleteuser"><code>DeleteUser()</code><a class="headerlink" href="#deleteuser" title="Permanent link">&para;</a></h4>
+<h2 id="line-113-implements-functionality">Line 113 - Implements functionality<a class="headerlink" href="#line-113-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="newcacheservice"><code>NewCacheService()</code><a class="headerlink" href="#newcacheservice" title="Permanent link">&para;</a></h4>
+<h2 id="line-131-implements-functionality">Line 131 - Implements functionality<a class="headerlink" href="#line-131-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="set"><code>Set()</code><a class="headerlink" href="#set" title="Permanent link">&para;</a></h4>
+<h2 id="line-142-sets-values">Line 142 - Sets values<a class="headerlink" href="#line-142-sets-values" title="Permanent link">&para;</a></h2>
+<h4 id="get"><code>Get()</code><a class="headerlink" href="#get" title="Permanent link">&para;</a></h4>
+<h2 id="line-152-retrieves-data">Line 152 - Retrieves data<a class="headerlink" href="#line-152-retrieves-data" title="Permanent link">&para;</a></h2>
+<h4 id="newhttphandler"><code>NewHTTPHandler()</code><a class="headerlink" href="#newhttphandler" title="Permanent link">&para;</a></h4>
+<h2 id="line-168-implements-functionality">Line 168 - Implements functionality<a class="headerlink" href="#line-168-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="getusers"><code>GetUsers()</code><a class="headerlink" href="#getusers" title="Permanent link">&para;</a></h4>
+<h2 id="line-176-retrieves-data">Line 176 - Retrieves data<a class="headerlink" href="#line-176-retrieves-data" title="Permanent link">&para;</a></h2>
+<h4 id="getuser_1"><code>GetUser()</code><a class="headerlink" href="#getuser_1" title="Permanent link">&para;</a></h4>
+<h2 id="line-184-retrieves-data">Line 184 - Retrieves data<a class="headerlink" href="#line-184-retrieves-data" title="Permanent link">&para;</a></h2>
+<h4 id="createuser_1"><code>CreateUser()</code><a class="headerlink" href="#createuser_1" title="Permanent link">&para;</a></h4>
+<h2 id="line-202-creates-objects">Line 202 - Creates objects<a class="headerlink" href="#line-202-creates-objects" title="Permanent link">&para;</a></h2>
+<h4 id="setuproutes"><code>setupRoutes()</code><a class="headerlink" href="#setuproutes" title="Permanent link">&para;</a></h4>
+<h2 id="line-225-sets-values">Line 225 - Sets values<a class="headerlink" href="#line-225-sets-values" title="Permanent link">&para;</a></h2>
+<h4 id="main"><code>main()</code><a class="headerlink" href="#main" title="Permanent link">&para;</a></h4>
+<h2 id="line-236-implements-functionality">Line 236 - Implements functionality<a class="headerlink" href="#line-236-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="validateemail"><code>validateEmail()</code><a class="headerlink" href="#validateemail" title="Permanent link">&para;</a></h4>
+<h2 id="line-257-implements-functionality">Line 257 - Implements functionality<a class="headerlink" href="#line-257-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="contains"><code>contains()</code><a class="headerlink" href="#contains" title="Permanent link">&para;</a></h4>
+<h2 id="line-263-implements-functionality">Line 263 - Implements functionality<a class="headerlink" href="#line-263-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="__init__self-config"><code>__init__(self, config)</code><a class="headerlink" href="#__init__self-config" title="Permanent link">&para;</a></h4>
+<h2 id="line-13-implements-functionality">Line 13 - Implements functionality<a class="headerlink" href="#line-13-implements-functionality" title="Permanent link">&para;</a></h2>
+<h4 id="multiplya-b"><code>multiply(a, b)</code><a class="headerlink" href="#multiplya-b" title="Permanent link">&para;</a></h4>
+<h2 id="line-113-implements-functionality_1">Line 113 - Implements functionality<a class="headerlink" href="#line-113-implements-functionality_1" title="Permanent link">&para;</a></h2>
+<h2 id="complexity-analysis">Complexity Analysis<a class="headerlink" href="#complexity-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="code-complexity-metrics">Code Complexity Metrics<a class="headerlink" href="#code-complexity-metrics" title="Permanent link">&para;</a></h3>
+<p>This section analyzes the computational and cognitive complexity of the codebase to help understand maintenance requirements and potential optimization opportunities.</p>
+<h3 id="overall-complexity-metrics">Overall Complexity Metrics<a class="headerlink" href="#overall-complexity-metrics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Total Complexity Score</strong>: 100/100</li>
+<li><strong>Complex Functions</strong>: 5/24 (20.8% if total_functions &gt; 0 else 0)</li>
+<li><strong>Average Arguments per Function</strong>: 0.4</li>
+<li><strong>Maintainability Index</strong>: Low - Requires significant maintenance effort</li>
+</ul>
+<h3 id="complexity-distribution">Complexity Distribution<a class="headerlink" href="#complexity-distribution" title="Permanent link">&para;</a></h3>
+<dl>
+<dt><strong>Go files</strong></dt>
+<dd>Complexity Score: 2/10 - Go files with low complexity</dd>
+<dt><strong>Python files</strong></dt>
+<dd>Complexity Score: 2/10 - Python files with low complexity</dd>
+<dt><strong>Markdown files</strong></dt>
+<dd>Complexity Score: 2/10 - Markdown files with low complexity</dd>
+<dt><strong>Typescript files</strong></dt>
+<dd>Complexity Score: 2/10 - Typescript files with low complexity</dd>
+<dt><strong>Java files</strong></dt>
+<dd>Complexity Score: 2/10 - Java files with low complexity</dd>
+</dl>
+<h3 id="optimization-recommendations">Optimization Recommendations<a class="headerlink" href="#optimization-recommendations" title="Permanent link">&para;</a></h3>
+<p>Based on the complexity analysis, here are recommendations for improving code maintainability:</p>
+<ul>
+<li>Large number of classes detected - consider organizing into packages or modules</li>
+</ul>
+<h2 id="dependencies-and-integration">Dependencies and Integration<a class="headerlink" href="#dependencies-and-integration" title="Permanent link">&para;</a></h2>
+<h3 id="external-dependencies-analysis">External Dependencies Analysis<a class="headerlink" href="#external-dependencies-analysis" title="Permanent link">&para;</a></h3>
+<p>This section analyzes the project's external dependencies and integration patterns.</p>
+<h3 id="import-pattern-analysis">Import Pattern Analysis<a class="headerlink" href="#import-pattern-analysis" title="Permanent link">&para;</a></h3>
+<p>The project demonstrates the following import patterns:</p>
+<dl>
+<dt><strong>Python Imports</strong> (4 modules):</dt>
+<dd>This indicates a focused approach to code organization in python.</dd>
+<dt><strong>Typescript Imports</strong> (1 modules):</dt>
+<dd>This indicates a focused approach to code organization in typescript.</dd>
+<dt><strong>Csharp Imports</strong> (6 modules):</dt>
+<dd>This indicates a well-structured approach to code organization in csharp.</dd>
+<dt><strong>Javascript Imports</strong> (2 modules):</dt>
+<dd>This indicates a focused approach to code organization in javascript.</dd>
+</dl>
+<h2 id="usage-examples-and-patterns">Usage Examples and Patterns<a class="headerlink" href="#usage-examples-and-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
+<p>Based on the analysis of this go project, here are common usage patterns and examples:</p>
+            </div>
+            
+            <footer class="content-footer">
+                <div class="footer-content">
+                    <p>
+                        <i class="fas fa-magic"></i> 
+                        Documentation automatically generated by 
+                        <a href="https://github.com/your-repo/docgenie" target="_blank">DocGenie</a>
+                    </p>
+                    <p class="analysis-summary">
+                        Analysis completed: 7 files, 
+                        24 functions, 
+                        23 classes
+                    </p>
+                </div>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // Add mobile menu button if needed
+        if (window.innerWidth <= 768) {
+            const menuButton = document.createElement('button');
+            menuButton.innerHTML = '<i class="fas fa-bars"></i>';
+            menuButton.className = 'mobile-menu-btn';
+            menuButton.onclick = toggleSidebar;
+            document.body.appendChild(menuButton);
+        }
+        
+        // Highlight current section in TOC
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    if (id) {
+                        // Remove active class from all TOC links
+                        document.querySelectorAll('.toc a').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                        
+                        // Add active class to current link
+                        const currentLink = document.querySelector(`.toc a[href="#${id}"]`);
+                        if (currentLink) {
+                            currentLink.classList.add('active');
+                        }
+                    }
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        // Observe all headings
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+            observer.observe(heading);
+        });
+        
+        // Enhanced functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add copy buttons to code blocks
+            document.querySelectorAll('pre code').forEach(function(codeBlock) {
+                const button = document.createElement('button');
+                button.className = 'copy-btn';
+                button.textContent = 'Copy';
+                button.onclick = function() {
+                    navigator.clipboard.writeText(codeBlock.textContent);
+                    button.textContent = 'Copied!';
+                    setTimeout(() => button.textContent = 'Copy', 2000);
+                };
+                codeBlock.parentNode.appendChild(button);
+            });
+        });
+        
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # DocGenie
 
-A simple Python tool to automatically generate documentation for your codebase. Supports both Markdown (README.md) and HTML formats.
+A simple Python tool to automatically generate documentation for your codebase. Supports both Markdown (README.md) and HTML formats
 
 ## Quick Guide
 

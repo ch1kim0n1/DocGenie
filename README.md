@@ -6,21 +6,16 @@ A simple Python tool to automatically generate documentation for your codebase. 
 
 ### Installation
 
-1. Make sure you have Python 3.8 or higher installed.
-2. Install dependencies:
-
 ```bash
-pip install -r requirements.txt
+python3 -m pip install "docgenie[full]"
 ```
 
-### Setup
-
-Clone the repository (if not using PyPI):
+### Setup (from source)
 
 ```bash
 git clone https://github.com/yourusername/DocGenie.git
 cd DocGenie
-pip install -e .
+python3 -m pip install -e ".[full]"
 ```
 
 ### Usage
@@ -28,25 +23,25 @@ pip install -e .
 #### Generate Markdown README
 
 ```bash
-docgenie /path/to/project --format markdown
+docgenie generate /path/to/project --format markdown
 ```
 
 #### Generate HTML Documentation
 
 ```bash
-docgenie /path/to/project --format html
+docgenie generate /path/to/project --format html
 ```
 
 #### Generate Both Formats
 
 ```bash
-docgenie /path/to/project --format both
+docgenie generate /path/to/project --format both
 ```
 
 #### Convert Existing README to HTML
 
 ```bash
-docgenie-html README.md --source readme --output docs.html
+docgenie html README.md --source readme --output docs.html
 ```
 
 #### Programmatic Usage (Python API)
@@ -132,27 +127,26 @@ DocGenie generates README files with:
 
 ```bash
 # Basic usage
-docgenie --help                         # Show help
-docgenie . --verbose                    # Enable detailed output
-docgenie . --force                      # Overwrite existing files
+docgenie --help                                 # Show help
+docgenie generate . --verbose                   # Enable detailed output
+docgenie generate . --force                     # Overwrite existing files
 
 # Format options
-docgenie . --format markdown            # Generate README.md only (default)
-docgenie . --format html                # Generate HTML documentation only
-docgenie . --format both                # Generate both README.md and HTML
+docgenie generate . --format markdown           # README.md only (default)
+docgenie generate . --format html               # HTML documentation only
+docgenie generate . --format both               # Generate both README.md and HTML
 
 # Output options
-docgenie . --output custom_path         # Custom output location
-docgenie . --preview                    # Preview without saving
+docgenie generate . --output custom_path        # Custom output location
+docgenie generate . --preview                   # Preview without saving
 
 # HTML converter
-docgenie-html README.md --source readme         # Convert README to HTML
-docgenie-html /path --source codebase          # Generate HTML from code
-docgenie-html README.md --open-browser         # Open result in browser
+docgenie html README.md --source readme         # Convert README to HTML
+docgenie html /path --source codebase           # Generate HTML from code
 
 # Analysis tools
-docgenie analyze . --format json        # Output analysis as JSON
-docgenie init                           # Create basic README template
+docgenie analyze . --format json                # Output analysis as JSON
+docgenie init                                   # Create basic README template
 ```
 
 ### Configuration
@@ -175,11 +169,11 @@ template_customizations:
 
 DocGenie consists of several key components:
 
-- **CodebaseAnalyzer**: Multi-language code analysis engine
-- **LanguageParser**: Syntax-aware parsers for different languages
+- **CodebaseAnalyzer**: Multi-language code analysis engine with caching and concurrency
+- **ParserRegistry**: Pluggable parsers (AST, tree-sitter, regex fallback) per language
 - **ReadmeGenerator**: Jinja2-based template rendering system for markdown
 - **HTMLGenerator**: Beautiful HTML documentation generator with responsive design
-- **CLI Interface**: User-friendly command-line interface with format options
+- **CLI Interface**: Typer + Rich powered user experience
 
 ## 🤝 Contributing
 

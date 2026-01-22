@@ -1,0 +1,93 @@
+site_name: DocGenie Documentation
+site_description: Auto-documentation tool for any codebase
+site_author: DocGenie Team
+site_url: https://docgenie.readthedocs.io
+
+repo_name: docgenie/docgenie
+repo_url: https://github.com/docgenie/docgenie
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            members_order: source
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - footnotes
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Configuration: getting-started/configuration.md
+  - User Guide:
+      - CLI Usage: guide/cli.md
+      - Python API: guide/api.md
+      - Output Formats: guide/formats.md
+      - Customization: guide/customization.md
+  - API Reference:
+      - Core: api/core.md
+      - Parsers: api/parsers.md
+      - Generators: api/generators.md
+      - CLI: api/cli.md
+      - Utilities: api/utils.md
+  - Advanced:
+      - Plugin Development: advanced/plugins.md
+      - Performance: advanced/performance.md
+      - Security: advanced/security.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md

@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 import markdown
 from markdown.extensions import codehilite, toc, tables, fenced_code
+from .sanitize import sanitize_html, sanitize_url
 from .utils import is_website_project
 
 
@@ -100,6 +101,9 @@ class HTMLGenerator:
     def _create_html_document(self, content: str, project_name: str) -> str:
         """Create a complete HTML document with styling."""
         
+        # Sanitize project name to prevent XSS
+        safe_project_name = sanitize_html(project_name)
+        
         # Extract table of contents if available
         toc_html = getattr(self.markdown_processor, 'toc', '')
         
@@ -108,7 +112,7 @@ class HTMLGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{project_name}</title>
+    <title>{safe_project_name}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -119,7 +123,7 @@ class HTMLGenerator:
     <div class="container">
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2><i class="fas fa-file-alt"></i> {project_name}</h2>
+                <h2><i class="fas fa-file-alt"></i> {safe_project_name}</h2>
                 <p class="sidebar-subtitle">Documentation</p>
             </div>
             <div class="toc">
@@ -129,7 +133,7 @@ class HTMLGenerator:
         
         <main class="content">
             <div class="content-header">
-                <h1 class="main-title">{project_name}</h1>
+                <h1 class="main-title">{safe_project_name}</h1>
                 <p class="generation-info">
                     <i class="fas fa-robot"></i> Generated with DocGenie on {datetime.now().strftime("%B %d, %Y")}
                 </p>

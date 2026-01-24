@@ -20,7 +20,7 @@ def test_docgenie_error_with_path() -> None:
     path = Path("/tmp/test.py")
     err = DocGenieError("Something went wrong", path)
     assert "Something went wrong" in str(err)
-    assert "/tmp/test.py" in str(err)
+    assert str(path) in str(err)
     assert err.path == path
 
 
@@ -36,7 +36,7 @@ def test_parser_error() -> None:
     path = Path("code.js")
     err = ParserError("Syntax error", path, "javascript")
     assert "javascript" in str(err)
-    assert "code.js" in str(err)
+    assert str(path) in str(err)
     assert err.language == "javascript"
 
 

@@ -11,5 +11,5 @@ pathspec>=0.9
 requests>=2.25
 markdown>=3.3
 
-# Optional: full parsing support
-tree-sitter-languages>=1.10.2
+# Required: full parsing support
+tree-sitter-language-pack>=0.13.0

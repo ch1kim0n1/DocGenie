@@ -13,7 +13,10 @@ from docgenie.sanitize import (
 
 def test_sanitize_html_basic() -> None:
     """Test basic HTML escaping."""
-    assert sanitize_html("<script>alert('xss')</script>") == "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
+    assert (
+        sanitize_html("<script>alert('xss')</script>")
+        == "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
+    )
     assert sanitize_html("Normal text") == "Normal text"
     assert sanitize_html("A & B") == "A &amp; B"
 
@@ -29,7 +32,7 @@ def test_sanitize_attribute() -> None:
     # Should remove quotes
     assert '"' not in sanitize_attribute('value"with"quotes')
     assert "'" not in sanitize_attribute("value'with'quotes")
-    
+
     # Should escape special chars
     result = sanitize_attribute("normal-value")
     assert "normal-value" == result
@@ -64,7 +67,7 @@ def test_sanitize_css() -> None:
     assert "javascript:" not in sanitize_css("background: url(javascript:alert('xss'))")
     assert "expression(" not in sanitize_css("width: expression(alert('xss'))")
     assert "import" not in sanitize_css("@import url(evil.css)")
-    
+
     # Safe CSS should pass through
     safe_css = "color: red; font-size: 14px;"
     assert "color: red" in sanitize_css(safe_css)
@@ -76,9 +79,9 @@ def test_sanitize_dict_values_strings() -> None:
         "name": "<script>alert('xss')</script>",
         "description": "Safe & normal text",
     }
-    
+
     sanitized = sanitize_dict_values(data)
-    
+
     assert "&lt;script&gt;" in sanitized["name"]
     assert "<script>" not in sanitized["name"]
     assert "Safe &amp; normal text" == sanitized["description"]
@@ -92,9 +95,9 @@ def test_sanitize_dict_values_nested() -> None:
             "safe": "normal",
         }
     }
-    
+
     sanitized = sanitize_dict_values(data)
-    
+
     assert "&lt;script&gt;" in sanitized["outer"]["inner"]
     assert sanitized["outer"]["safe"] == "normal"
 
@@ -104,9 +107,9 @@ def test_sanitize_dict_values_lists() -> None:
     data = {
         "items": ["<b>item1</b>", "<i>item2</i>", "safe"],
     }
-    
+
     sanitized = sanitize_dict_values(data)
-    
+
     assert "&lt;b&gt;item1&lt;/b&gt;" == sanitized["items"][0]
     assert "&lt;i&gt;item2&lt;/i&gt;" == sanitized["items"][1]
     assert "safe" == sanitized["items"][2]
@@ -120,9 +123,9 @@ def test_sanitize_dict_values_preserves_types() -> None:
         "null": None,
         "list": [1, 2, 3],
     }
-    
+
     sanitized = sanitize_dict_values(data)
-    
+
     assert sanitized["number"] == 42
     assert sanitized["boolean"] is True
     assert sanitized["null"] is None

@@ -48,15 +48,15 @@ def sanitize_url(url: str) -> str:
         Safe URL or empty string if dangerous
     """
     url = url.strip()
-    
+
     # Block dangerous protocols
     dangerous_protocols = ["javascript:", "data:", "vbscript:", "file:"]
     url_lower = url.lower()
-    
+
     for protocol in dangerous_protocols:
         if url_lower.startswith(protocol):
             return ""
-    
+
     return url
 
 
@@ -79,10 +79,10 @@ def sanitize_css(css: str) -> str:
         r"behavior:",
         r"binding:",
     ]
-    
+
     for pattern in dangerous_patterns:
         css = re.sub(pattern, "", css, flags=re.IGNORECASE)
-    
+
     return css
 
 
@@ -96,19 +96,16 @@ def sanitize_dict_values(data: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Dictionary with sanitized string values
     """
-    result = {}
-    
+    result: dict[str, Any] = {}
+
     for key, value in data.items():
         if isinstance(value, str):
             result[key] = sanitize_html(value)
         elif isinstance(value, dict):
             result[key] = sanitize_dict_values(value)
         elif isinstance(value, list):
-            result[key] = [
-                sanitize_html(item) if isinstance(item, str) else item
-                for item in value
-            ]
+            result[key] = [sanitize_html(item) if isinstance(item, str) else item for item in value]
         else:
             result[key] = value
-    
+
     return result

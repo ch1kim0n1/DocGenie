@@ -7,15 +7,17 @@ A simple Python tool to automatically generate documentation for your codebase. 
 ### Installation
 
 ```bash
-python3 -m pip install "docgenie[full]"
+python3 -m pip install "docgenie"
 ```
+
+Requirements: **Python 3.10+**
 
 ### Setup (from source)
 
 ```bash
 git clone https://github.com/yourusername/DocGenie.git
 cd DocGenie
-python3 -m pip install -e ".[full]"
+python3 -m pip install -e "."
 ```
 
 ### Usage

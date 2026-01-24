@@ -5,11 +5,12 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from rich.console import Console
 from rich.logging import RichHandler
+from structlog.types import Processor
 
 
 def configure_logging(verbose: bool = False, json_output: bool = False) -> None:
@@ -22,6 +23,7 @@ def configure_logging(verbose: bool = False, json_output: bool = False) -> None:
     """
     log_level = logging.DEBUG if verbose else logging.INFO
 
+    processors: list[Processor]
     if json_output:
         # JSON output for CI/production
         processors = [
@@ -79,7 +81,7 @@ class LogContext:
 
     def __init__(self, **context: Any) -> None:
         self.context = context
-        self.token: Optional[Any] = None
+        self.token: Any | None = None
 
     def __enter__(self) -> LogContext:
         for key, value in self.context.items():
@@ -101,7 +103,7 @@ def log_file_operation(operation: str, path: Path, **extra: Any) -> None:
     )
 
 
-def log_error(error: Exception, context: Optional[dict[str, Any]] = None) -> None:
+def log_error(error: Exception, context: dict[str, Any] | None = None) -> None:
     """Log an error with full context."""
     logger = get_logger(__name__)
     logger.error(

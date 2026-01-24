@@ -26,9 +26,7 @@ def test_python_ast_parser_extracts_functions_and_classes(tmp_path: Path) -> Non
 def test_regex_parser_handles_js_functions(tmp_path: Path) -> None:
     sample = tmp_path / "sample.js"
     sample.write_text(
-        "import React from 'react';\n"
-        "function App() { return null; }\n"
-        "const helper = () => true;\n",
+        "import React from 'react';\nfunction App() { return null; }\nconst helper = () => true;\n",
         encoding="utf-8",
     )
     registry = ParserRegistry(enable_tree_sitter=False)

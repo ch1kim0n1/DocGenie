@@ -16,6 +16,7 @@ from datetime import datetime
 # Data models
 class User(BaseModel):
     """User model for the API."""
+
     id: Optional[int] = None
     name: str
     email: str
@@ -24,12 +25,14 @@ class User(BaseModel):
 
 class UserCreate(BaseModel):
     """Model for creating new users."""
+
     name: str
     email: str
 
 
 class Task(BaseModel):
     """Task model."""
+
     id: Optional[int] = None
     title: str
     description: Optional[str] = None
@@ -41,7 +44,7 @@ class Task(BaseModel):
 # Database connection
 def get_db():
     """Get database connection."""
-    conn = sqlite3.connect('sample.db')
+    conn = sqlite3.connect("sample.db")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -50,107 +53,107 @@ def get_db():
 app = FastAPI(
     title="Sample Task API",
     description="A sample API for managing users and tasks",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
 class UserService:
     """Service class for user operations."""
-    
+
     def __init__(self, db_connection):
         """Initialize user service with database connection."""
         self.db = db_connection
-    
+
     def create_user(self, user_data: UserCreate) -> User:
         """
         Create a new user.
-        
+
         Args:
             user_data: User creation data
-            
+
         Returns:
             Created user object
         """
         cursor = self.db.cursor()
         cursor.execute(
             "INSERT INTO users (name, email, created_at) VALUES (?, ?, ?)",
-            (user_data.name, user_data.email, datetime.now())
+            (user_data.name, user_data.email, datetime.now()),
         )
         user_id = cursor.lastrowid
         self.db.commit()
-        
+
         return self.get_user(user_id)
-    
+
     def get_user(self, user_id: int) -> Optional[User]:
         """
         Get user by ID.
-        
+
         Args:
             user_id: User ID
-            
+
         Returns:
             User object or None if not found
         """
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
-        
+
         if row:
             return User(**dict(row))
         return None
-    
+
     def list_users(self) -> List[User]:
         """
         Get all users.
-        
+
         Returns:
             List of all users
         """
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM users ORDER BY created_at DESC")
         rows = cursor.fetchall()
-        
+
         return [User(**dict(row)) for row in rows]
 
 
 class TaskService:
     """Service class for task operations."""
-    
+
     def __init__(self, db_connection):
         """Initialize task service."""
         self.db = db_connection
-    
+
     async def create_task(self, task_data: dict, user_id: int) -> Task:
         """
         Create a new task for a user.
-        
+
         Args:
             task_data: Task data dictionary
             user_id: ID of the user creating the task
-            
+
         Returns:
             Created task object
         """
         cursor = self.db.cursor()
         cursor.execute(
             "INSERT INTO tasks (title, description, user_id, created_at) VALUES (?, ?, ?, ?)",
-            (task_data['title'], task_data.get('description'), user_id, datetime.now())
+            (task_data["title"], task_data.get("description"), user_id, datetime.now()),
         )
         task_id = cursor.lastrowid
         self.db.commit()
-        
+
         return self.get_task(task_id)
-    
+
     def get_task(self, task_id: int) -> Optional[Task]:
         """Get task by ID."""
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()
-        
+
         if row:
             return Task(**dict(row))
         return None
-    
+
     def complete_task(self, task_id: int) -> bool:
         """Mark a task as completed."""
         cursor = self.db.cursor()
@@ -211,7 +214,7 @@ def initialize_database():
     """Initialize the database with required tables."""
     conn = get_db()
     cursor = conn.cursor()
-    
+
     # Create users table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -221,7 +224,7 @@ def initialize_database():
             created_at TIMESTAMP
         )
     """)
-    
+
     # Create tasks table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
@@ -234,16 +237,16 @@ def initialize_database():
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     """)
-    
+
     conn.commit()
     conn.close()
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Initialize database
     initialize_database()
-    
+
     # Run the server
     uvicorn.run(app, host="0.0.0.0", port=8000)

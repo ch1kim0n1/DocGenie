@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
 
 class DocGenieError(Exception):
     """Base exception for all DocGenie errors."""
 
-    def __init__(self, message: str, path: Optional[Path] = None) -> None:
+    def __init__(self, message: str, path: Path | None = None) -> None:
         self.message = message
         self.path = path
         super().__init__(self._format_message())
@@ -46,12 +45,14 @@ class ConfigError(DocGenieError):
 class DependencyError(DocGenieError):
     """Raised when a required dependency is missing."""
 
-    def __init__(self, dependency: str, extra: Optional[str] = None) -> None:
+    def __init__(self, dependency: str, extra: str | None = None) -> None:
         self.dependency = dependency
         self.extra = extra
         message = f"Missing required dependency: {dependency}"
         if extra:
             message += f" (install with: pip install docgenie[{extra}])"
+        else:
+            message += f" (install with: pip install {dependency})"
         super().__init__(message)
 
 

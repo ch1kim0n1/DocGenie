@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 
 @dataclass(frozen=True)
@@ -12,12 +11,12 @@ class FunctionDoc:
     name: str
     file: Path
     line: int
-    docstring: Optional[str]
-    args: List[str] = field(default_factory=list)
-    decorators: List[str] = field(default_factory=list)
+    docstring: str | None
+    args: list[str] = field(default_factory=list)
+    decorators: list[str] = field(default_factory=list)
     is_async: bool = False
 
-    def to_public_dict(self) -> Dict[str, object]:
+    def to_public_dict(self) -> dict[str, object]:
         return {
             "name": self.name,
             "file": str(self.file),
@@ -39,12 +38,12 @@ class ClassDoc:
     name: str
     file: Path
     line: int
-    docstring: Optional[str]
-    bases: List[str] = field(default_factory=list)
-    decorators: List[str] = field(default_factory=list)
-    methods: List[MethodDoc] = field(default_factory=list)
+    docstring: str | None
+    bases: list[str] = field(default_factory=list)
+    decorators: list[str] = field(default_factory=list)
+    methods: list[MethodDoc] = field(default_factory=list)
 
-    def to_public_dict(self) -> Dict[str, object]:
+    def to_public_dict(self) -> dict[str, object]:
         return {
             "name": self.name,
             "file": str(self.file),
@@ -58,11 +57,11 @@ class ClassDoc:
 
 @dataclass(frozen=True)
 class ParseResult:
-    functions: List[FunctionDoc] = field(default_factory=list)
-    classes: List[ClassDoc] = field(default_factory=list)
-    imports: Set[str] = field(default_factory=set)
+    functions: list[FunctionDoc] = field(default_factory=list)
+    classes: list[ClassDoc] = field(default_factory=list)
+    imports: set[str] = field(default_factory=set)
 
-    def to_public_dict(self) -> Dict[str, object]:
+    def to_public_dict(self) -> dict[str, object]:
         return {
             "functions": [func.to_public_dict() for func in self.functions],
             "classes": [cls.to_public_dict() for cls in self.classes],
@@ -81,26 +80,26 @@ class FileAnalysis:
 class AnalysisResult:
     project_name: str
     files_analyzed: int
-    languages: Dict[str, int]
-    dependencies: Dict[str, object]
-    project_structure: Dict[str, object]
-    functions: List[Dict[str, object]]
-    classes: List[Dict[str, object]]
-    imports: Dict[str, List[str]]
-    documentation_files: List[str]
-    config_files: List[str]
-    git_info: Dict[str, object]
+    languages: dict[str, int]
+    dependencies: dict[str, object]
+    project_structure: dict[str, object]
+    functions: list[dict[str, object]]
+    classes: list[dict[str, object]]
+    imports: dict[str, list[str]]
+    documentation_files: list[str]
+    config_files: list[str]
+    git_info: dict[str, object]
     is_website: bool
     website_detection_reason: str
     root_path: Path
 
-    def to_public_dict(self) -> Dict[str, object]:
+    def to_public_dict(self) -> dict[str, object]:
         return {
             "project_name": self.project_name,
             "files_analyzed": self.files_analyzed,
             "languages": dict(self.languages),
             "main_language": (
-                max(self.languages, key=self.languages.get) if self.languages else "N/A"
+                max(self.languages.items(), key=lambda kv: kv[1])[0] if self.languages else "N/A"
             ),
             "dependencies": self.dependencies,
             "project_structure": self.project_structure,

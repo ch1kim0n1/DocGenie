@@ -35,7 +35,8 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     python_requires=">=3.8",
-    install_requires=requirements,    entry_points={
+    install_requires=requirements,
+    entry_points={
         "console_scripts": [
             "docgenie=docgenie.cli:main",
             "docgenie-html=convert_to_html:convert_to_html",

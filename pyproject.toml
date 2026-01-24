@@ -11,12 +11,13 @@
  authors = [
    { name = "DocGenie Team", email = "contact@docgenie.dev" },
  ]
- requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "click>=8.1",
   "typer>=0.12",
   "rich>=13.7",
   "structlog>=24.1",
+  "tree-sitter-language-pack>=0.13.0",
   "gitpython>=3.1",
   "jinja2>=3.1",
   "pyyaml>=6.0",
@@ -33,7 +34,6 @@ dependencies = [
    "Operating System :: OS Independent",
    "Programming Language :: Python",
    "Programming Language :: Python :: 3",
-   "Programming Language :: Python :: 3.9",
    "Programming Language :: Python :: 3.10",
    "Programming Language :: Python :: 3.11",
    "Programming Language :: Python :: 3.12",
@@ -42,10 +42,7 @@ dependencies = [
    "Topic :: Software Development :: Libraries :: Python Modules",
  ]
 
- [project.optional-dependencies]
- full = [
-   "tree-sitter-languages>=1.10.2",
- ]
+[project.optional-dependencies]
 dev = [
   "pytest>=8.0",
   "pytest-cov>=4.0",
@@ -55,6 +52,8 @@ dev = [
   "ruff>=0.6",
   "mypy>=1.10",
   "types-PyYAML",
+  "types-toml",
+  "types-Markdown",
   "bandit>=1.7",
   "pre-commit>=3.6",
   "mkdocs>=1.5",
@@ -79,14 +78,14 @@ docgenie-html = "convert_to_html:main"
  packages = ["src/docgenie"]
 
  [tool.ruff]
- target-version = "py39"
+target-version = "py310"
  line-length = 100
  lint.select = ["E", "F", "I", "B", "UP", "S", "N", "A", "C4", "TID", "T20", "RET", "SIM", "PL"]
  lint.ignore = ["B008"]
- lint.per-file-ignores = {}
+lint.per-file-ignores = { "src/docgenie/cli.py" = ["PLR0913"], "src/docgenie/generator.py" = ["UP006", "UP035", "PLR0912", "E501", "PLR2004"], "src/docgenie/html_generator.py" = ["UP006", "UP035", "E501"], "src/docgenie/utils.py" = ["UP006", "UP035", "PLR0911", "PLR0912", "PLR2004"] }
 
  [tool.mypy]
- python_version = "3.9"
+python_version = "3.10"
  warn_unused_configs = true
  warn_unused_ignores = true
  disallow_untyped_defs = true
@@ -95,6 +94,7 @@ docgenie-html = "convert_to_html:main"
  no_implicit_optional = true
  strict_equality = true
  pretty = true
+mypy_path = ["typings"]
  exclude = ["examples", "docs"]
 
  [tool.pytest.ini_options]

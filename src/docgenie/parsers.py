@@ -4,17 +4,15 @@ from __future__ import annotations
 
 import ast
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from importlib import metadata
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Set
+from typing import Any, cast
+
+from tree_sitter_language_pack import get_parser as ts_get_parser
 
 from .models import ClassDoc, FunctionDoc, MethodDoc, ParseResult
-
-try:
-    from tree_sitter_languages import get_parser as ts_get_parser
-except Exception:  # pragma: no cover - optional dependency
-    ts_get_parser = None
 
 
 @dataclass
@@ -22,13 +20,15 @@ class ParserPlugin:
     """Base plugin interface for language parsing."""
 
     name: str
-    languages: Set[str]
+    languages: set[str]
     priority: int = 100  # lower number = higher priority
 
     def supports(self, language: str) -> bool:
         return language.lower() in self.languages
 
-    def parse(self, content: str, path: Path, language: str) -> ParseResult:  # pragma: no cover - interface
+    def parse(
+        self, content: str, path: Path, language: str
+    ) -> ParseResult:  # pragma: no cover - interface
         raise NotImplementedError
 
 
@@ -42,10 +42,10 @@ class PythonAstParser(ParserPlugin):
         except SyntaxError:
             return ParseResult()
 
-        functions: List[FunctionDoc] = []
-        classes: List[ClassDoc] = []
-        imports: Set[str] = set()
-        
+        functions: list[FunctionDoc] = []
+        classes: list[ClassDoc] = []
+        imports: set[str] = set()
+
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 functions.append(
@@ -108,9 +108,9 @@ class RegexParser(ParserPlugin):
 
     def parse(self, content: str, path: Path, language: str) -> ParseResult:
         lines = content.splitlines()
-        functions: List[FunctionDoc] = []
-        classes: List[ClassDoc] = []
-        imports: Set[str] = set()
+        functions: list[FunctionDoc] = []
+        classes: list[ClassDoc] = []
+        imports: set[str] = set()
 
         patterns = _language_patterns(language)
         for idx, raw_line in enumerate(lines, 1):
@@ -160,21 +160,18 @@ class TreeSitterParser(ParserPlugin):
         self.available = ts_get_parser is not None
 
     def parse(self, content: str, path: Path, language: str) -> ParseResult:
-        if not self.available:
-            return ParseResult()
-
         parser = ts_get_parser(language)
         tree = parser.parse(bytes(content, "utf-8"))
         root = tree.root_node
 
-        functions: List[FunctionDoc] = []
-        classes: List[ClassDoc] = []
-        imports: Set[str] = set()
+        functions: list[FunctionDoc] = []
+        classes: list[ClassDoc] = []
+        imports: set[str] = set()
 
-        def text(node):
+        def text(node: Any) -> str:
             return content[node.start_byte : node.end_byte]
 
-        for node in root.walk():
+        for node in _iter_tree_sitter_nodes(root):
             node_type = node.type
             if node_type in _function_nodes(language):
                 name = _extract_name(node, content)
@@ -271,7 +268,7 @@ def _language_patterns(language: str) -> _LanguagePatterns:
     }.get(lang, _LanguagePatterns())
 
 
-def _function_nodes(language: str) -> Set[str]:
+def _function_nodes(language: str) -> set[str]:
     return {
         "python": {"function_definition"},
         "javascript": {"function_declaration", "method_definition", "arrow_function"},
@@ -284,7 +281,7 @@ def _function_nodes(language: str) -> Set[str]:
     }.get(language, set())
 
 
-def _class_nodes(language: str) -> Set[str]:
+def _class_nodes(language: str) -> set[str]:
     return {
         "python": {"class_definition"},
         "javascript": {"class_declaration"},
@@ -296,7 +293,7 @@ def _class_nodes(language: str) -> Set[str]:
     }.get(language, set())
 
 
-def _import_nodes(language: str) -> Set[str]:
+def _import_nodes(language: str) -> set[str]:
     return {
         "javascript": {"import_clause", "import_statement"},
         "typescript": {"import_clause", "import_statement"},
@@ -309,7 +306,33 @@ def _import_nodes(language: str) -> Set[str]:
     }.get(language, set())
 
 
-def _extract_name(node, content: str) -> Optional[str]:
+def _iter_tree_sitter_nodes(root: Any) -> Iterable[Any]:
+    """Depth-first traversal over a tree-sitter node tree."""
+    cursor = root.walk()
+    visited_children = False
+
+    while True:
+        node = cursor.node
+        yield node
+
+        if not visited_children and cursor.goto_first_child():
+            visited_children = False
+            continue
+
+        if cursor.goto_next_sibling():
+            visited_children = False
+            continue
+
+        # Walk up until we can move to a sibling, otherwise we're done.
+        while cursor.goto_parent():
+            if cursor.goto_next_sibling():
+                visited_children = False
+                break
+        else:
+            break
+
+
+def _extract_name(node: Any, content: str) -> str | None:
     """Best-effort extraction of identifier from a tree-sitter node."""
     if hasattr(node, "child_by_field_name"):
         name_node = node.child_by_field_name("name")
@@ -318,35 +341,43 @@ def _extract_name(node, content: str) -> Optional[str]:
     return None
 
 
-def _get_decorator_name(decorator) -> str:
+def _get_decorator_name(decorator: Any) -> str:
     if isinstance(decorator, ast.Name):
         return decorator.id
     if isinstance(decorator, ast.Attribute):
-        return f"{decorator.value.id}.{decorator.attr}"
+        owner = getattr(decorator.value, "id", None)
+        if isinstance(owner, str):
+            return f"{owner}.{decorator.attr}"
+        return decorator.attr
     return str(decorator)
 
 
-def _get_base_name(base) -> str:
+def _get_base_name(base: Any) -> str:
     if isinstance(base, ast.Name):
         return base.id
     if isinstance(base, ast.Attribute):
-        return f"{base.value.id}.{base.attr}"
+        owner = getattr(base.value, "id", None)
+        if isinstance(owner, str):
+            return f"{owner}.{base.attr}"
+        return base.attr
     return str(base)
 
 
 class ParserRegistry:
     """Registry responsible for selecting the best parser for a language."""
 
-    def __init__(self, enable_tree_sitter: bool = True, plugins: Optional[Iterable[ParserPlugin]] = None):
-        builtin: List[ParserPlugin] = [PythonAstParser(), RegexParser()]
+    def __init__(
+        self, enable_tree_sitter: bool = True, plugins: Iterable[ParserPlugin] | None = None
+    ):
+        builtin: list[ParserPlugin] = [PythonAstParser(), RegexParser()]
         if enable_tree_sitter:
             builtin.append(TreeSitterParser())
-        self.plugins: List[ParserPlugin] = sorted(
+        self.plugins: list[ParserPlugin] = sorted(
             list(builtin) + list(plugins or []) + list(_load_external_plugins()),
             key=lambda p: p.priority,
         )
 
-    def resolve(self, language: str) -> Optional[ParserPlugin]:
+    def resolve(self, language: str) -> ParserPlugin | None:
         for plugin in self.plugins:
             if plugin.supports(language):
                 return plugin
@@ -361,15 +392,24 @@ class ParserRegistry:
 
 def _load_external_plugins() -> Iterable[ParserPlugin]:
     try:
-        eps = metadata.entry_points(group="docgenie.parsers")
+        eps_any = metadata.entry_points()
+        if hasattr(eps_any, "select"):
+            eps = cast(Any, eps_any).select(group="docgenie.parsers")
+        else:
+            eps = cast(Any, eps_any).get("docgenie.parsers", [])
     except Exception:  # pragma: no cover - best effort only
         return []
-    plugins: List[ParserPlugin] = []
+    plugins: list[ParserPlugin] = []
     for ep in eps:
-        try:
-            plugin = ep.load()
-            if isinstance(plugin, ParserPlugin):
-                plugins.append(plugin)
-        except Exception:
-            continue
+        plugin_obj = _safe_load_entry_point(ep)
+        if isinstance(plugin_obj, ParserPlugin):
+            plugins.append(plugin_obj)
     return plugins
+
+
+def _safe_load_entry_point(ep: Any) -> Any:
+    """Best-effort external plugin loader."""
+    try:
+        return cast(Any, ep).load()
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return None

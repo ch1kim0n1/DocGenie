@@ -3,14 +3,15 @@ HTML documentation generator for DocGenie.
 Converts README content to beautiful HTML documentation.
 """
 
-import os
-import re
-from pathlib import Path
-from typing import Dict, Any, Optional
 from datetime import datetime
+from pathlib import Path
+from typing import Any
+
 import markdown
-from markdown.extensions import codehilite, toc, tables, fenced_code
-from .sanitize import sanitize_html, sanitize_url
+
+from .generator import ReadmeGenerator
+from .logging import get_logger
+from .sanitize import sanitize_html
 from .utils import is_website_project
 
 
@@ -18,96 +19,95 @@ class HTMLGenerator:
     """
     Generates beautiful HTML documentation from README content or analysis data.
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.markdown_processor = markdown.Markdown(
             extensions=[
-                'codehilite',
-                'toc',
-                'tables',
-                'fenced_code',
-                'attr_list',
-                'def_list',
-                'abbr',
-                'footnotes'
+                "codehilite",
+                "toc",
+                "tables",
+                "fenced_code",
+                "attr_list",
+                "def_list",
+                "abbr",
+                "footnotes",
             ],
             extension_configs={
-                'codehilite': {
-                    'css_class': 'highlight',
-                    'linenums': False
-                },
-                'toc': {
-                    'permalink': True,
-                    'baselevel': 1
-                }
-            }
+                "codehilite": {"css_class": "highlight", "linenums": False},
+                "toc": {"permalink": True, "baselevel": 1},
+            },
         )
-    
-    def generate_from_readme(self, readme_content: str, output_path: Optional[str] = None, 
-                           project_name: str = "Project Documentation") -> str:
+
+    def generate_from_readme(
+        self,
+        readme_content: str,
+        output_path: str | None = None,
+        project_name: str = "Project Documentation",
+    ) -> str:
         """
         Generate HTML documentation from README markdown content.
-        
+
         Args:
             readme_content: Markdown content from README
             output_path: Optional path to save the HTML file
             project_name: Name of the project for the HTML title
-            
+
         Returns:
             Generated HTML content as string
         """
         # Convert markdown to HTML
         html_content = self.markdown_processor.convert(readme_content)
-        
+
         # Create full HTML document
         full_html = self._create_html_document(html_content, project_name)
-        
+
         # Save to file if path provided
         if output_path:
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 f.write(full_html)
-            print(f"🌐 HTML documentation generated: {output_path}")
-        
+            get_logger(__name__).info("HTML documentation generated", output_path=output_path)
+
         return full_html
-    
-    def generate_from_analysis(self, analysis_data: Dict[str, Any], 
-                             output_path: Optional[str] = None) -> str:
+
+    def generate_from_analysis(
+        self, analysis_data: dict[str, Any], output_path: str | None = None
+    ) -> str:
         """
         Generate HTML documentation directly from analysis data.
-        
+
         Args:
             analysis_data: Results from CodebaseAnalyzer
             output_path: Optional path to save the HTML file
-            
+
         Returns:
             Generated HTML content as string
-        """        # First generate README content, then convert to HTML
-        from .generator import ReadmeGenerator
-        
+        """  # First generate README content, then convert to HTML
         readme_gen = ReadmeGenerator()
         readme_content = readme_gen.generate(analysis_data)
-        
+
         project_name = self._extract_project_name(analysis_data)
-        
+
         # Check if website and inform user
         if is_website_project(analysis_data):
             html_content = self.generate_from_readme(readme_content, output_path, project_name)
             if output_path:
-                print(f"✅ Website detected! Generated website-optimized HTML documentation: {output_path}")
+                get_logger(__name__).info(
+                    "Website detected; generated website-optimized HTML documentation",
+                    output_path=output_path,
+                )
             return html_content
-        else:
-            return self.generate_from_readme(readme_content, output_path, project_name)
-    
+        return self.generate_from_readme(readme_content, output_path, project_name)
+
     def _create_html_document(self, content: str, project_name: str) -> str:
         """Create a complete HTML document with styling."""
-        
+
         # Sanitize project name to prevent XSS
         safe_project_name = sanitize_html(project_name)
-        
+
         # Extract table of contents if available
-        toc_html = getattr(self.markdown_processor, 'toc', '')
-        
-        html_template = f"""<!DOCTYPE html>
+        toc_html = getattr(self.markdown_processor, "toc", "")
+
+        return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -160,9 +160,7 @@ class HTMLGenerator:
     </script>
 </body>
 </html>"""
-        
-        return html_template
-    
+
     def _get_css_styles(self) -> str:
         """Get CSS styles for the HTML documentation."""
         return """
@@ -441,7 +439,7 @@ class HTMLGenerator:
             margin: 1rem 0;
         }
         """
-    
+
     def _get_javascript(self) -> str:
         """Get JavaScript for enhanced functionality."""
         return """
@@ -500,14 +498,14 @@ class HTMLGenerator:
             observer.observe(heading);
         });
         """
-    
-    def _extract_project_name(self, analysis_data: Dict[str, Any]) -> str:
+
+    def _extract_project_name(self, analysis_data: dict[str, Any]) -> str:
         """Extract project name from analysis data."""
         # Try to get project name from various sources
-        if 'git_info' in analysis_data and analysis_data['git_info'].get('repo_name'):
-            return analysis_data['git_info']['repo_name']
-        
-        if 'root_path' in analysis_data:
-            return Path(analysis_data['root_path']).name
-        
+        if "git_info" in analysis_data and analysis_data["git_info"].get("repo_name"):
+            return analysis_data["git_info"]["repo_name"]
+
+        if "root_path" in analysis_data:
+            return Path(analysis_data["root_path"]).name
+
         return "Project Documentation"

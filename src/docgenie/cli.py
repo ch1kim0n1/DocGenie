@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-import sys
+import webbrowser
 from pathlib import Path
-from typing import List, Optional
 
 import typer
 import yaml
@@ -20,6 +19,8 @@ from .logging import configure_logging, get_logger
 
 app = typer.Typer(add_completion=False, help="DocGenie - Auto-documentation for any codebase.")
 console = Console()
+
+OutputSpec = tuple[str, Path]
 
 
 def _print_summary(analysis_data: dict, target_formats: str) -> None:
@@ -38,77 +39,110 @@ def _print_summary(analysis_data: dict, target_formats: str) -> None:
     console.print(table)
 
 
+def _validate_format(fmt: str) -> str:
+    target_formats = fmt.lower()
+    if target_formats not in {"markdown", "html", "both"}:
+        typer.echo("Invalid format. Choose markdown, html, or both.")
+        raise typer.Exit(code=1)
+    return target_formats
+
+
+def _run_analysis(path: Path, ignore: list[str], tree_sitter: bool, verbose: bool) -> dict:
+    analyzer = CodebaseAnalyzer(str(path), ignore, enable_tree_sitter=tree_sitter)
+    with Progress(console=console, transient=True) as progress:
+        task = progress.add_task("Analyzing codebase...", total=100)
+        analysis_data = analyzer.analyze()
+        progress.update(task, completed=100)
+    if verbose:
+        console.log("Analysis complete")
+    return analysis_data
+
+
+def _build_outputs(target_formats: str, output: Path | None, base: Path) -> list[OutputSpec]:
+    outputs: list[OutputSpec] = []
+    if target_formats in {"markdown", "both"}:
+        outputs.append(("markdown", _resolve_output(output, base, "README.md")))
+    if target_formats in {"html", "both"}:
+        outputs.append(("html", _resolve_output(output, base, "docs.html")))
+    return outputs
+
+
+def _confirm_overwrite(outputs: list[OutputSpec], *, preview: bool, force: bool) -> None:
+    if preview or force:
+        return
+    for _, out_path in outputs:
+        if out_path.exists() and not typer.confirm(f"{out_path.name} exists. Overwrite?"):
+            typer.echo("Operation cancelled.")
+            raise typer.Exit(code=1)
+
+
+def _render_outputs(outputs: list[OutputSpec], analysis_data: dict, *, preview: bool) -> None:
+    for output_format, output_path in outputs:
+        if output_format == "markdown":
+            generator = ReadmeGenerator()
+            content = generator.generate(analysis_data, None if preview else str(output_path))
+            if preview:
+                console.rule("README Preview")
+                typer.echo(content)
+            else:
+                console.log(f"[green]README generated:[/green] {output_path}")
+        else:
+            html_generator = HTMLGenerator()
+            content = html_generator.generate_from_analysis(
+                analysis_data, None if preview else str(output_path)
+            )
+            if preview:
+                console.rule("HTML Preview (truncated)")
+                typer.echo("\n".join(content.splitlines()[:80]))
+            else:
+                console.log(f"[green]HTML generated:[/green] {output_path}")
+
+
 @app.command("generate")
-def generate(
-    path: Path = typer.Argument(Path("."), exists=True, file_okay=False, dir_okay=True, resolve_path=True),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output path for documentation."),
-    fmt: str = typer.Option("markdown", "--format", "--fmt", help="Output format", case_sensitive=False, rich_help_panel="Output"),
-    ignore: List[str] = typer.Option([], "--ignore", "-i", help="Additional ignore patterns"),
+def generate(  # noqa: PLR0913
+    path: Path = typer.Argument(
+        Path("."), exists=True, file_okay=False, dir_okay=True, resolve_path=True
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output path for documentation."
+    ),
+    fmt: str = typer.Option(
+        "markdown",
+        "--format",
+        "--fmt",
+        help="Output format",
+        case_sensitive=False,
+        rich_help_panel="Output",
+    ),
+    ignore: list[str] = typer.Option([], "--ignore", "-i", help="Additional ignore patterns"),
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files"),
     preview: bool = typer.Option(False, "--preview", "-p", help="Preview without saving"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
-    tree_sitter: bool = typer.Option(True, "--tree-sitter/--no-tree-sitter", help="Enable tree-sitter parsing when available"),
+    tree_sitter: bool = typer.Option(
+        True,
+        "--tree-sitter/--no-tree-sitter",
+        help="Enable tree-sitter parsing when available",
+    ),
     json_logs: bool = typer.Option(False, "--json-logs", help="Output structured logs as JSON"),
 ) -> None:
     """Generate README and/or HTML docs for a codebase."""
     configure_logging(verbose=verbose, json_output=json_logs)
     logger = get_logger(__name__)
-    
-    target_formats = fmt.lower()
-    valid_formats = {"markdown", "html", "both"}
-    if target_formats not in valid_formats:
-        typer.echo("Invalid format. Choose markdown, html, or both.")
-        raise typer.Exit(code=1)
 
+    target_formats = _validate_format(fmt)
     console.rule("[bold cyan]DocGenie")
     logger.info("Starting documentation generation", path=str(path), format=target_formats)
 
-    analyzer = CodebaseAnalyzer(str(path), ignore, enable_tree_sitter=tree_sitter)
-    with Progress(console=console, transient=True) as progress:
-        task = progress.add_task("Analyzing codebase...", total=100)
-            analysis_data = analyzer.analyze()
-        progress.update(task, completed=100)
-        
-        if verbose:
-        console.log("Analysis complete", extra={"markup": False})
+    analysis_data = _run_analysis(path, ignore, tree_sitter, verbose)
+    outputs = _build_outputs(target_formats, output, path)
+    _confirm_overwrite(outputs, preview=preview, force=force)
+    _render_outputs(outputs, analysis_data, preview=preview)
 
-        outputs = []
-    if target_formats in {"markdown", "both"}:
-        md_output = _resolve_output(output, path, "README.md")
-        outputs.append(("markdown", md_output))
-    if target_formats in {"html", "both"}:
-        html_output = _resolve_output(output, path, "docs.html")
-        outputs.append(("html", html_output))
-
-        if not preview and not force:
-        for _, out_path in outputs:
-            if out_path.exists() and not typer.confirm(f"{out_path.name} exists. Overwrite?"):
-                typer.echo("Operation cancelled.")
-                raise typer.Exit(code=1)
-        
-        for output_format, output_path in outputs:
-        if output_format == "markdown":
-                generator = ReadmeGenerator()
-                content = generator.generate(analysis_data, None if preview else str(output_path))
-                if preview:
-                console.rule("README Preview")
-                typer.echo(content)
-            else:
-                console.log(f"[green]README generated:[/green] {output_path}")
-                else:
-                html_generator = HTMLGenerator()
-                content = html_generator.generate_from_analysis(analysis_data, None if preview else str(output_path))
-                if preview:
-                console.rule("HTML Preview (truncated)")
-                typer.echo("\n".join(content.splitlines()[:80]))
-                else:
-                console.log(f"[green]HTML generated:[/green] {output_path}")
-        
-        if not preview:
+    if not preview:
         _print_summary(analysis_data, target_formats)
 
 
-def _resolve_output(output: Optional[Path], base: Path, default_name: str) -> Path:
+def _resolve_output(output: Path | None, base: Path, default_name: str) -> Path:
     if output is None:
         return base / default_name
     if output.is_dir():
@@ -120,12 +154,16 @@ def _resolve_output(output: Optional[Path], base: Path, default_name: str) -> Pa
 def analyze(
     path: Path = typer.Argument(Path("."), exists=True, resolve_path=True),
     fmt: str = typer.Option("text", "--format", "-f", help="Output format"),
-    tree_sitter: bool = typer.Option(True, "--tree-sitter/--no-tree-sitter", help="Enable tree-sitter parsing when available"),
+    tree_sitter: bool = typer.Option(
+        True,
+        "--tree-sitter/--no-tree-sitter",
+        help="Enable tree-sitter parsing when available",
+    ),
 ) -> None:
     """Analyze a codebase and print structured results."""
     analyzer = CodebaseAnalyzer(str(path), enable_tree_sitter=tree_sitter)
-        analysis_data = analyzer.analyze()
-        
+    analysis_data = analyzer.analyze()
+
     if fmt == "json":
         typer.echo(json.dumps(analysis_data, indent=2))
     elif fmt == "yaml":
@@ -140,7 +178,9 @@ def analyze(
 
 
 @app.command("init")
-def init_project_config(force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing config")) -> None:
+def init_project_config(
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing config"),
+) -> None:
     """Create a starter .docgenie.yaml configuration file."""
     config_path = Path(".docgenie.yaml")
     if config_path.exists() and not force:
@@ -163,13 +203,18 @@ template_customizations:
 
 
 @app.command("html")
-def html_command(
+def html_command(  # noqa: PLR0913
     input_path: Path = typer.Argument(..., exists=True, resolve_path=True),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output HTML path"),
+    output: Path | None = typer.Option(None, "--output", "-o", help="Output HTML path"),
     source: str = typer.Option("readme", "--source", "-s", help="readme or codebase"),
-    title: Optional[str] = typer.Option(None, "--title", "-t", help="Custom HTML title"),
+    title: str | None = typer.Option(None, "--title", "-t", help="Custom HTML title"),
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing files"),
-    open_browser: bool = typer.Option(False, "--open-browser", "--open", help="Open generated HTML in browser"),
+    open_browser: bool = typer.Option(
+        False,
+        "--open-browser",
+        "--open",
+        help="Open generated HTML in browser",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     tree_sitter: bool = typer.Option(True, "--tree-sitter/--no-tree-sitter"),
 ) -> None:
@@ -181,9 +226,12 @@ def html_command(
     elif output_path.is_dir():
         output_path = output_path / "docs.html"
 
-    if output_path.exists() and not force:
-        if not typer.confirm(f"{output_path} exists. Overwrite?"):
-            raise typer.Exit(code=1)
+    if (
+        output_path.exists()
+        and (not force)
+        and (not typer.confirm(f"{output_path} exists. Overwrite?"))
+    ):
+        raise typer.Exit(code=1)
 
     if source == "readme":
         if not input_path.is_file() or input_path.suffix.lower() != ".md":
@@ -201,12 +249,10 @@ def html_command(
 
     console.log(f"[green]HTML generated:[/green] {output_path}")
     if open_browser:
-        import webbrowser
-
         webbrowser.open(output_path.resolve().as_uri())
 
 
-def _extract_title(content: str) -> Optional[str]:
+def _extract_title(content: str) -> str | None:
     for line in content.splitlines():
         if line.startswith("# "):
             return line[2:].strip()

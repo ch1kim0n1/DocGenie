@@ -7,13 +7,13 @@ import json
 import os
 import re
 from collections import Counter, defaultdict
+from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any
 
 import toml
 
-from .exceptions import CacheError, FileAccessError
 from .models import AnalysisResult
 from .parsers import ParserRegistry
 from .utils import extract_git_info, get_file_language, is_website_project, should_ignore_file
@@ -35,7 +35,7 @@ class CacheManager:
         self.cache_dir = root / ".docgenie"
         self.cache_dir.mkdir(exist_ok=True)
         self.cache_file = self.cache_dir / "cache.json"
-        self._data: Dict[str, Dict[str, Any]] = {}
+        self._data: dict[str, dict[str, Any]] = {}
         self._load()
 
     def _load(self) -> None:
@@ -49,19 +49,21 @@ class CacheManager:
     def persist(self) -> None:
         self.cache_file.write_text(json.dumps(self._data, indent=2), encoding="utf-8")
 
-    def get(self, path: Path, digest: str) -> Optional[Dict[str, Any]]:
+    def get(self, path: Path, digest: str) -> dict[str, Any] | None:
         record = self._data.get(str(path))
         if record and record.get("hash") == digest:
             return record.get("parse")
         return None
 
-    def set(self, path: Path, digest: str, parse_result: Dict[str, Any], language: str) -> None:
+    def set(self, path: Path, digest: str, parse_result: dict[str, Any], language: str) -> None:
         parse_result = dict(parse_result)
         parse_result["language"] = language
         self._data[str(path)] = {"hash": digest, "parse": parse_result}
 
 
-def _analyze_file_task(payload: Tuple[str, List[str], bool]) -> Tuple[str, str, Optional[Dict[str, Any]], str]:
+def _analyze_file_task(
+    payload: tuple[str, list[str], bool],
+) -> tuple[str, str, dict[str, Any] | None, str]:
     """Worker for concurrent file analysis."""
     file_path_str, ignore_patterns, enable_tree_sitter = payload
     _ = ignore_patterns
@@ -70,7 +72,7 @@ def _analyze_file_task(payload: Tuple[str, List[str], bool]) -> Tuple[str, str, 
     if not language:
         return file_path_str, "", None, ""
     try:
-        with open(file_path, "r", encoding="utf-8") as handle:
+        with open(file_path, encoding="utf-8") as handle:
             content = handle.read()
     except (UnicodeDecodeError, PermissionError):
         return file_path_str, language, None, ""
@@ -86,7 +88,12 @@ class CodebaseAnalyzer:
     Analyzes a codebase to extract comprehensive information for documentation generation.
     """
 
-    def __init__(self, root_path: str, ignore_patterns: Optional[List[str]] = None, enable_tree_sitter: bool = True):
+    def __init__(
+        self,
+        root_path: str,
+        ignore_patterns: list[str] | None = None,
+        enable_tree_sitter: bool = True,
+    ):
         self.root_path = Path(root_path).resolve()
         self.ignore_patterns = ignore_patterns or []
         self.enable_tree_sitter = enable_tree_sitter
@@ -94,23 +101,23 @@ class CodebaseAnalyzer:
 
         self.files_analyzed = 0
         self.languages: Counter[str] = Counter()
-        self.dependencies: Dict[str, Any] = {}
-        self.project_structure: Dict[str, Any] = {}
-        self.functions: List[Dict[str, Any]] = []
-        self.classes: List[Dict[str, Any]] = []
-        self.imports: Dict[str, Set[str]] = defaultdict(set)
-        self.documentation_files: List[str] = []
-        self.config_files: List[str] = []
-        self.git_info: Dict[str, Any] = {}
+        self.dependencies: dict[str, Any] = {}
+        self.project_structure: dict[str, Any] = {}
+        self.functions: list[dict[str, Any]] = []
+        self.classes: list[dict[str, Any]] = []
+        self.imports: dict[str, set[str]] = defaultdict(set)
+        self.documentation_files: list[str] = []
+        self.config_files: list[str] = []
+        self.git_info: dict[str, Any] = {}
         self.is_website = False
         self.website_detection_reason = ""
 
-    def analyze(self) -> Dict[str, Any]:
+    def analyze(self) -> dict[str, Any]:
         """Perform comprehensive analysis of the codebase."""
         self.git_info = extract_git_info(self.root_path)
         files = list(self._iter_source_files())
 
-        tasks: List[Tuple[str, List[str], bool]] = []
+        tasks: list[tuple[str, list[str], bool]] = []
         for file_path in files:
             digest = _hash_file(file_path)
             cached = self.cache.get(file_path, digest)
@@ -139,8 +146,12 @@ class CodebaseAnalyzer:
         self.cache.persist()
         return compiled.to_public_dict()
 
-    def _apply_parsed_data(self, parsed: Dict[str, Any], file_path: Path, cached_language: Optional[str]) -> None:
-        language = cached_language or parsed.get("language") or get_file_language(file_path) or "unknown"
+    def _apply_parsed_data(
+        self, parsed: dict[str, Any], file_path: Path, cached_language: str | None
+    ) -> None:
+        language = (
+            cached_language or parsed.get("language") or get_file_language(file_path) or "unknown"
+        )
         self.files_analyzed += 1
         self.languages[language] += 1
         self.functions.extend(parsed.get("functions", []))
@@ -158,7 +169,7 @@ class CodebaseAnalyzer:
                 yield file_path
 
     def _analyze_project_structure(self) -> None:
-        structure: Dict[str, Any] = {}
+        structure: dict[str, Any] = {}
         for root, dirs, files in os.walk(self.root_path):
             dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
             rel_path = os.path.relpath(root, self.root_path)
@@ -192,28 +203,28 @@ class CodebaseAnalyzer:
                     # Silently skip malformed dependency files
                     continue
 
-    def _parse_requirements_txt(self, file_path: Path) -> List[str]:
-        deps = []
-        for line in file_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
+    def _parse_requirements_txt(self, file_path: Path) -> list[str]:
+        deps: list[str] = []
+        for raw_line in file_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
             if line and not line.startswith("#") and not line.startswith("-"):
                 dep = re.split(r"[<>=!]", line)[0].strip()
                 if dep:
                     deps.append(dep)
         return deps
 
-    def _parse_package_json(self, file_path: Path) -> Dict[str, List[str]]:
+    def _parse_package_json(self, file_path: Path) -> dict[str, list[str]]:
         data = json.loads(file_path.read_text(encoding="utf-8"))
-        deps: Dict[str, List[str]] = {}
+        deps: dict[str, list[str]] = {}
         if "dependencies" in data:
             deps["dependencies"] = list(data["dependencies"].keys())
         if "devDependencies" in data:
             deps["devDependencies"] = list(data["devDependencies"].keys())
         return deps
 
-    def _parse_pyproject_toml(self, file_path: Path) -> Dict[str, Any]:
+    def _parse_pyproject_toml(self, file_path: Path) -> dict[str, Any]:
         data = toml.load(file_path)
-        deps: Dict[str, Any] = {}
+        deps: dict[str, Any] = {}
         project = data.get("project", {})
         if project.get("dependencies"):
             deps["dependencies"] = project["dependencies"]
@@ -227,30 +238,29 @@ class CodebaseAnalyzer:
                 deps["poetry-dev-dependencies"] = list(poetry["dev-dependencies"].keys())
         return deps
 
-    def _parse_setup_py(self, file_path: Path) -> List[str]:
+    def _parse_setup_py(self, file_path: Path) -> list[str]:
         content = file_path.read_text(encoding="utf-8")
         install_requires_match = re.search(r"install_requires\s*=\s*\[(.*?)\]", content, re.DOTALL)
         if install_requires_match:
             deps_str = install_requires_match.group(1)
-            deps = re.findall(r'["\']([^"\'>=<]+)', deps_str)
-            return deps
+            return re.findall(r'["\']([^"\'>=<]+)', deps_str)
         return []
 
-    def _parse_cargo_toml(self, file_path: Path) -> Dict[str, List[str]]:
+    def _parse_cargo_toml(self, file_path: Path) -> dict[str, list[str]]:
         data = toml.load(file_path)
-        deps: Dict[str, List[str]] = {}
+        deps: dict[str, list[str]] = {}
         if "dependencies" in data:
             deps["dependencies"] = list(data["dependencies"].keys())
         if "dev-dependencies" in data:
             deps["dev-dependencies"] = list(data["dev-dependencies"].keys())
         return deps
 
-    def _parse_go_mod(self, file_path: Path) -> List[str]:
+    def _parse_go_mod(self, file_path: Path) -> list[str]:
         content = file_path.read_text(encoding="utf-8")
-        deps: List[str] = []
+        deps: list[str] = []
         in_require = False
-        for line in content.split("\n"):
-            line = line.strip()
+        for raw_line in content.split("\n"):
+            line = raw_line.strip()
             if line.startswith("require ("):
                 in_require = True
                 continue
@@ -263,14 +273,14 @@ class CodebaseAnalyzer:
                 deps.append(line.split()[1])
         return deps
 
-    def _parse_pom_xml(self, file_path: Path) -> List[str]:
+    def _parse_pom_xml(self, file_path: Path) -> list[str]:
         content = file_path.read_text(encoding="utf-8")
         return re.findall(r"<artifactId>(.*?)</artifactId>", content)
 
-    def _parse_gemfile(self, file_path: Path) -> List[str]:
-        deps: List[str] = []
-        for line in file_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
+    def _parse_gemfile(self, file_path: Path) -> list[str]:
+        deps: list[str] = []
+        for raw_line in file_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
             if line.startswith("gem "):
                 match = re.search(r'gem\s+["\']([^"\']+)', line)
                 if match:
@@ -286,7 +296,7 @@ class CodebaseAnalyzer:
             project_structure=self.project_structure,
             functions=self.functions,
             classes=self.classes,
-            imports={lang: sorted(list(imps)) for lang, imps in self.imports.items()},
+            imports={lang: sorted(imps) for lang, imps in self.imports.items()},
             documentation_files=self.documentation_files,
             config_files=self.config_files,
             git_info=self.git_info,

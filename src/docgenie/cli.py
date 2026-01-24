@@ -54,7 +54,12 @@ def _run_analysis(path: Path, ignore: list[str], tree_sitter: bool, verbose: boo
     config_ignore = config.get("ignore_patterns", [])
     combined_ignore = list(set(ignore + config_ignore))
 
-    analyzer = CodebaseAnalyzer(str(path), combined_ignore, enable_tree_sitter=tree_sitter, config=config)
+    analyzer = CodebaseAnalyzer(
+        str(path),
+        combined_ignore,
+        enable_tree_sitter=tree_sitter,
+        config=config,
+    )
     with Progress(console=console, transient=True) as progress:
         task = progress.add_task("Analyzing codebase...", total=100)
         analysis_data = analyzer.analyze()

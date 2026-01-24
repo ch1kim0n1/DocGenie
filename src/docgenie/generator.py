@@ -94,7 +94,9 @@ class ReadmeGenerator:
 
         # API documentation
         if include_api_docs and not is_website:
-            api_docs = self._generate_api_docs(functions, classes, config if isinstance(config, dict) else {})
+            api_docs = self._generate_api_docs(
+                functions, classes, config if isinstance(config, dict) else {}
+            )
         else:
             api_docs = {"functions": [], "classes": []}
 
@@ -281,7 +283,9 @@ class ReadmeGenerator:
 
         return examples
 
-    def _generate_api_docs(self, functions: List[Dict], classes: List[Dict], config: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_api_docs(
+        self, functions: List[Dict], classes: List[Dict], config: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Generate API documentation from functions and classes."""
         api_docs: Dict[str, Any] = {"functions": [], "classes": []}
 

@@ -1,6 +1,6 @@
 # DocGenie
 
-A simple Python tool to automatically generate documentation for your codebase. Supports both Markdown (README.md) and HTML formats
+Auto-documentation tool that generates `README.md` and HTML docs for a codebase.
 
 ## Quick Guide
 
@@ -15,7 +15,7 @@ Requirements: **Python 3.10+**
 ### Setup (from source)
 
 ```bash
-git clone https://github.com/yourusername/DocGenie.git
+git clone https://github.com/ch1kim0n1/DocGenie.git
 cd DocGenie
 python3 -m pip install -e "."
 ```
@@ -44,6 +44,8 @@ docgenie generate /path/to/project --format both
 
 ```bash
 docgenie html README.md --source readme --output docs.html
+# or, using the legacy convenience command:
+docgenie-html README.md --source readme --output docs.html
 ```
 
 #### Programmatic Usage (Python API)
@@ -56,7 +58,7 @@ analyzer = CodebaseAnalyzer('/path/to/project')
 data = analyzer.analyze()
 
 html_generator = HTMLGenerator()
-html_content = html_generator.generate_from_analysis(data, 'output.html')
+html_content = html_generator.generate_from_analysis(data, "output.html")
 ```
 
 ## Troubleshooting
@@ -69,39 +71,7 @@ html_content = html_generator.generate_from_analysis(data, 'output.html')
 
 MIT License. See LICENSE file for details.
 
-```bash
-# Generate HTML documentation
-docgenie /path/to/project --format html
-
-# Convert existing README to HTML
-docgenie-html README.md --source readme --open-browser
-
-# Generate from codebase analysis
-docgenie-html /path/to/project --source codebase
-```
-
-### Use as Python Library
-
-```python
-from docgenie import CodebaseAnalyzer, ReadmeGenerator, HTMLGenerator
-
-# Analyze codebase
-analyzer = CodebaseAnalyzer('/path/to/project')
-analysis_data = analyzer.analyze()
-
-# Generate README
-readme_generator = ReadmeGenerator()
-readme_content = readme_generator.generate(analysis_data)
-
-# Generate HTML documentation
-html_generator = HTMLGenerator()
-html_content = html_generator.generate_from_analysis(analysis_data)
-
-# Or convert README to HTML
-html_content = html_generator.generate_from_readme(readme_content, project_name="My Project")
-```
-
-## 🎯 What DocGenie Analyzes
+## What DocGenie Analyzes
 
 - **📁 Project Structure**: Directory tree and file organization
 - **💻 Source Code**: Functions, classes, methods, and documentation
@@ -111,7 +81,7 @@ html_content = html_generator.generate_from_readme(readme_content, project_name=
 - **🌿 Git Information**: Repository details, branches, contributors
 - **📊 Statistics**: Language distribution, code metrics
 
-## 📚 Example Output
+## Example Output
 
 DocGenie generates README files with:
 
@@ -123,7 +93,7 @@ DocGenie generates README files with:
 - **Dependencies**: Organized by package manager
 - **Contributing Guidelines**: Standard open-source templates
 
-## 🛠️ Advanced Usage
+## Advanced Usage
 
 ### Command Line Options
 
@@ -144,7 +114,7 @@ docgenie generate . --preview                   # Preview without saving
 
 # HTML converter
 docgenie html README.md --source readme         # Convert README to HTML
-docgenie html /path --source codebase           # Generate HTML from code
+docgenie html . --source codebase               # Generate HTML from code
 
 # Analysis tools
 docgenie analyze . --format json                # Output analysis as JSON
@@ -192,7 +162,7 @@ We welcome contributions! Here's how to get started:
 ### Development Setup
 
 ```bash
-git clone https://github.com/yourusername/DocGenie.git
+git clone https://github.com/ch1kim0n1/DocGenie.git
 cd DocGenie
 pip install -e ".[dev]"
 pytest

@@ -28,7 +28,7 @@ dependencies = [
   "markdown>=3.3",
 ]
  classifiers = [
-   "Development Status :: 5 - Production/Stable",
+   "Development Status :: 4 - Beta",
    "Intended Audience :: Developers",
    "License :: OSI Approved :: MIT License",
    "Operating System :: OS Independent",
@@ -46,9 +46,7 @@ dependencies = [
 dev = [
   "pytest>=8.0",
   "pytest-cov>=4.0",
-  "pytest-snapshot>=0.9",
   "hypothesis>=6.0",
-  "syrupy>=4.6",
   "ruff>=0.6",
   "mypy>=1.10",
   "types-PyYAML",
@@ -62,13 +60,14 @@ dev = [
 ]
 
  [project.urls]
- Homepage = "https://github.com/docgenie/docgenie"
- Repository = "https://github.com/docgenie/docgenie"
- Documentation = "https://github.com/docgenie/docgenie"
+ Homepage = "https://github.com/ch1kim0n1/DocGenie"
+ Repository = "https://github.com/ch1kim0n1/DocGenie"
+ Documentation = "https://github.com/ch1kim0n1/DocGenie"
+ Changelog = "https://github.com/ch1kim0n1/DocGenie/blob/main/CHANGELOG.md"
 
 [project.scripts]
 docgenie = "docgenie.cli:app"
-docgenie-html = "convert_to_html:main"
+docgenie-html = "docgenie.convert_to_html:main"
 
  [tool.hatch.build]
  include = ["src/docgenie", "README.md", "LICENSE"]

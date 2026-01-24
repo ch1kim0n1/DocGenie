@@ -4,7 +4,7 @@ README generation functionality for DocGenie.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from jinja2 import Template
 
@@ -20,7 +20,7 @@ class ReadmeGenerator:
     def __init__(self) -> None:
         self.template = self._get_template()
 
-    def generate(self, analysis_data: Dict[str, Any], output_path: Optional[str] = None) -> str:
+    def generate(self, analysis_data: Dict[str, Any], output_path: str | None = None) -> str:
         """
         Generate README content based on analysis data.
 
@@ -59,6 +59,16 @@ class ReadmeGenerator:
         project_type = get_project_type(analysis_data)
         is_website = is_website_project(analysis_data)
 
+        config = analysis_data.get("config", {})
+        template_customizations: dict[str, Any]
+        if isinstance(config, dict) and isinstance(config.get("template_customizations"), dict):
+            template_customizations = config["template_customizations"]
+        else:
+            template_customizations = {}
+
+        include_directory_tree = template_customizations.get("include_directory_tree", True)
+        include_api_docs = template_customizations.get("include_api_docs", True)
+
         # Language statistics
         languages = analysis_data.get("languages", {})
         main_language = analysis_data.get("main_language", "unknown")
@@ -71,7 +81,7 @@ class ReadmeGenerator:
 
         # Project structure
         structure = analysis_data.get("project_structure", {})
-        directory_tree = create_directory_tree(structure)
+        directory_tree = create_directory_tree(structure) if include_directory_tree else None
 
         # Code statistics
         functions = analysis_data.get("functions", [])
@@ -83,7 +93,10 @@ class ReadmeGenerator:
         usage_examples = self._generate_usage_examples(analysis_data)
 
         # API documentation
-        api_docs = self._generate_api_docs(functions, classes)
+        if include_api_docs and not is_website:
+            api_docs = self._generate_api_docs(functions, classes, config if isinstance(config, dict) else {})
+        else:
+            api_docs = {"functions": [], "classes": []}
 
         return {
             "project_name": project_name,
@@ -268,12 +281,14 @@ class ReadmeGenerator:
 
         return examples
 
-    def _generate_api_docs(self, functions: List[Dict], classes: List[Dict]) -> Dict[str, Any]:
+    def _generate_api_docs(self, functions: List[Dict], classes: List[Dict], config: Dict[str, Any]) -> Dict[str, Any]:
         """Generate API documentation from functions and classes."""
         api_docs: Dict[str, Any] = {"functions": [], "classes": []}
 
+        max_funcs = config.get("template_customizations", {}).get("max_functions_documented", 10)
+
         # Document main functions (limit to avoid overwhelming)
-        main_functions = [f for f in functions if not f["name"].startswith("_")][:10]
+        main_functions = [f for f in functions if not f["name"].startswith("_")][:max_funcs]
         for func in main_functions:
             doc = {
                 "name": func["name"],
@@ -512,11 +527,13 @@ This website is configured for deployment on:
 {% endfor %}
 {% endif %}
 
+{% if directory_tree %}
 ## Project Structure
 
 ```
 {{ directory_tree }}
 ```
+{% endif %}
 
 ## Architecture
 
@@ -765,7 +782,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
             for indicator in responsive_indicators
         )
 
-    def _detect_frontend_framework(self, dependencies: Dict[str, Any]) -> Optional[str]:
+    def _detect_frontend_framework(self, dependencies: Dict[str, Any]) -> str | None:
         """Detect the primary frontend framework."""
         frameworks = {
             "react": "React",

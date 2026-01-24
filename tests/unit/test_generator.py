@@ -1,5 +1,6 @@
 """Tests for README generator."""
 
+import copy
 from pathlib import Path
 
 import pytest
@@ -146,3 +147,25 @@ def test_readme_empty_project(tmp_path: Path) -> None:
     # Should still generate something
     assert "EmptyProject" in content
     assert len(content) > 50
+
+
+def test_readme_respects_include_directory_tree(sample_analysis: dict) -> None:
+    """If disabled, README should omit the directory tree section."""
+    data = copy.deepcopy(sample_analysis)
+    data["config"] = {"template_customizations": {"include_directory_tree": False}}
+
+    generator = ReadmeGenerator()
+    content = generator.generate(data, None)
+
+    assert "## Project Structure" not in content
+
+
+def test_readme_respects_include_api_docs(sample_analysis: dict) -> None:
+    """If disabled, README should omit the API reference section."""
+    data = copy.deepcopy(sample_analysis)
+    data["config"] = {"template_customizations": {"include_api_docs": False}}
+
+    generator = ReadmeGenerator()
+    content = generator.generate(data, None)
+
+    assert "## API Reference" not in content

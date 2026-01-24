@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
+from .config import load_config
 from .core import CodebaseAnalyzer
 from .generator import ReadmeGenerator
 from .html_generator import HTMLGenerator
@@ -48,7 +49,12 @@ def _validate_format(fmt: str) -> str:
 
 
 def _run_analysis(path: Path, ignore: list[str], tree_sitter: bool, verbose: bool) -> dict:
-    analyzer = CodebaseAnalyzer(str(path), ignore, enable_tree_sitter=tree_sitter)
+    config = load_config(path)
+    # Merge CLI ignore patterns with config ignore patterns
+    config_ignore = config.get("ignore_patterns", [])
+    combined_ignore = list(set(ignore + config_ignore))
+
+    analyzer = CodebaseAnalyzer(str(path), combined_ignore, enable_tree_sitter=tree_sitter, config=config)
     with Progress(console=console, transient=True) as progress:
         task = progress.add_task("Analyzing codebase...", total=100)
         analysis_data = analyzer.analyze()

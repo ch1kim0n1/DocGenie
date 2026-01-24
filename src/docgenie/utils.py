@@ -6,7 +6,7 @@ import fnmatch
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
 
@@ -100,7 +100,7 @@ LANGUAGE_EXTENSIONS = {
 }
 
 
-def get_file_language(file_path: Path) -> Optional[str]:
+def get_file_language(file_path: Path) -> str | None:
     """
     Determine the programming language of a file based on its extension.
 
@@ -114,7 +114,7 @@ def get_file_language(file_path: Path) -> Optional[str]:
     return LANGUAGE_EXTENSIONS.get(suffix)
 
 
-def should_ignore_file(file_path: str, additional_patterns: Optional[List[str]] = None) -> bool:
+def should_ignore_file(file_path: str, additional_patterns: List[str] | None = None) -> bool:
     """
     Check if a file or directory should be ignored based on ignore patterns.
 

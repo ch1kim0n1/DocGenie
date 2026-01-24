@@ -93,10 +93,12 @@ class CodebaseAnalyzer:
         root_path: str,
         ignore_patterns: list[str] | None = None,
         enable_tree_sitter: bool = True,
+        config: dict[str, Any] | None = None,
     ):
         self.root_path = Path(root_path).resolve()
         self.ignore_patterns = ignore_patterns or []
         self.enable_tree_sitter = enable_tree_sitter
+        self.config = config or {}
         self.cache = CacheManager(self.root_path)
 
         self.files_analyzed = 0
@@ -303,4 +305,5 @@ class CodebaseAnalyzer:
             is_website=self.is_website,
             website_detection_reason=self.website_detection_reason,
             root_path=self.root_path,
+            config=self.config,
         )

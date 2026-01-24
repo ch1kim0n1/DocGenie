@@ -92,6 +92,7 @@ class AnalysisResult:
     is_website: bool
     website_detection_reason: str
     root_path: Path
+    config: dict[str, object] = field(default_factory=dict)
 
     def to_public_dict(self) -> dict[str, object]:
         return {
@@ -112,4 +113,5 @@ class AnalysisResult:
             "is_website": self.is_website,
             "website_detection_reason": self.website_detection_reason,
             "root_path": str(self.root_path),
+            "config": self.config,
         }

@@ -7,12 +7,32 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-02-20
+
 ### Changed
 - Documentation refreshed for the 1.2.0 release:
   - Added an explicit "What's New in 1.2.0" section to the main README.
   - Updated docs home quick-start examples to use current CLI commands.
   - Clarified parser behavior around `async def` discovery in API docs.
   - Corrected docs repository links to `ch1kim0n1/DocGenie`.
+- Completed MkDocs documentation structure to match navigation and pass strict builds.
+- CI quality gates hardened:
+  - Added package verification (`python -m build`, `twine check dist/*`).
+  - Enforced coverage gate in tests (`pytest --cov-fail-under=90`).
+  - Scope linting to maintained code paths (`src`, `tests`) with formatting checks on `src`.
+- `pytest-asyncio` loop scope explicitly configured to remove deprecation warnings.
+- Removed tracked legacy package metadata (`docgenie.egg-info/*`) from version control.
+
+### Added
+- Public runtime parser registration API: `ParserRegistry.register(plugin)` with
+  replace-by-name and priority re-sorting semantics.
+- Expanded unit coverage for parser internals, plugin loading paths, utils classification
+  branches, and generator website metadata paths.
+
+### Fixed
+- `TreeSitterParser` now safely returns empty parse results when parser resolution fails or
+  runtime parse errors occur, instead of propagating parser exceptions.
+- README generator footer repository link updated to the active repository URL.
 
 ## [1.2.0] - 2026-02-20
 

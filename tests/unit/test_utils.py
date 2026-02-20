@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -259,6 +260,94 @@ def test_get_project_type_fallback_to_main_language() -> None:
     assert "kotlin" in result.lower() or "Kotlin" in result
 
 
+@pytest.mark.parametrize(
+    ("deps", "expected"),
+    [
+        ({"package.json": {"dependencies": ["react"]}}, "React Website"),
+        ({"package.json": {"dependencies": ["vue"]}}, "Vue.js Website"),
+        ({"package.json": {"dependencies": ["angular"]}}, "Angular Website"),
+        ({"package.json": {"dependencies": ["gatsby"]}}, "Gatsby Static Website"),
+        ({"package.json": {"dependencies": ["next"]}}, "Next.js Website"),
+    ],
+)
+def test_get_project_type_website_package_variants(deps: dict, expected: str) -> None:
+    data = _project_analysis(
+        project_structure={"root": {"files": ["index.html", "package.json"], "dirs": []}},
+        dependencies=deps,
+        languages={"html": 4, "javascript": 6},
+    )
+    assert get_project_type(data) == expected
+
+
+def test_get_project_type_static_website_hugo_jekyll() -> None:
+    data = _project_analysis(
+        project_structure={"root": {"files": ["index.html", "hugo.toml"], "dirs": []}},
+        languages={"html": 5},
+    )
+    assert get_project_type(data) == "Static Website (Hugo/Jekyll)"
+
+
+def test_get_project_type_django_and_flask_website() -> None:
+    django_data = _project_analysis(
+        project_structure={"root": {"files": ["index.html"], "dirs": []}},
+        dependencies={"requirements.txt": ["django"]},
+        languages={"html": 3, "python": 2},
+    )
+    flask_data = _project_analysis(
+        project_structure={"root": {"files": ["index.html"], "dirs": []}},
+        dependencies={"requirements.txt": ["flask"]},
+        languages={"html": 3, "python": 2},
+    )
+    assert get_project_type(django_data) == "Django Website"
+    assert get_project_type(flask_data) == "Flask Website"
+
+
+def test_get_project_type_non_website_python_frameworks(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("docgenie.utils.is_website_project", lambda data: False)
+    django_data = _project_analysis(
+        project_structure={"root": {"files": ["requirements.txt"], "dirs": []}},
+        dependencies={"requirements.txt": ["django"]},
+        languages={"python": 10},
+    )
+    flask_data = _project_analysis(
+        project_structure={"root": {"files": ["setup.py"], "dirs": []}},
+        dependencies={"setup.py": ["flask"]},
+        languages={"python": 10},
+    )
+    assert get_project_type(django_data) == "Django Application"
+    assert get_project_type(flask_data) == "Flask Application"
+
+
+def test_get_project_type_non_website_node_variants(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("docgenie.utils.is_website_project", lambda data: False)
+    react_data = _project_analysis(
+        project_structure={"root": {"files": ["package.json"], "dirs": []}},
+        dependencies={"package.json": {"dependencies": ["react"]}},
+        languages={"javascript": 8, "python": 2},
+    )
+    express_data = _project_analysis(
+        project_structure={"root": {"files": ["package.json"], "dirs": []}},
+        dependencies={"package.json": {"dependencies": ["express"]}},
+        languages={"javascript": 8, "python": 2},
+    )
+    assert get_project_type(react_data) == "React Application"
+    assert get_project_type(express_data) == "Node.js/Express Application"
+
+
+def test_get_project_type_java_and_ruby() -> None:
+    java_data = _project_analysis(
+        project_structure={"root": {"files": ["build.gradle"], "dirs": []}}
+    )
+    ruby_data = _project_analysis(project_structure={"root": {"files": ["Gemfile"], "dirs": []}})
+    assert get_project_type(java_data) == "Java Application"
+    assert get_project_type(ruby_data) == "Ruby Application"
+
+
+def test_get_project_type_unknown_defaults_to_software_project() -> None:
+    data = _project_analysis(main_language="unknown")
+    assert get_project_type(data) == "Software Project"
+
+
 # ---------------------------------------------------------------------------
 # create_directory_tree
 # ---------------------------------------------------------------------------
@@ -281,6 +370,23 @@ def test_create_directory_tree_returns_string() -> None:
     assert isinstance(create_directory_tree(structure), str)
 
 
+def test_create_directory_tree_shows_root_overflow_message() -> None:
+    root_files = [f"file_{index}.txt" for index in range(11)]
+    structure = {"root": {"files": root_files, "dirs": []}}
+    result = create_directory_tree(structure)
+    assert "... and 1 more files" in result
+
+
+def test_create_directory_tree_respects_max_depth() -> None:
+    deep_path = f"a{os.sep}b"
+    structure = {
+        "root": {"files": ["README.md"], "dirs": ["a"]},
+        deep_path: {"files": ["hidden.txt"], "dirs": []},
+    }
+    result = create_directory_tree(structure, max_depth=1)
+    assert "hidden.txt" not in result
+
+
 # ---------------------------------------------------------------------------
 # extract_git_info
 # ---------------------------------------------------------------------------
@@ -290,3 +396,49 @@ def test_extract_git_info_non_repo(tmp_path: Path) -> None:
     """A plain directory that is not a git repo should return empty dict."""
     result = extract_git_info(tmp_path)
     assert result == {}
+
+
+def test_extract_git_info_happy_path_with_mocked_repo(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeAuthor:
+        name = "Alice"
+        email = "alice@example.com"
+
+    class FakeCommit:
+        hexsha = "abc123"
+        author = FakeAuthor()
+        committed_datetime = "2026-01-01 00:00:00"
+        message = "Initial commit\n"
+
+    class FakeHead:
+        is_detached = False
+        commit = FakeCommit()
+
+    class FakeBranch:
+        name = "main"
+
+    class FakeOrigin:
+        url = "https://github.com/example/repo.git"
+
+    class FakeRemotes:
+        origin = FakeOrigin()
+
+    class FakeGit:
+        @staticmethod
+        def shortlog(flag: str) -> str:
+            assert flag == "-sn"
+            return "  2\tAlice\n  1\tBob\n"
+
+    class FakeRepo:
+        def __init__(self, path: Path, search_parent_directories: bool) -> None:
+            self.head = FakeHead()
+            self.active_branch = FakeBranch()
+            self.remotes = FakeRemotes()
+            self.git = FakeGit()
+
+    monkeypatch.setattr("docgenie.utils.Repo", FakeRepo)
+    result = extract_git_info(Path("."))
+
+    assert result["repo_name"] == "example/repo"
+    assert result["current_branch"] == "main"
+    assert result["latest_commit"]["hash"] == "abc123"
+    assert result["contributor_count"] == 2

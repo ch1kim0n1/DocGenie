@@ -6,13 +6,24 @@ import ast
 import textwrap
 from pathlib import Path
 
+import pytest
+
 from docgenie.parsers import (
+    ParserPlugin,
     ParserRegistry,
     PythonAstParser,
     RegexParser,
+    TreeSitterParser,
+    _class_nodes,
+    _extract_name,
+    _function_nodes,
     _get_base_name,
     _get_decorator_name,
+    _import_nodes,
+    _iter_tree_sitter_nodes,
     _language_patterns,
+    _load_external_plugins,
+    _safe_load_entry_point,
 )
 
 # ---------------------------------------------------------------------------
@@ -256,6 +267,85 @@ def test_parser_registry_python_ast_priority_is_zero() -> None:
     assert p.priority == 0
 
 
+def test_parser_registry_register_adds_plugin_and_resolves_language() -> None:
+    class RubyParser(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="ruby-parser", languages={"ruby"}, priority=40)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    registry = ParserRegistry(enable_tree_sitter=False)
+    registry.register(RubyParser())
+
+    plugin = registry.resolve("ruby")
+    assert plugin is not None
+    assert plugin.name == "ruby-parser"
+
+
+def test_parser_registry_register_replaces_existing_plugin_by_name() -> None:
+    class JsParserA(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="js-custom", languages={"javascript"}, priority=30)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    class JsParserB(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="js-custom", languages={"javascript"}, priority=10)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    registry = ParserRegistry(enable_tree_sitter=False)
+    registry.register(JsParserA())
+    registry.register(JsParserB())
+
+    matching = [plugin for plugin in registry.plugins if plugin.name == "js-custom"]
+    assert len(matching) == 1
+    assert matching[0].priority == 10
+
+
+def test_parser_registry_register_sorts_by_priority() -> None:
+    class SlowParser(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="slow", languages={"ruby"}, priority=200)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    class FastParser(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="fast", languages={"ruby"}, priority=20)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    registry = ParserRegistry(enable_tree_sitter=False)
+    registry.register(SlowParser())
+    registry.register(FastParser())
+
+    ruby_plugins = [plugin for plugin in registry.plugins if plugin.supports("ruby")]
+    assert ruby_plugins[0].name == "fast"
+
+
+def test_parser_registry_register_invalid_type_raises_type_error() -> None:
+    registry = ParserRegistry(enable_tree_sitter=False)
+    with pytest.raises(TypeError, match="ParserPlugin"):
+        registry.register("not-a-plugin")  # type: ignore[arg-type]
+
+
 # ---------------------------------------------------------------------------
 # Internal helper functions
 # ---------------------------------------------------------------------------
@@ -313,3 +403,159 @@ def test_language_patterns_unknown_returns_empty() -> None:
     patterns = _language_patterns("cobol")
     assert len(patterns.functions) == 0
     assert len(patterns.classes) == 0
+
+
+def test_function_class_import_nodes_have_expected_mappings() -> None:
+    assert "function_definition" in _function_nodes("python")
+    assert "class_declaration" in _class_nodes("javascript")
+    assert "import_statement" in _import_nodes("typescript")
+    assert _function_nodes("unknown") == set()
+    assert _class_nodes("unknown") == set()
+    assert _import_nodes("unknown") == set()
+
+
+def test_extract_name_handles_missing_child_by_field_name() -> None:
+    class NodeWithoutMethod:
+        pass
+
+    assert _extract_name(NodeWithoutMethod(), "source") is None
+
+
+def test_extract_name_reads_name_field() -> None:
+    class NameNode:
+        start_byte = 5
+        end_byte = 10
+
+    class ParentNode:
+        def child_by_field_name(self, name: str) -> NameNode | None:
+            return NameNode() if name == "name" else None
+
+    assert _extract_name(ParentNode(), "xxxxxhello") == "hello"
+
+
+def test_iter_tree_sitter_nodes_depth_first_traversal() -> None:
+    class FakeNode:
+        def __init__(self, name: str) -> None:
+            self.type = name
+            self.start_point = (0, 0)
+
+    class FakeCursor:
+        def __init__(self) -> None:
+            self.nodes = [FakeNode("root"), FakeNode("child"), FakeNode("sibling")]
+            self.index = 0
+
+        @property
+        def node(self) -> FakeNode:
+            return self.nodes[self.index]
+
+        def goto_first_child(self) -> bool:
+            if self.index == 0:
+                self.index = 1
+                return True
+            return False
+
+        def goto_next_sibling(self) -> bool:
+            if self.index == 1:
+                self.index = 2
+                return True
+            return False
+
+        def goto_parent(self) -> bool:
+            if self.index in {1, 2}:
+                self.index = 0
+                return True
+            return False
+
+    class FakeRoot:
+        def walk(self) -> FakeCursor:
+            return FakeCursor()
+
+    names = [node.type for node in _iter_tree_sitter_nodes(FakeRoot())]
+    assert names == ["root", "child", "sibling"]
+
+
+def test_safe_load_entry_point_handles_load_errors() -> None:
+    class BrokenEP:
+        def load(self) -> object:
+            raise ImportError("boom")
+
+    assert _safe_load_entry_point(BrokenEP()) is None
+
+
+def test_load_external_plugins_select_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    class GoodPlugin(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="good", languages={"python"}, priority=1)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    class GoodEP:
+        def load(self) -> GoodPlugin:
+            return GoodPlugin()
+
+    class BadEP:
+        def load(self) -> object:
+            return object()
+
+    class EntryPointsWithSelect:
+        def select(self, group: str) -> list[object]:
+            assert group == "docgenie.parsers"
+            return [GoodEP(), BadEP()]
+
+    monkeypatch.setattr("docgenie.parsers.metadata.entry_points", lambda: EntryPointsWithSelect())
+    plugins = list(_load_external_plugins())
+    assert len(plugins) == 1
+    assert plugins[0].name == "good"
+
+
+def test_load_external_plugins_legacy_get_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    class LegacyGoodPlugin(ParserPlugin):
+        def __init__(self) -> None:
+            super().__init__(name="legacy", languages={"python"}, priority=2)
+
+        def parse(self, content: str, path: Path, language: str) -> object:
+            from docgenie.models import ParseResult
+
+            return ParseResult()
+
+    class LegacyEP:
+        def load(self) -> LegacyGoodPlugin:
+            return LegacyGoodPlugin()
+
+    class EntryPointsLegacy:
+        def get(self, group: str, default: list[object]) -> list[object]:
+            if group == "docgenie.parsers":
+                return [LegacyEP()]
+            return default
+
+    monkeypatch.setattr("docgenie.parsers.metadata.entry_points", lambda: EntryPointsLegacy())
+    plugins = list(_load_external_plugins())
+    assert len(plugins) == 1
+    assert plugins[0].name == "legacy"
+
+
+def test_tree_sitter_parser_parse_returns_empty_when_parser_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("docgenie.parsers.ts_get_parser", lambda language: None)
+    parser = TreeSitterParser()
+    result = parser.parse("def f():\n    pass", Path("a.py"), "python")
+    assert result.functions == []
+    assert result.classes == []
+
+
+def test_tree_sitter_parser_parse_returns_empty_on_parser_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class ExplodingParser:
+        def parse(self, content: bytes) -> object:
+            raise RuntimeError("parse failed")
+
+    monkeypatch.setattr("docgenie.parsers.ts_get_parser", lambda language: ExplodingParser())
+    parser = TreeSitterParser()
+    result = parser.parse("content", Path("a.py"), "python")
+    assert result.functions == []
+    assert result.classes == []

@@ -303,3 +303,95 @@ def test_readme_website_detection_specific_output(sample_analysis: dict) -> None
     }
     content = ReadmeGenerator().generate(data, None)
     assert "Website" in content or "website" in content.lower()
+
+
+@pytest.mark.parametrize(
+    ("main_language", "expected_command"),
+    [
+        ("javascript", "node index.js"),
+        ("java", "java -jar target/app.jar"),
+        ("rust", "cargo run"),
+        ("go", "go run main.go"),
+    ],
+)
+def test_readme_usage_examples_for_non_python_languages(
+    sample_analysis: dict, main_language: str, expected_command: str
+) -> None:
+    data = copy.deepcopy(sample_analysis)
+    data["main_language"] = main_language
+    data["functions"] = []
+    data["classes"] = []
+    content = ReadmeGenerator().generate(data, None)
+    assert expected_command in content
+
+
+def test_readme_python_usage_example_for_class_only(sample_analysis: dict) -> None:
+    data = copy.deepcopy(sample_analysis)
+    data["functions"] = []
+    data["classes"] = [{"name": "Widget", "line": 1, "docstring": None, "methods": []}]
+    data["project_name"] = "MyLib"
+    content = ReadmeGenerator().generate(data, None)
+    assert "from mylib import Widget" in content
+
+
+def test_readme_get_project_name_fallback_to_root_path() -> None:
+    generator = ReadmeGenerator()
+    analysis = {
+        "root_path": "/tmp/SomeProject",
+        "languages": {},
+        "main_language": "python",
+        "dependencies": {},
+        "project_structure": {"root": {"files": [], "dirs": []}},
+        "functions": [],
+        "classes": [],
+        "documentation_files": [],
+        "config_files": [],
+        "git_info": {},
+    }
+    context = generator._prepare_context(analysis)
+    assert context["project_name"] == "SomeProject"
+
+
+def test_readme_get_website_info_detects_build_system_and_deployment() -> None:
+    generator = ReadmeGenerator()
+    analysis = {
+        "project_structure": {
+            "root": {
+                "files": [
+                    "index.html",
+                    "vite.config.js",
+                    "mkdocs.yml",
+                    "vercel.json",
+                    "Dockerfile",
+                ],
+                "dirs": ["assets", ".github/workflows"],
+            },
+            "assets": {"files": ["logo.png"], "dirs": []},
+            ".github/workflows": {"files": ["ci.yml"], "dirs": []},
+        },
+        "dependencies": {"package.json": {"dependencies": ["react", "tailwindcss"]}},
+    }
+    info = generator._get_website_info(analysis)
+    assert info["build_system"] == "Vite"
+    assert info["static_site_generator"] == "MkDocs"
+    assert "GitHub Actions" in info["deployment_platforms"]
+    assert "Vercel" in info["deployment_platforms"]
+    assert "Docker" in info["deployment_platforms"]
+    assert info["framework_detected"] == "React"
+    assert info["has_responsive_design"] is True
+
+
+def test_readme_get_website_info_detects_parcel_from_dependencies() -> None:
+    generator = ReadmeGenerator()
+    analysis = {
+        "project_structure": {"root": {"files": ["index.html"], "dirs": []}},
+        "dependencies": {"package.json": {"devDependencies": ["parcel"]}},
+    }
+    info = generator._get_website_info(analysis)
+    assert info["build_system"] == "Parcel"
+
+
+def test_readme_detect_frontend_framework_none_when_unknown() -> None:
+    generator = ReadmeGenerator()
+    framework = generator._detect_frontend_framework({"package.json": ["lodash", "axios"]})
+    assert framework is None

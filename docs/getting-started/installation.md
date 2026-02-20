@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip package manager
 
 ## Basic Installation
@@ -15,27 +15,23 @@ pip install docgenie
 
 This installs the core functionality with essential dependencies.
 
-## Full Installation (Recommended)
+## Notes on parser support
 
-For the best experience with enhanced parsing capabilities:
+DocGenie installs with tree-sitter language support through its default dependency set.
+You can enable or disable tree-sitter at runtime:
 
 ```bash
-pip install docgenie[full]
+docgenie generate . --tree-sitter
+docgenie generate . --no-tree-sitter
 ```
-
-This includes:
-
-- **tree-sitter**: Advanced syntax-aware parsing for multiple languages
-- Better accuracy for JavaScript, TypeScript, Java, C++, Go, and Rust
-- Improved handling of complex code structures
 
 ## Development Installation
 
 If you want to contribute to DocGenie:
 
 ```bash
-git clone https://github.com/docgenie/docgenie.git
-cd docgenie
+git clone https://github.com/ch1kim0n1/DocGenie.git
+cd DocGenie
 pip install -e ".[dev]"
 ```
 
@@ -77,7 +73,7 @@ sudo dnf install python3-devel
 
 ### Windows
 
-DocGenie works on Windows with Python 3.9+. Use pip in PowerShell or Command Prompt.
+DocGenie works on Windows with Python 3.10+. Use pip in PowerShell or Command Prompt.
 
 ## Troubleshooting
 
@@ -88,7 +84,7 @@ If you get permission errors, use a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install docgenie[full]
+pip install docgenie
 ```
 
 ### tree-sitter Installation Issues
@@ -96,7 +92,7 @@ pip install docgenie[full]
 If tree-sitter installation fails, you can still use DocGenie without it:
 
 ```bash
-pip install docgenie  # Without [full]
+pip install docgenie
 docgenie /path/to/project --no-tree-sitter
 ```
 

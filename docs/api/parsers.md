@@ -9,6 +9,10 @@ DocGenie uses a pluggable parser architecture to support multiple programming la
       show_source: true
       heading_level: 3
 
+`ParserRegistry` supports runtime plugin registration via `register(plugin)`.
+If a plugin with the same `name` already exists, it is replaced and the registry
+is re-sorted by `priority` (lower values win).
+
 ## ParserPlugin
 
 ::: docgenie.parsers.ParserPlugin
@@ -54,6 +58,10 @@ from docgenie.parsers import ParserRegistry
 
 # Create registry
 registry = ParserRegistry(enable_tree_sitter=True)
+
+# Register custom parser at runtime
+# (same name replaces existing plugin, then priority ordering is reapplied)
+# registry.register(MyCustomParser())
 
 # Parse a file
 with open("example.py") as f:

@@ -161,8 +161,14 @@ class TreeSitterParser(ParserPlugin):
 
     def parse(self, content: str, path: Path, language: str) -> ParseResult:
         parser = ts_get_parser(language)
-        tree = parser.parse(bytes(content, "utf-8"))
-        root = tree.root_node
+        if parser is None:
+            return ParseResult()
+
+        try:
+            tree = parser.parse(bytes(content, "utf-8"))
+            root = tree.root_node
+        except Exception:
+            return ParseResult()
 
         functions: list[FunctionDoc] = []
         classes: list[ClassDoc] = []
@@ -372,10 +378,16 @@ class ParserRegistry:
         builtin: list[ParserPlugin] = [PythonAstParser(), RegexParser()]
         if enable_tree_sitter:
             builtin.append(TreeSitterParser())
-        self.plugins: list[ParserPlugin] = sorted(
-            list(builtin) + list(plugins or []) + list(_load_external_plugins()),
-            key=lambda p: p.priority,
-        )
+        self.plugins: list[ParserPlugin] = []
+        for plugin in list(builtin) + list(plugins or []) + list(_load_external_plugins()):
+            self.register(plugin)
+
+    def register(self, plugin: ParserPlugin) -> None:
+        if not isinstance(plugin, ParserPlugin):
+            raise TypeError("plugin must be an instance of ParserPlugin")
+        self.plugins = [existing for existing in self.plugins if existing.name != plugin.name]
+        self.plugins.append(plugin)
+        self.plugins.sort(key=lambda item: item.priority)
 
     def resolve(self, language: str) -> ParserPlugin | None:
         for plugin in self.plugins:

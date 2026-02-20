@@ -112,6 +112,7 @@ exclude = ["examples", "docs"]
 [tool.pytest.ini_options]
 addopts = "-ra -q --cov=docgenie --cov-report=term-missing"
 pythonpath = ["src"]
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.bandit]
 targets = ["src"]

@@ -47,7 +47,7 @@ class PythonAstParser(ParserPlugin):
         imports: set[str] = set()
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 functions.append(
                     FunctionDoc(
                         name=node.name,
@@ -71,7 +71,7 @@ class PythonAstParser(ParserPlugin):
                         decorators=[_get_decorator_name(dec) for dec in item.decorator_list],
                     )
                     for item in node.body
-                    if isinstance(item, ast.FunctionDef)
+                    if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef)
                 ]
 
                 classes.append(
@@ -85,7 +85,7 @@ class PythonAstParser(ParserPlugin):
                         methods=methods,
                     )
                 )
-            elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            elif isinstance(node, ast.Import | ast.ImportFrom):
                 if isinstance(node, ast.Import):
                     imports.update(alias.name for alias in node.names)
                 else:

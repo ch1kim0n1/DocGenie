@@ -1,17 +1,18 @@
- [build-system]
- requires = ["hatchling>=1.24"]
- build-backend = "hatchling.build"
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
 
- [project]
- name = "docgenie"
- version = "1.1.0"
- description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
- readme = "README.md"
- license = { file = "LICENSE" }
- authors = [
-   { name = "DocGenie Team", email = "contact@docgenie.dev" },
- ]
+[project]
+name = "docgenie"
+version = "1.2.0"
+description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+  { name = "DocGenie Team", email = "contact@docgenie.dev" },
+]
 requires-python = ">=3.10"
+keywords = ["documentation", "readme", "code-analysis", "developer-tools", "automation"]
 dependencies = [
   "click>=8.1",
   "typer>=0.12",
@@ -27,20 +28,21 @@ dependencies = [
   "requests>=2.25",
   "markdown>=3.3",
 ]
- classifiers = [
-   "Development Status :: 4 - Beta",
-   "Intended Audience :: Developers",
-   "License :: OSI Approved :: MIT License",
-   "Operating System :: OS Independent",
-   "Programming Language :: Python",
-   "Programming Language :: Python :: 3",
-   "Programming Language :: Python :: 3.10",
-   "Programming Language :: Python :: 3.11",
-   "Programming Language :: Python :: 3.12",
-   "Programming Language :: Python :: 3.13",
-   "Topic :: Software Development :: Documentation",
-   "Topic :: Software Development :: Libraries :: Python Modules",
- ]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Documentation",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -57,46 +59,57 @@ dev = [
   "mkdocs>=1.5",
   "mkdocs-material>=9.5",
   "mkdocstrings[python]>=0.24",
+  "build>=1.0",
+  "twine>=5.0",
 ]
 
- [project.urls]
- Homepage = "https://github.com/ch1kim0n1/DocGenie"
- Repository = "https://github.com/ch1kim0n1/DocGenie"
- Documentation = "https://github.com/ch1kim0n1/DocGenie"
- Changelog = "https://github.com/ch1kim0n1/DocGenie/blob/main/CHANGELOG.md"
+[project.urls]
+Homepage = "https://github.com/ch1kim0n1/DocGenie"
+Repository = "https://github.com/ch1kim0n1/DocGenie"
+Documentation = "https://github.com/ch1kim0n1/DocGenie#readme"
+Changelog = "https://github.com/ch1kim0n1/DocGenie/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/ch1kim0n1/DocGenie/issues"
 
 [project.scripts]
 docgenie = "docgenie.cli:app"
 docgenie-html = "docgenie.convert_to_html:main"
 
- [tool.hatch.build]
- include = ["src/docgenie", "README.md", "LICENSE"]
- exclude = [".github", "examples", "docs"]
+[tool.hatch.build]
+include = ["src/docgenie", "README.md", "LICENSE"]
+exclude = [".github", "examples", "docs"]
 
- [tool.hatch.build.targets.wheel]
- packages = ["src/docgenie"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/docgenie"]
 
- [tool.ruff]
+[tool.ruff]
 target-version = "py310"
- line-length = 100
- lint.select = ["E", "F", "I", "B", "UP", "S", "N", "A", "C4", "TID", "T20", "RET", "SIM", "PL"]
- lint.ignore = ["B008"]
-lint.per-file-ignores = { "src/docgenie/cli.py" = ["PLR0913"], "src/docgenie/generator.py" = ["UP006", "UP035", "PLR0912", "E501", "PLR2004"], "src/docgenie/html_generator.py" = ["UP006", "UP035", "E501"], "src/docgenie/utils.py" = ["UP006", "UP035", "PLR0911", "PLR0912", "PLR2004"] }
+line-length = 100
 
- [tool.mypy]
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "N", "A", "C4", "TID", "T20", "RET", "SIM", "PL"]
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/docgenie/cli.py" = ["PLR0913"]
+"src/docgenie/generator.py" = ["PLR0912", "E501", "PLR2004"]
+"src/docgenie/html_generator.py" = ["E501"]
+"src/docgenie/utils.py" = ["PLR0911", "PLR0912", "PLR2004"]
+"tests/**/*.py" = ["S101", "PLR2004", "SIM118", "S108", "SIM300"]
+
+[tool.mypy]
 python_version = "3.10"
- warn_unused_configs = true
- warn_unused_ignores = true
- disallow_untyped_defs = true
- disallow_incomplete_defs = true
- check_untyped_defs = true
- no_implicit_optional = true
- strict_equality = true
- pretty = true
+warn_unused_configs = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_equality = true
+pretty = true
 mypy_path = ["typings"]
- exclude = ["examples", "docs"]
+exclude = ["examples", "docs"]
 
- [tool.pytest.ini_options]
+[tool.pytest.ini_options]
 addopts = "-ra -q --cov=docgenie --cov-report=term-missing"
 pythonpath = ["src"]
 

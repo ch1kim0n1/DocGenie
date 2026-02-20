@@ -1,6 +1,5 @@
 """Tests for HTML sanitization."""
 
-import pytest
 
 from docgenie.sanitize import (
     sanitize_attribute,

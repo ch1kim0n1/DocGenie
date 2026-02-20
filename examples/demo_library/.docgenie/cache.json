@@ -1,0 +1,975 @@
+{
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\.docgenie.yaml": {
+    "hash": "43f3f5a014642c502c158b11ef7d5f05b88a17df58bddcc68d6e25b9fc2a854f",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "language": "yaml"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\requirements.txt": {
+    "hash": "801495a8f998548bc4a7ab7b4aee3ec5bf39c2c502d00e81ebfc866e7dbd4b7c",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "language": "text"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\cli.py": {
+    "hash": "404c618bad172f580ccccdf817fc2e46896b3ff3217267ee5408c9aed9cdc27b",
+    "parse": {
+      "functions": [
+        {
+          "name": "main",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\cli.py",
+          "line": 11,
+          "docstring": "Entry point for the demo_library CLI.\n\nPrints a brief demo of each module's capabilities and exits.\n\nReturns:\n    0 on success.",
+          "args": [],
+          "decorators": [],
+          "is_async": false
+        }
+      ],
+      "classes": [],
+      "imports": [
+        "__future__.annotations",
+        "mathlib.arithmetic.add",
+        "mathlib.arithmetic.divide",
+        "mathlib.arithmetic.multiply",
+        "mathlib.arithmetic.subtract",
+        "mathlib.geometry.Circle",
+        "mathlib.geometry.Rectangle",
+        "mathlib.geometry.Triangle",
+        "sys"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py": {
+    "hash": "3ffdc69d92631ebed6fcf8cd875b00c63b77e4ee0111b7d402ab0c17aa0c12b0",
+    "parse": {
+      "functions": [
+        {
+          "name": "add",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py",
+          "line": 6,
+          "docstring": "Add two numbers together and return their sum.\n\nArgs:\n    a: The first operand.\n    b: The second operand.\n\nReturns:\n    The sum of a and b.",
+          "args": [
+            "a",
+            "b"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "subtract",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py",
+          "line": 19,
+          "docstring": "Subtract b from a and return the result.\n\nArgs:\n    a: The minuend.\n    b: The subtrahend.\n\nReturns:\n    The difference a - b.",
+          "args": [
+            "a",
+            "b"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "multiply",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py",
+          "line": 32,
+          "docstring": "Multiply two numbers and return their product.\n\nArgs:\n    a: The first factor.\n    b: The second factor.\n\nReturns:\n    The product of a and b.",
+          "args": [
+            "a",
+            "b"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "divide",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py",
+          "line": 45,
+          "docstring": "Divide a by b and return the quotient.\n\nArgs:\n    a: The dividend.\n    b: The divisor.\n\nReturns:\n    The quotient a / b.\n\nRaises:\n    ZeroDivisionError: If b is zero.",
+          "args": [
+            "a",
+            "b"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "power",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py",
+          "line": 63,
+          "docstring": "Raise base to an integer exponent.\n\nArgs:\n    base: The base value.\n    exponent: The integer exponent (may be negative).\n\nReturns:\n    base raised to the power of exponent.",
+          "args": [
+            "base",
+            "exponent"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "clamp",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\arithmetic.py",
+          "line": 76,
+          "docstring": "Clamp value to the inclusive range [minimum, maximum].\n\nArgs:\n    value: The value to clamp.\n    minimum: The lower bound.\n    maximum: The upper bound.\n\nReturns:\n    value if within range, else the nearest bound.",
+          "args": [
+            "value",
+            "minimum",
+            "maximum"
+          ],
+          "decorators": [],
+          "is_async": false
+        }
+      ],
+      "classes": [],
+      "imports": [
+        "__future__.annotations"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\async_utils.py": {
+    "hash": "a5b01ec162d90ed095ae590ec8b874c6b0cbf7921222f6a8642ad817ed03bca5",
+    "parse": {
+      "functions": [
+        {
+          "name": "async_compute",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\async_utils.py",
+          "line": 8,
+          "docstring": "Simulate an async computation with an optional delay.\n\nArgs:\n    value: The integer to double.\n    delay: Seconds to sleep before returning (default 0).\n\nReturns:\n    value multiplied by 2.",
+          "args": [
+            "value",
+            "delay"
+          ],
+          "decorators": [],
+          "is_async": true
+        },
+        {
+          "name": "batch_compute",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\async_utils.py",
+          "line": 22,
+          "docstring": "Compute values concurrently using asyncio.gather.\n\nArgs:\n    values: A list of integers to process.\n\nReturns:\n    A list of results, each element doubled.",
+          "args": [
+            "values"
+          ],
+          "decorators": [],
+          "is_async": true
+        },
+        {
+          "name": "retry",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\async_utils.py",
+          "line": 36,
+          "docstring": "Retry an async coroutine function up to ``retries`` times.\n\nArgs:\n    coro_fn: A zero-argument async callable.\n    retries: Maximum number of attempts.\n    delay: Seconds between attempts.\n\nReturns:\n    The result of the first successful invocation.\n\nRaises:\n    Exception: The last exception if all attempts fail.",
+          "args": [
+            "coro_fn",
+            "retries",
+            "delay"
+          ],
+          "decorators": [],
+          "is_async": true
+        }
+      ],
+      "classes": [],
+      "imports": [
+        "__future__.annotations",
+        "asyncio"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py": {
+    "hash": "6769c4fa04ba7205b7dfcd97398e245d2c00dd6c7f2826b635db76879049a285",
+    "parse": {
+      "functions": [
+        {
+          "name": "area",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 14,
+          "docstring": "Return the area of the shape.",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "perimeter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 18,
+          "docstring": "Return the perimeter (circumference) of the shape.",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "describe",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 22,
+          "docstring": "Return a human-readable description with area and perimeter.",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "__init__",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 37,
+          "docstring": null,
+          "args": [
+            "self",
+            "radius"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "area",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 42,
+          "docstring": "Return the area of the circle (\u03c0 \u00d7 r\u00b2).",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "perimeter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 46,
+          "docstring": "Return the circumference of the circle (2 \u00d7 \u03c0 \u00d7 r).",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "from_diameter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 51,
+          "docstring": "Create a Circle from its diameter.\n\nArgs:\n    diameter: The diameter of the circle.\n\nReturns:\n    A new Circle instance.",
+          "args": [
+            "cls",
+            "diameter"
+          ],
+          "decorators": [
+            "classmethod"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "__init__",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 71,
+          "docstring": null,
+          "args": [
+            "self",
+            "width",
+            "height"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "area",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 77,
+          "docstring": "Return the area of the rectangle (width \u00d7 height).",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "perimeter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 81,
+          "docstring": "Return the perimeter of the rectangle (2 \u00d7 (width + height)).",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "is_square",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 86,
+          "docstring": "True if width equals height.",
+          "args": [
+            "self"
+          ],
+          "decorators": [
+            "property"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "square",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 91,
+          "docstring": "Create a square (width == height).\n\nArgs:\n    side: The side length.\n\nReturns:\n    A Rectangle where width == height == side.",
+          "args": [
+            "cls",
+            "side"
+          ],
+          "decorators": [
+            "classmethod"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "__init__",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 114,
+          "docstring": null,
+          "args": [
+            "self",
+            "a",
+            "b",
+            "c"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "area",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 121,
+          "docstring": "Return the area using Heron's formula.",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "perimeter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 126,
+          "docstring": "Return the perimeter (sum of all three sides).",
+          "args": [
+            "self"
+          ],
+          "decorators": [],
+          "is_async": false
+        }
+      ],
+      "classes": [
+        {
+          "name": "Shape",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 8,
+          "docstring": "Abstract base class for geometric shapes.\n\nAll concrete shapes should implement :meth:`area` and :meth:`perimeter`.",
+          "bases": [],
+          "decorators": [],
+          "methods": [
+            {
+              "name": "area",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 14,
+              "docstring": "Return the area of the shape.",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "perimeter",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 18,
+              "docstring": "Return the perimeter (circumference) of the shape.",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "describe",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 22,
+              "docstring": "Return a human-readable description with area and perimeter.",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            }
+          ]
+        },
+        {
+          "name": "Circle",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 30,
+          "docstring": "A circle defined by its radius.\n\nArgs:\n    radius: The radius of the circle (must be positive).",
+          "bases": [
+            "Shape"
+          ],
+          "decorators": [],
+          "methods": [
+            {
+              "name": "__init__",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 37,
+              "docstring": null,
+              "args": [
+                "self",
+                "radius"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "area",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 42,
+              "docstring": "Return the area of the circle (\u03c0 \u00d7 r\u00b2).",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "perimeter",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 46,
+              "docstring": "Return the circumference of the circle (2 \u00d7 \u03c0 \u00d7 r).",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "from_diameter",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 51,
+              "docstring": "Create a Circle from its diameter.\n\nArgs:\n    diameter: The diameter of the circle.\n\nReturns:\n    A new Circle instance.",
+              "args": [
+                "cls",
+                "diameter"
+              ],
+              "decorators": [
+                "classmethod"
+              ],
+              "is_async": false
+            }
+          ]
+        },
+        {
+          "name": "Rectangle",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 63,
+          "docstring": "A rectangle defined by width and height.\n\nArgs:\n    width: The horizontal dimension.\n    height: The vertical dimension.",
+          "bases": [
+            "Shape"
+          ],
+          "decorators": [],
+          "methods": [
+            {
+              "name": "__init__",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 71,
+              "docstring": null,
+              "args": [
+                "self",
+                "width",
+                "height"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "area",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 77,
+              "docstring": "Return the area of the rectangle (width \u00d7 height).",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "perimeter",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 81,
+              "docstring": "Return the perimeter of the rectangle (2 \u00d7 (width + height)).",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "is_square",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 86,
+              "docstring": "True if width equals height.",
+              "args": [
+                "self"
+              ],
+              "decorators": [
+                "property"
+              ],
+              "is_async": false
+            },
+            {
+              "name": "square",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 91,
+              "docstring": "Create a square (width == height).\n\nArgs:\n    side: The side length.\n\nReturns:\n    A Rectangle where width == height == side.",
+              "args": [
+                "cls",
+                "side"
+              ],
+              "decorators": [
+                "classmethod"
+              ],
+              "is_async": false
+            }
+          ]
+        },
+        {
+          "name": "Triangle",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+          "line": 103,
+          "docstring": "A triangle defined by three side lengths.\n\nUses Heron's formula for area computation.\n\nArgs:\n    a: Length of the first side.\n    b: Length of the second side.\n    c: Length of the third side.",
+          "bases": [
+            "Shape"
+          ],
+          "decorators": [],
+          "methods": [
+            {
+              "name": "__init__",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 114,
+              "docstring": null,
+              "args": [
+                "self",
+                "a",
+                "b",
+                "c"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "area",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 121,
+              "docstring": "Return the area using Heron's formula.",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "perimeter",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\geometry.py",
+              "line": 126,
+              "docstring": "Return the perimeter (sum of all three sides).",
+              "args": [
+                "self"
+              ],
+              "decorators": [],
+              "is_async": false
+            }
+          ]
+        }
+      ],
+      "imports": [
+        "__future__.annotations",
+        "math"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\mathlib\\__init__.py": {
+    "hash": "b3d457ec5e1245d5ba57482f1bb8ef3f469a9beec557d3c5db1f2cb90c944906",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [
+        "arithmetic.add",
+        "arithmetic.divide",
+        "arithmetic.multiply",
+        "arithmetic.subtract",
+        "geometry.Circle",
+        "geometry.Rectangle",
+        "geometry.Shape"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py": {
+    "hash": "7f123d5e34da665da4c7e32249543b9baf1a908f194516a14fe9246c4522d042",
+    "parse": {
+      "functions": [
+        {
+          "name": "uppercase_result",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 11,
+          "docstring": "Decorator that converts the return value of *func* to uppercase.\n\nArgs:\n    func: A callable that returns a string.\n\nReturns:\n    A wrapped callable whose return value is uppercased.",
+          "args": [
+            "func"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "slugify",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 28,
+          "docstring": "Convert *text* to a URL-friendly slug.\n\nReplaces whitespace with hyphens and converts to lowercase.\n\nArgs:\n    text: Input text to slugify.\n\nReturns:\n    A lowercase, hyphen-separated slug string.",
+          "args": [
+            "text"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "truncate",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 42,
+          "docstring": "Truncate *text* to at most *max_length* characters.\n\nIf truncation occurs, *suffix* is appended.\n\nArgs:\n    text: The string to truncate.\n    max_length: Maximum number of characters (including suffix).\n    suffix: String appended when truncation occurs.\n\nReturns:\n    Possibly-truncated string.",
+          "args": [
+            "text",
+            "max_length",
+            "suffix"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "wrapper",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 22,
+          "docstring": null,
+          "args": [],
+          "decorators": [
+            "<ast.Call object at 0x0000016DBCE76410>"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "__init__",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 68,
+          "docstring": null,
+          "args": [
+            "self",
+            "prefix",
+            "suffix"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "format",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 72,
+          "docstring": "Format *text* by wrapping it with :attr:`prefix` and :attr:`suffix`.\n\nArgs:\n    text: The content to format.\n\nReturns:\n    Formatted string.",
+          "args": [
+            "self",
+            "text"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "format_upper",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 84,
+          "docstring": "Format *text* and convert the result to uppercase.\n\nArgs:\n    text: The content to format.\n\nReturns:\n    Uppercased formatted string.",
+          "args": [
+            "self",
+            "text"
+          ],
+          "decorators": [
+            "uppercase_result"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "word_count",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 96,
+          "docstring": "Count the number of whitespace-separated words in *text*.\n\nArgs:\n    text: Input string.\n\nReturns:\n    Number of words.",
+          "args": [
+            "text"
+          ],
+          "decorators": [
+            "staticmethod"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "bold",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 108,
+          "docstring": "Create a formatter that wraps text in Markdown bold markers.\n\nReturns:\n    A :class:`TextFormatter` with ``**`` prefix and suffix.",
+          "args": [
+            "cls"
+          ],
+          "decorators": [
+            "classmethod"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "italic",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 117,
+          "docstring": "Create a formatter that wraps text in Markdown italic markers.\n\nReturns:\n    A :class:`TextFormatter` with ``_`` prefix and suffix.",
+          "args": [
+            "cls"
+          ],
+          "decorators": [
+            "classmethod"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "code",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 126,
+          "docstring": "Create a formatter that wraps text in Markdown inline-code markers.\n\nReturns:\n    A :class:`TextFormatter` with `` ` `` prefix and suffix.",
+          "args": [
+            "cls"
+          ],
+          "decorators": [
+            "classmethod"
+          ],
+          "is_async": false
+        },
+        {
+          "name": "heading",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 141,
+          "docstring": "Generate a Markdown heading.\n\nArgs:\n    text: Heading content.\n    level: Heading level (1\u20136).\n\nReturns:\n    Markdown heading string.",
+          "args": [
+            "self",
+            "text",
+            "level"
+          ],
+          "decorators": [],
+          "is_async": false
+        },
+        {
+          "name": "link",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 154,
+          "docstring": "Generate a Markdown hyperlink.\n\nArgs:\n    label: Link display text.\n    url: The target URL.\n\nReturns:\n    Markdown link string ``[label](url)``.",
+          "args": [
+            "self",
+            "label",
+            "url"
+          ],
+          "decorators": [],
+          "is_async": false
+        }
+      ],
+      "classes": [
+        {
+          "name": "TextFormatter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 60,
+          "docstring": "Formats text with configurable prefix, suffix, and transformation rules.\n\nArgs:\n    prefix: String prepended to all formatted text.\n    suffix: String appended to all formatted text.",
+          "bases": [],
+          "decorators": [],
+          "methods": [
+            {
+              "name": "__init__",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 68,
+              "docstring": null,
+              "args": [
+                "self",
+                "prefix",
+                "suffix"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "format",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 72,
+              "docstring": "Format *text* by wrapping it with :attr:`prefix` and :attr:`suffix`.\n\nArgs:\n    text: The content to format.\n\nReturns:\n    Formatted string.",
+              "args": [
+                "self",
+                "text"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "format_upper",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 84,
+              "docstring": "Format *text* and convert the result to uppercase.\n\nArgs:\n    text: The content to format.\n\nReturns:\n    Uppercased formatted string.",
+              "args": [
+                "self",
+                "text"
+              ],
+              "decorators": [
+                "uppercase_result"
+              ],
+              "is_async": false
+            },
+            {
+              "name": "word_count",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 96,
+              "docstring": "Count the number of whitespace-separated words in *text*.\n\nArgs:\n    text: Input string.\n\nReturns:\n    Number of words.",
+              "args": [
+                "text"
+              ],
+              "decorators": [
+                "staticmethod"
+              ],
+              "is_async": false
+            },
+            {
+              "name": "bold",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 108,
+              "docstring": "Create a formatter that wraps text in Markdown bold markers.\n\nReturns:\n    A :class:`TextFormatter` with ``**`` prefix and suffix.",
+              "args": [
+                "cls"
+              ],
+              "decorators": [
+                "classmethod"
+              ],
+              "is_async": false
+            },
+            {
+              "name": "italic",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 117,
+              "docstring": "Create a formatter that wraps text in Markdown italic markers.\n\nReturns:\n    A :class:`TextFormatter` with ``_`` prefix and suffix.",
+              "args": [
+                "cls"
+              ],
+              "decorators": [
+                "classmethod"
+              ],
+              "is_async": false
+            },
+            {
+              "name": "code",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 126,
+              "docstring": "Create a formatter that wraps text in Markdown inline-code markers.\n\nReturns:\n    A :class:`TextFormatter` with `` ` `` prefix and suffix.",
+              "args": [
+                "cls"
+              ],
+              "decorators": [
+                "classmethod"
+              ],
+              "is_async": false
+            }
+          ]
+        },
+        {
+          "name": "MarkdownFormatter",
+          "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+          "line": 135,
+          "docstring": "Extended formatter with Markdown-specific helpers.\n\nInherits from :class:`TextFormatter` and adds heading and link generation.",
+          "bases": [
+            "TextFormatter"
+          ],
+          "decorators": [],
+          "methods": [
+            {
+              "name": "heading",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 141,
+              "docstring": "Generate a Markdown heading.\n\nArgs:\n    text: Heading content.\n    level: Heading level (1\u20136).\n\nReturns:\n    Markdown heading string.",
+              "args": [
+                "self",
+                "text",
+                "level"
+              ],
+              "decorators": [],
+              "is_async": false
+            },
+            {
+              "name": "link",
+              "file": "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\formatter.py",
+              "line": 154,
+              "docstring": "Generate a Markdown hyperlink.\n\nArgs:\n    label: Link display text.\n    url: The target URL.\n\nReturns:\n    Markdown link string ``[label](url)``.",
+              "args": [
+                "self",
+                "label",
+                "url"
+              ],
+              "decorators": [],
+              "is_async": false
+            }
+          ]
+        }
+      ],
+      "imports": [
+        "__future__.annotations",
+        "functools.wraps",
+        "typing.Callable",
+        "typing.TypeVar"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\textlib\\__init__.py": {
+    "hash": "5257e63f255eae6d030aed4d147c700086f07298f030b0ff2b86152e804b9560",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [
+        "formatter.TextFormatter",
+        "formatter.uppercase_result"
+      ],
+      "language": "python"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\docs.html": {
+    "hash": "e3e3c13832833b12ff0f6f8dbbb05baf2e2bd829346db99bf4330a6dd86be24f",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "language": "html"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\README.md": {
+    "hash": "c59e7fff32121fa68dccd8c55ad543230dd99470714f1ec488767973f312af77",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "language": "markdown"
+    }
+  },
+  "C:\\Users\\Vladislav Kondratyev\\Desktop\\GitHub Repos\\DocGenie\\examples\\demo_library\\.docgenie\\cache.json": {
+    "hash": "8def8fb73f727e55332fe57cada9982f7bfa4752796e36ac9b277deb37fa65f5",
+    "parse": {
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "language": "json"
+    }
+  }
+}

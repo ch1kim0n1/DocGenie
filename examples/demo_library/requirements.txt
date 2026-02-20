@@ -1,0 +1,1 @@
+# Pure-stdlib demo library — no external dependencies required

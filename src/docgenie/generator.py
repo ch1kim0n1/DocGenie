@@ -4,7 +4,7 @@ README generation functionality for DocGenie.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from jinja2 import Template
 
@@ -20,7 +20,7 @@ class ReadmeGenerator:
     def __init__(self) -> None:
         self.template = self._get_template()
 
-    def generate(self, analysis_data: Dict[str, Any], output_path: str | None = None) -> str:
+    def generate(self, analysis_data: dict[str, Any], output_path: str | None = None) -> str:
         """
         Generate README content based on analysis data.
 
@@ -52,7 +52,7 @@ class ReadmeGenerator:
 
         return readme_content
 
-    def _prepare_context(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_context(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
         """Prepare template context from analysis data."""
         # Basic project info
         project_name = self._get_project_name(analysis_data)
@@ -125,7 +125,7 @@ class ReadmeGenerator:
             "website_info": self._get_website_info(analysis_data) if is_website else None,
         }
 
-    def _get_project_name(self, analysis_data: Dict[str, Any]) -> str:
+    def _get_project_name(self, analysis_data: dict[str, Any]) -> str:
         """Extract project name from various sources."""
         # First check if project_name is directly provided
         if "project_name" in analysis_data:
@@ -144,7 +144,7 @@ class ReadmeGenerator:
 
         return "Project"
 
-    def _generate_description(self, analysis_data: Dict[str, Any]) -> str:
+    def _generate_description(self, analysis_data: dict[str, Any]) -> str:
         """Generate a project description based on analysis."""
         main_language = analysis_data.get("main_language", "unknown")
 
@@ -203,7 +203,7 @@ class ReadmeGenerator:
 
         return f"A {main_language.lower()} {purpose} with comprehensive functionality and modern architecture."
 
-    def _generate_install_commands(self, analysis_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _generate_install_commands(self, analysis_data: dict[str, Any]) -> list[dict[str, str]]:
         """Generate installation commands based on project type."""
         commands = []
         structure = analysis_data.get("project_structure", {})
@@ -242,7 +242,7 @@ class ReadmeGenerator:
 
         return commands
 
-    def _generate_usage_examples(self, analysis_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _generate_usage_examples(self, analysis_data: dict[str, Any]) -> list[dict[str, str]]:
         """Generate usage examples based on project analysis."""
         examples = []
         main_language = analysis_data.get("main_language", "unknown")
@@ -284,10 +284,10 @@ class ReadmeGenerator:
         return examples
 
     def _generate_api_docs(
-        self, functions: List[Dict], classes: List[Dict], config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, functions: list[dict], classes: list[dict], config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate API documentation from functions and classes."""
-        api_docs: Dict[str, Any] = {"functions": [], "classes": []}
+        api_docs: dict[str, Any] = {"functions": [], "classes": []}
 
         max_funcs = config.get("template_customizations", {}).get("max_functions_documented", 10)
 
@@ -319,7 +319,7 @@ class ReadmeGenerator:
 
         return api_docs
 
-    def _extract_features(self, analysis_data: Dict[str, Any]) -> List[str]:
+    def _extract_features(self, analysis_data: dict[str, Any]) -> list[str]:
         """Extract key features from the codebase analysis."""
         features = []
         dependencies = analysis_data.get("dependencies", {})
@@ -367,7 +367,7 @@ class ReadmeGenerator:
 
         return features
 
-    def _extract_requirements(self, dependencies: Dict[str, Any]) -> List[str]:
+    def _extract_requirements(self, dependencies: dict[str, Any]) -> list[str]:
         """Extract system requirements."""
         requirements = []
 
@@ -395,7 +395,7 @@ class ReadmeGenerator:
 
         return requirements
 
-    def _has_tests(self, analysis_data: Dict[str, Any]) -> bool:
+    def _has_tests(self, analysis_data: dict[str, Any]) -> bool:
         """Check if the project has tests."""
         structure = analysis_data.get("project_structure", {})
 
@@ -680,7 +680,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
         return Template(template_content)
 
-    def _get_website_info(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _get_website_info(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
         """Extract website-specific information."""
         files = analysis_data.get("project_structure", {}).get("root", {}).get("files", [])
         structure = analysis_data.get("project_structure", {})
@@ -764,7 +764,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
             "framework_detected": self._detect_frontend_framework(dependencies),
         }
 
-    def _check_responsive_design(self, analysis_data: Dict[str, Any]) -> bool:
+    def _check_responsive_design(self, analysis_data: dict[str, Any]) -> bool:
         """Check if website uses responsive design patterns."""
         # This is a simple heuristic - in practice you'd analyze CSS files
         dependencies = analysis_data.get("dependencies", {})
@@ -786,7 +786,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
             for indicator in responsive_indicators
         )
 
-    def _detect_frontend_framework(self, dependencies: Dict[str, Any]) -> str | None:
+    def _detect_frontend_framework(self, dependencies: dict[str, Any]) -> str | None:
         """Detect the primary frontend framework."""
         frameworks = {
             "react": "React",

@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from docgenie.core import CacheManager, CodebaseAnalyzer, _hash_file
 
 
@@ -180,3 +178,173 @@ def test_analyzer_git_info(tmp_path: Path) -> None:
     # Should have git_info key even if empty
     assert "git_info" in result
     assert isinstance(result["git_info"], dict)
+
+
+# ---------------------------------------------------------------------------
+# New expanded core tests
+# ---------------------------------------------------------------------------
+
+
+def test_cache_manager_get_missing_key_returns_none(tmp_path: Path) -> None:
+    cache = CacheManager(tmp_path)
+    assert cache.get(Path("nonexistent.py"), "abc123") is None
+
+
+def test_cache_manager_persist_creates_file(tmp_path: Path) -> None:
+    cache = CacheManager(tmp_path)
+    cache.set(Path("a.py"), "hash1", {"functions": []}, "python")
+    cache.persist()
+    assert (tmp_path / ".docgenie" / "cache.json").exists()
+
+
+def test_analyze_file_task_unknown_extension(tmp_path: Path) -> None:
+    """Files with unrecognised extensions should produce empty results without crashing."""
+    from docgenie.core import _analyze_file_task
+
+    unknown_file = tmp_path / "data.xyz123"
+    unknown_file.write_text("content", encoding="utf-8")
+    file_path_str, language, parsed, file_hash = _analyze_file_task(
+        (str(unknown_file), [], False)
+    )
+    assert language == ""
+    assert parsed is None
+
+
+def test_analyze_file_task_binary_content(tmp_path: Path) -> None:
+    """Binary files should not raise — result tuple still has 4 elements."""
+    from docgenie.core import _analyze_file_task
+
+    binary_file = tmp_path / "data.py"
+    binary_file.write_bytes(b"\x00\x01\x02\xff\xfe\xfd")
+    result = _analyze_file_task((str(binary_file), [], False))
+    assert result is not None
+    assert len(result) == 4
+
+
+def test_analyzer_website_detection(tmp_path: Path) -> None:
+    """Directory with index.html should be detected as a website."""
+    (tmp_path / "index.html").write_text("<html><body>Hello</body></html>", encoding="utf-8")
+
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    result = analyzer.analyze()
+    assert result["is_website"] is True
+
+
+def test_analyzer_dependency_pyproject_toml(tmp_path: Path) -> None:
+    """pyproject.toml with [project] dependencies should be parsed."""
+    (tmp_path / "main.py").write_text("pass", encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "demo"\ndependencies = ["click>=8.0", "requests"]\n',
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    result = analyzer.analyze()
+    assert "pyproject.toml" in result["dependencies"]
+
+
+def test_analyzer_dependency_package_json(tmp_path: Path) -> None:
+    """package.json dependencies should appear in analysis results."""
+    (tmp_path / "index.js").write_text("function x(){}", encoding="utf-8")
+    (tmp_path / "package.json").write_text(
+        '{"dependencies": {"lodash": "^4.0"}, "devDependencies": {"jest": "^29"}}',
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    result = analyzer.analyze()
+    deps = result["dependencies"]
+    assert "package.json" in deps
+    assert "lodash" in deps["package.json"].get("dependencies", [])
+
+
+def test_analyzer_dependency_cargo_toml(tmp_path: Path) -> None:
+    """Cargo.toml dependencies should be parsed."""
+    (tmp_path / "main.rs").write_text("fn main() {}", encoding="utf-8")
+    (tmp_path / "Cargo.toml").write_text(
+        '[package]\nname = "app"\nversion = "0.1.0"\n\n[dependencies]\nserde = "1.0"\n',
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    result = analyzer.analyze()
+    assert "Cargo.toml" in result["dependencies"]
+
+
+def test_analyzer_dependency_go_mod(tmp_path: Path) -> None:
+    """go.mod dependencies should be detected."""
+    (tmp_path / "main.go").write_text("package main\nfunc main() {}", encoding="utf-8")
+    (tmp_path / "go.mod").write_text(
+        "module example.com/app\n\ngo 1.21\n\nrequire (\n\tgithub.com/gin-gonic/gin v1.9.0\n)\n",
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    result = analyzer.analyze()
+    assert "go.mod" in result["dependencies"]
+
+
+def test_analyzer_dependency_gemfile(tmp_path: Path) -> None:
+    """Gemfile gem entries should be parsed."""
+    (tmp_path / "app.rb").write_text("puts 'hello'", encoding="utf-8")
+    (tmp_path / "Gemfile").write_text(
+        "source 'https://rubygems.org'\ngem 'rails', '~> 7.0'\ngem 'pg'\n",
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    result = analyzer.analyze()
+    assert "Gemfile" in result["dependencies"]
+    assert "rails" in result["dependencies"]["Gemfile"]
+
+
+def test_analyzer_concurrent_processing_multiple_files(tmp_path: Path) -> None:
+    """Multiple Python files should all be analyzed via ProcessPoolExecutor."""
+    for i in range(5):
+        (tmp_path / f"module_{i}.py").write_text(
+            f"def func_{i}(): pass", encoding="utf-8"
+        )
+    analyzer = CodebaseAnalyzer(
+        str(tmp_path),
+        ignore_patterns=[".docgenie"],
+        enable_tree_sitter=False,
+    )
+    result = analyzer.analyze()
+    assert result["files_analyzed"] == 5
+
+
+def test_parse_requirements_txt_ignores_comments(tmp_path: Path) -> None:
+    """Comments and -r lines should be excluded from requirements parsing."""
+    req_file = tmp_path / "requirements.txt"
+    req_file.write_text(
+        "# This is a comment\nrequests>=2.0\n-r other.txt\nclick\n",
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    deps = analyzer._parse_requirements_txt(req_file)
+    assert "requests" in deps
+    assert "click" in deps
+    assert not any(d.startswith("#") for d in deps)
+    assert not any(d.startswith("-") for d in deps)
+
+
+def test_parse_setup_py_extracts_install_requires(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.py"
+    setup_file.write_text(
+        'from setuptools import setup\nsetup(install_requires=["click", "requests"])',
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    deps = analyzer._parse_setup_py(setup_file)
+    assert "click" in deps
+    assert "requests" in deps
+
+
+def test_parse_pom_xml_extracts_artifact_ids(tmp_path: Path) -> None:
+    pom_file = tmp_path / "pom.xml"
+    pom_file.write_text(
+        "<project><dependencies>"
+        "<dependency><artifactId>spring-boot</artifactId></dependency>"
+        "<dependency><artifactId>junit</artifactId></dependency>"
+        "</dependencies></project>",
+        encoding="utf-8",
+    )
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    deps = analyzer._parse_pom_xml(pom_file)
+    assert "spring-boot" in deps
+    assert "junit" in deps

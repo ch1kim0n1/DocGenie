@@ -1,0 +1,4 @@
+template_customizations:
+  include_api_docs: true
+  include_directory_tree: true
+  max_functions_documented: 20

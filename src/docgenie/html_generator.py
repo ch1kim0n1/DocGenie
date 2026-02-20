@@ -55,6 +55,8 @@ class HTMLGenerator:
         Returns:
             Generated HTML content as string
         """
+        # Reset processor state before each conversion to prevent TOC bleed-across
+        self.markdown_processor.reset()  # type: ignore[attr-defined]
         # Convert markdown to HTML
         html_content = self.markdown_processor.convert(readme_content)
 
@@ -233,9 +235,45 @@ class HTMLGenerator:
             margin: 0;
             padding: 0;
         }
+
+        .toc > ul {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
         
         .toc li {
             margin-bottom: 0.5rem;
+        }
+
+        .toc > ul > li {
+            margin-bottom: 0.75rem;
+        }
+
+        .toc > ul > li > a {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.01em;
+        }
+
+        .toc li > ul {
+            margin-top: 0.4rem;
+            margin-left: 0.55rem;
+            padding-left: 0.7rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .toc li > ul li {
+            margin-bottom: 0.2rem;
+        }
+
+        .toc li > ul a {
+            font-size: 0.84rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            padding-top: 0.35rem;
+            padding-bottom: 0.35rem;
         }
         
         .toc a {
@@ -251,6 +289,12 @@ class HTMLGenerator:
         .toc a:hover {
             background-color: var(--code-background);
             color: var(--primary-color);
+        }
+
+        .toc a.active {
+            background-color: rgba(37, 99, 235, 0.08);
+            color: var(--primary-color);
+            font-weight: 600;
         }
         
         .content {

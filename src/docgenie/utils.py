@@ -6,7 +6,7 @@ import fnmatch
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
 
@@ -114,7 +114,7 @@ def get_file_language(file_path: Path) -> str | None:
     return LANGUAGE_EXTENSIONS.get(suffix)
 
 
-def should_ignore_file(file_path: str, additional_patterns: List[str] | None = None) -> bool:
+def should_ignore_file(file_path: str, additional_patterns: list[str] | None = None) -> bool:
     """
     Check if a file or directory should be ignored based on ignore patterns.
 
@@ -147,7 +147,7 @@ def should_ignore_file(file_path: str, additional_patterns: List[str] | None = N
     return False
 
 
-def extract_git_info(repo_path: Path) -> Dict[str, Any]:
+def extract_git_info(repo_path: Path) -> dict[str, Any]:
     """
     Extract git repository information.
 
@@ -157,7 +157,7 @@ def extract_git_info(repo_path: Path) -> Dict[str, Any]:
     Returns:
         Dictionary containing git information
     """
-    git_info: Dict[str, Any] = {}
+    git_info: dict[str, Any] = {}
     try:
         repo = Repo(repo_path, search_parent_directories=True)
     except (InvalidGitRepositoryError, NoSuchPathError):
@@ -250,7 +250,7 @@ def format_file_size(size_bytes: int) -> str:
     return f"{size:.1f} {size_names[i]}"
 
 
-def is_website_project(analysis_data: Dict[str, Any]) -> bool:
+def is_website_project(analysis_data: dict[str, Any]) -> bool:
     """
     Detect if the project is a website/web application.
 
@@ -347,7 +347,7 @@ def is_website_project(analysis_data: Dict[str, Any]) -> bool:
     )
 
 
-def get_project_type(analysis_data: Dict[str, Any]) -> str:
+def get_project_type(analysis_data: dict[str, Any]) -> str:
     """
     Determine the type of project based on analysis data.
 
@@ -424,7 +424,7 @@ def get_project_type(analysis_data: Dict[str, Any]) -> str:
     return "Software Project"
 
 
-def create_directory_tree(structure: Dict[str, Any], max_depth: int = 3) -> str:
+def create_directory_tree(structure: dict[str, Any], max_depth: int = 3) -> str:
     """
     Create a visual directory tree representation.
 
@@ -437,7 +437,7 @@ def create_directory_tree(structure: Dict[str, Any], max_depth: int = 3) -> str:
     """
     tree_lines = []
 
-    def add_items(items: List[str], prefix: str, is_last: bool = True) -> None:
+    def add_items(items: list[str], prefix: str, is_last: bool = True) -> None:
         for i, item in enumerate(items):
             is_item_last = i == len(items) - 1
             connector = "└── " if is_item_last else "├── "

@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ch1kim0n1/DocGenie</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --accent-color: #0ea5e9;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-background: #f1f5f9;
+            --sidebar-width: 280px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-background);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .toc {
+            padding: 1.5rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .toc > ul {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc > ul > li {
+            margin-bottom: 0.75rem;
+        }
+
+        .toc > ul > li > a {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.01em;
+        }
+
+        .toc li > ul {
+            margin-top: 0.4rem;
+            margin-left: 0.55rem;
+            padding-left: 0.7rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .toc li > ul li {
+            margin-bottom: 0.2rem;
+        }
+
+        .toc li > ul a {
+            font-size: 0.84rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            padding-top: 0.35rem;
+            padding-bottom: 0.35rem;
+        }
+        
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            display: block;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+        
+        .toc a:hover {
+            background-color: var(--code-background);
+            color: var(--primary-color);
+        }
+
+        .toc a.active {
+            background-color: rgba(37, 99, 235, 0.08);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 3rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+        
+        .content-header {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .generation-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content {
+            max-width: none;
+        }
+        
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        
+        .markdown-content h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .markdown-content pre {
+            background-color: var(--code-background);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+        
+        .markdown-content code {
+            background-color: var(--code-background);
+            color: var(--text-primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-family: 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+        }
+        
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            border-radius: 0;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .markdown-content th,
+        .markdown-content td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .markdown-content th {
+            background-color: var(--code-background);
+            font-weight: 600;
+        }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            background-color: var(--code-background);
+            padding: 1rem;
+            border-radius: 0.375rem;
+        }
+        
+        .markdown-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .content-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .content {
+                margin-left: 0;
+                padding: 1rem 1.5rem;
+                max-width: 100vw;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Emoji enhancement */
+        .markdown-content h1:before,
+        .markdown-content h2:before {
+            margin-right: 0.5rem;
+        }
+        
+        /* Code syntax highlighting improvements */
+        .highlight {
+            background: var(--code-background) !important;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-file-alt"></i> ch1kim0n1/DocGenie</h2>
+                <p class="sidebar-subtitle">Documentation</p>
+            </div>
+            <div class="toc">
+                <div class="toc">
+<ul>
+<li><a href="#demo_library">demo_library</a><ul>
+<li><a href="#features">Features</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#install-python-dependencies">Install Python dependencies</a></li>
+</ul>
+</li>
+<li><a href="#usage">Usage</a><ul>
+<li><a href="#run-the-application">Run the application</a></li>
+</ul>
+</li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#architecture">Architecture</a><ul>
+<li><a href="#language-distribution">Language Distribution</a></li>
+</ul>
+</li>
+<li><a href="#api-reference">API Reference</a><ul>
+<li><a href="#functions">Functions</a><ul>
+<li><a href="#main">main()</a></li>
+<li><a href="#adda-b">add(a, b)</a></li>
+<li><a href="#subtracta-b">subtract(a, b)</a></li>
+<li><a href="#multiplya-b">multiply(a, b)</a></li>
+<li><a href="#dividea-b">divide(a, b)</a></li>
+<li><a href="#powerbase-exponent">power(base, exponent)</a></li>
+<li><a href="#clampvalue-minimum-maximum">clamp(value, minimum, maximum)</a></li>
+<li><a href="#async_computevalue-delay">async_compute(value, delay)</a></li>
+<li><a href="#batch_computevalues">batch_compute(values)</a></li>
+<li><a href="#retrycoro_fn-retries-delay">retry(coro_fn, retries, delay)</a></li>
+</ul>
+</li>
+<li><a href="#classes">Classes</a><ul>
+<li><a href="#shape">Shape</a></li>
+<li><a href="#circle">Circle</a></li>
+<li><a href="#rectangle">Rectangle</a></li>
+<li><a href="#triangle">Triangle</a></li>
+<li><a href="#textformatter">TextFormatter</a></li>
+<li><a href="#markdownformatter">MarkdownFormatter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#contributing">Contributing</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#contact">Contact</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+            </div>
+        </nav>
+        
+        <main class="content">
+            <div class="content-header">
+                <h1 class="main-title">ch1kim0n1/DocGenie</h1>
+                <p class="generation-info">
+                    <i class="fas fa-robot"></i> Generated with DocGenie on February 20, 2026
+                </p>
+            </div>
+            
+            <div class="markdown-content">
+                <h1 id="demo_library">demo_library<a class="headerlink" href="#demo_library" title="Permanent link">&para;</a></h1>
+<p>A python application with comprehensive functionality and modern architecture.</p>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>🔄 Asynchronous processing</p>
+</li>
+<li>
+<p>🏗️ Object-oriented architecture</p>
+</li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>See installation instructions below</li>
+</ul>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="install-python-dependencies">Install Python dependencies<a class="headerlink" href="#install-python-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="run-the-application">Run the application<a class="headerlink" href="#run-the-application" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">main</span><span class="o">.</span><span class="n">py</span>
+</code></pre></div>
+
+<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>├── .docgenie.yaml
+├── cli.py
+├── docs.html
+├── README.md
+└── requirements.txt
+├── .docgenie/
+│   └── cache.json
+├── mathlib/
+│   ├── arithmetic.py
+│   ├── async_utils.py
+│   ├── geometry.py
+│   └── __init__.py
+├── textlib/
+│   ├── formatter.py
+│   └── __init__.py
+</code></pre></div>
+
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p>This python application is built with python and consists of:</p>
+<ul>
+<li><strong>38</strong> functions across the codebase</li>
+<li><strong>6</strong> classes/components</li>
+<li><strong>12</strong> source files analyzed</li>
+<li><strong>6</strong> programming languages used</li>
+</ul>
+<h3 id="language-distribution">Language Distribution<a class="headerlink" href="#language-distribution" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>Python</strong>: 7 files</p>
+</li>
+<li>
+<p><strong>Yaml</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Text</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Html</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Markdown</strong>: 1 files</p>
+</li>
+<li>
+<p><strong>Json</strong>: 1 files</p>
+</li>
+</ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<h4 id="main"><code>main()</code><a class="headerlink" href="#main" title="Permanent link">&para;</a></h4>
+<p>Entry point for the demo_library CLI.</p>
+<p>Prints a brief demo of each module's capabilities and exits.</p>
+<p>Returns:
+    0 on success.</p>
+<h4 id="adda-b"><code>add(a, b)</code><a class="headerlink" href="#adda-b" title="Permanent link">&para;</a></h4>
+<p>Add two numbers together and return their sum.</p>
+<p>Args:
+    a: The first operand.
+    b: The second operand.</p>
+<p>Returns:
+    The sum of a and b.</p>
+<h4 id="subtracta-b"><code>subtract(a, b)</code><a class="headerlink" href="#subtracta-b" title="Permanent link">&para;</a></h4>
+<p>Subtract b from a and return the result.</p>
+<p>Args:
+    a: The minuend.
+    b: The subtrahend.</p>
+<p>Returns:
+    The difference a - b.</p>
+<h4 id="multiplya-b"><code>multiply(a, b)</code><a class="headerlink" href="#multiplya-b" title="Permanent link">&para;</a></h4>
+<p>Multiply two numbers and return their product.</p>
+<p>Args:
+    a: The first factor.
+    b: The second factor.</p>
+<p>Returns:
+    The product of a and b.</p>
+<h4 id="dividea-b"><code>divide(a, b)</code><a class="headerlink" href="#dividea-b" title="Permanent link">&para;</a></h4>
+<p>Divide a by b and return the quotient.</p>
+<p>Args:
+    a: The dividend.
+    b: The divisor.</p>
+<p>Returns:
+    The quotient a / b.</p>
+<p>Raises:
+    ZeroDivisionError: If b is zero.</p>
+<h4 id="powerbase-exponent"><code>power(base, exponent)</code><a class="headerlink" href="#powerbase-exponent" title="Permanent link">&para;</a></h4>
+<p>Raise base to an integer exponent.</p>
+<p>Args:
+    base: The base value.
+    exponent: The integer exponent (may be negative).</p>
+<p>Returns:
+    base raised to the power of exponent.</p>
+<h4 id="clampvalue-minimum-maximum"><code>clamp(value, minimum, maximum)</code><a class="headerlink" href="#clampvalue-minimum-maximum" title="Permanent link">&para;</a></h4>
+<p>Clamp value to the inclusive range [minimum, maximum].</p>
+<p>Args:
+    value: The value to clamp.
+    minimum: The lower bound.
+    maximum: The upper bound.</p>
+<p>Returns:
+    value if within range, else the nearest bound.</p>
+<h4 id="async_computevalue-delay"><code>async_compute(value, delay)</code><a class="headerlink" href="#async_computevalue-delay" title="Permanent link">&para;</a></h4>
+<p>Simulate an async computation with an optional delay.</p>
+<p>Args:
+    value: The integer to double.
+    delay: Seconds to sleep before returning (default 0).</p>
+<p>Returns:
+    value multiplied by 2.</p>
+<h4 id="batch_computevalues"><code>batch_compute(values)</code><a class="headerlink" href="#batch_computevalues" title="Permanent link">&para;</a></h4>
+<p>Compute values concurrently using asyncio.gather.</p>
+<p>Args:
+    values: A list of integers to process.</p>
+<p>Returns:
+    A list of results, each element doubled.</p>
+<h4 id="retrycoro_fn-retries-delay"><code>retry(coro_fn, retries, delay)</code><a class="headerlink" href="#retrycoro_fn-retries-delay" title="Permanent link">&para;</a></h4>
+<p>Retry an async coroutine function up to <code>retries</code> times.</p>
+<p>Args:
+    coro_fn: A zero-argument async callable.
+    retries: Maximum number of attempts.
+    delay: Seconds between attempts.</p>
+<p>Returns:
+    The result of the first successful invocation.</p>
+<p>Raises:
+    Exception: The last exception if all attempts fail.</p>
+<h3 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h3>
+<h4 id="shape"><code>Shape</code><a class="headerlink" href="#shape" title="Permanent link">&para;</a></h4>
+<p>Abstract base class for geometric shapes.</p>
+<p>All concrete shapes should implement :meth:<code>area</code> and :meth:<code>perimeter</code>.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>area(self)</code></p>
+</li>
+<li>
+<p><code>perimeter(self)</code></p>
+</li>
+<li>
+<p><code>describe(self)</code></p>
+</li>
+</ul>
+<h4 id="circle"><code>Circle</code><a class="headerlink" href="#circle" title="Permanent link">&para;</a></h4>
+<p>A circle defined by its radius.</p>
+<p>Args:
+    radius: The radius of the circle (must be positive).</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, radius)</code></p>
+</li>
+<li>
+<p><code>area(self)</code></p>
+</li>
+<li>
+<p><code>perimeter(self)</code></p>
+</li>
+<li>
+<p><code>from_diameter(cls, diameter)</code></p>
+</li>
+</ul>
+<h4 id="rectangle"><code>Rectangle</code><a class="headerlink" href="#rectangle" title="Permanent link">&para;</a></h4>
+<p>A rectangle defined by width and height.</p>
+<p>Args:
+    width: The horizontal dimension.
+    height: The vertical dimension.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, width, height)</code></p>
+</li>
+<li>
+<p><code>area(self)</code></p>
+</li>
+<li>
+<p><code>perimeter(self)</code></p>
+</li>
+<li>
+<p><code>is_square(self)</code></p>
+</li>
+<li>
+<p><code>square(cls, side)</code></p>
+</li>
+</ul>
+<h4 id="triangle"><code>Triangle</code><a class="headerlink" href="#triangle" title="Permanent link">&para;</a></h4>
+<p>A triangle defined by three side lengths.</p>
+<p>Uses Heron's formula for area computation.</p>
+<p>Args:
+    a: Length of the first side.
+    b: Length of the second side.
+    c: Length of the third side.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, a, b, c)</code></p>
+</li>
+<li>
+<p><code>area(self)</code></p>
+</li>
+<li>
+<p><code>perimeter(self)</code></p>
+</li>
+</ul>
+<h4 id="textformatter"><code>TextFormatter</code><a class="headerlink" href="#textformatter" title="Permanent link">&para;</a></h4>
+<p>Formats text with configurable prefix, suffix, and transformation rules.</p>
+<p>Args:
+    prefix: String prepended to all formatted text.
+    suffix: String appended to all formatted text.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>__init__(self, prefix, suffix)</code></p>
+</li>
+<li>
+<p><code>format(self, text)</code></p>
+</li>
+<li>
+<p><code>format_upper(self, text)</code></p>
+</li>
+<li>
+<p><code>word_count(text)</code></p>
+</li>
+<li>
+<p><code>bold(cls)</code></p>
+</li>
+</ul>
+<h4 id="markdownformatter"><code>MarkdownFormatter</code><a class="headerlink" href="#markdownformatter" title="Permanent link">&para;</a></h4>
+<p>Extended formatter with Markdown-specific helpers.</p>
+<p>Inherits from :class:<code>TextFormatter</code> and adds heading and link generation.</p>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><code>heading(self, text, level)</code></p>
+</li>
+<li>
+<p><code>link(self, label, url)</code></p>
+</li>
+</ul>
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Fork the repository</li>
+<li>Create your feature branch (<code>git checkout -b feature/amazing-feature</code>)</li>
+<li>Commit your changes (<code>git commit -m 'Add some amazing feature'</code>)</li>
+<li>Push to the branch (<code>git push origin feature/amazing-feature</code>)</li>
+<li>Open a Pull Request</li>
+</ol>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>This project is licensed under the MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
+<h2 id="contact">Contact<a class="headerlink" href="#contact" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p>Repository: <a href="https://github.com/ch1kim0n1/DocGenie.git">ch1kim0n1/DocGenie</a></p>
+</li>
+<li>
+<p>Latest commit: Fix path assertions in tests for Windows compatibility</p>
+</li>
+</ul>
+<p>Update test_exceptions.py to use <code>str(path)</code> instead of hardcoded POSIX paths in assertions.
+This resolves failures on Windows where paths use backslashes.</p>
+<hr />
+<p><em>This README was automatically generated by <a href="https://github.com/docgenie/docgenie">DocGenie</a> on 2026-02-20 02:12:07</em></p>
+            </div>
+            
+            <footer class="content-footer">
+                <p>
+                    <i class="fas fa-magic"></i> 
+                    Documentation automatically generated by 
+                    <a href="https://github.com/ch1kim0n1/DocGenie" target="_blank">DocGenie</a>
+                </p>
+            </footer>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // Add mobile menu button if needed
+        if (window.innerWidth <= 768) {
+            const menuButton = document.createElement('button');
+            menuButton.innerHTML = '<i class="fas fa-bars"></i>';
+            menuButton.className = 'mobile-menu-btn';
+            menuButton.onclick = toggleSidebar;
+            document.body.appendChild(menuButton);
+        }
+        
+        // Highlight current section in TOC
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    if (id) {
+                        // Remove active class from all TOC links
+                        document.querySelectorAll('.toc a').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                        
+                        // Add active class to current link
+                        const currentLink = document.querySelector(`.toc a[href="#${id}"]`);
+                        if (currentLink) {
+                            currentLink.classList.add('active');
+                        }
+                    }
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        // Observe all headings
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+            observer.observe(heading);
+        });
+        
+    </script>
+</body>
+</html>

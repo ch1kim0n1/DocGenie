@@ -169,3 +169,137 @@ def test_readme_respects_include_api_docs(sample_analysis: dict) -> None:
     content = generator.generate(data, None)
 
     assert "## API Reference" not in content
+
+
+# ---------------------------------------------------------------------------
+# New expanded generator tests
+# ---------------------------------------------------------------------------
+
+
+def test_readme_async_function_triggers_async_feature(sample_analysis: dict) -> None:
+    """An async function in the analysis should produce the async feature bullet."""
+    data = copy.deepcopy(sample_analysis)
+    data["functions"] = [
+        {"name": "fetch", "line": 5, "docstring": None, "args": [], "is_async": True}
+    ]
+    content = ReadmeGenerator().generate(data, None)
+    assert "Asynchronous" in content or "async" in content.lower()
+
+
+def test_readme_api_docs_excludes_private_functions(sample_analysis: dict) -> None:
+    """Functions whose name starts with _ should not appear in API Reference."""
+    data = copy.deepcopy(sample_analysis)
+    data["functions"] = [
+        {"name": "_private_helper", "line": 5, "docstring": None, "args": [], "is_async": False},
+        {"name": "public_func", "line": 10, "docstring": "Public.", "args": [], "is_async": False},
+    ]
+    content = ReadmeGenerator().generate(data, None)
+    # public_func should be in API docs; _private_helper should not
+    assert "public_func" in content
+    assert "_private_helper" not in content
+
+
+def test_readme_api_docs_respects_max_functions(sample_analysis: dict) -> None:
+    """max_functions_documented should limit the number of documented functions."""
+    data = copy.deepcopy(sample_analysis)
+    data["functions"] = [
+        {"name": f"func_{i}", "line": i, "docstring": None, "args": [], "is_async": False}
+        for i in range(20)
+    ]
+    data["config"] = {"template_customizations": {"max_functions_documented": 3}}
+    content = ReadmeGenerator().generate(data, None)
+    # At most 3 functions should appear in the API reference
+    func_names_in_content = [f"func_{i}" for i in range(20) if f"func_{i}" in content]
+    assert len(func_names_in_content) <= 3
+
+
+def test_readme_install_command_poetry(sample_analysis: dict) -> None:
+    """pyproject.toml without requirements.txt should use poetry install."""
+    data = copy.deepcopy(sample_analysis)
+    data["project_structure"] = {"root": {"files": ["pyproject.toml"], "dirs": []}}
+    data["dependencies"] = {}
+    content = ReadmeGenerator().generate(data, None)
+    assert "poetry install" in content
+
+
+def test_readme_install_command_cargo(sample_analysis: dict) -> None:
+    """Cargo.toml project should include cargo build command."""
+    data = copy.deepcopy(sample_analysis)
+    data["project_structure"] = {"root": {"files": ["Cargo.toml"], "dirs": []}}
+    content = ReadmeGenerator().generate(data, None)
+    assert "cargo build" in content
+
+
+def test_readme_install_command_go_mod(sample_analysis: dict) -> None:
+    """go.mod project should include go mod download command."""
+    data = copy.deepcopy(sample_analysis)
+    data["project_structure"] = {"root": {"files": ["go.mod"], "dirs": []}}
+    content = ReadmeGenerator().generate(data, None)
+    assert "go mod download" in content
+
+
+def test_readme_install_command_pom_xml(sample_analysis: dict) -> None:
+    """pom.xml project should include mvn clean install command."""
+    data = copy.deepcopy(sample_analysis)
+    data["project_structure"] = {"root": {"files": ["pom.xml"], "dirs": []}}
+    content = ReadmeGenerator().generate(data, None)
+    assert "mvn clean install" in content
+
+
+def test_readme_generate_writes_file_with_project_name(
+    sample_analysis: dict, tmp_path: Path
+) -> None:
+    """generate() should write a file containing the project name."""
+    out = tmp_path / "README.md"
+    ReadmeGenerator().generate(sample_analysis, str(out))
+    assert out.exists()
+    assert "TestProject" in out.read_text(encoding="utf-8")
+
+
+def test_readme_has_tests_true_by_directory(sample_analysis: dict) -> None:
+    """Project with a 'tests' directory should be detected as having tests."""
+    data = copy.deepcopy(sample_analysis)
+    data["project_structure"]["tests"] = {"files": ["test_main.py"], "dirs": []}
+    content = ReadmeGenerator().generate(data, None)
+    assert "## Testing" in content
+
+
+def test_readme_requirements_node_js(sample_analysis: dict) -> None:
+    """package.json dependency should add Node.js to requirements."""
+    data = copy.deepcopy(sample_analysis)
+    data["dependencies"] = {"package.json": {"dependencies": ["react"]}}
+    content = ReadmeGenerator().generate(data, None)
+    assert "Node.js" in content
+
+
+def test_readme_requirements_rust(sample_analysis: dict) -> None:
+    """Cargo.toml dependency should add Rust to requirements."""
+    data = copy.deepcopy(sample_analysis)
+    data["dependencies"] = {"Cargo.toml": {"dependencies": ["serde"]}}
+    content = ReadmeGenerator().generate(data, None)
+    assert "Rust" in content
+
+
+def test_readme_features_fallback_when_empty(sample_analysis: dict) -> None:
+    """No dependencies and no async functions → generic feature list generated."""
+    data = copy.deepcopy(sample_analysis)
+    data["dependencies"] = {}
+    data["functions"] = []
+    data["classes"] = []
+    content = ReadmeGenerator().generate(data, None)
+    # Generic features should include at least one of these
+    assert any(
+        kw in content for kw in ["performance", "easy", "modular", "configurable", "⚡", "🛠️"]
+    )
+
+
+def test_readme_website_detection_specific_output(sample_analysis: dict) -> None:
+    """Website project should include web-detection notice in output."""
+    data = copy.deepcopy(sample_analysis)
+    data["is_website"] = True
+    data["languages"] = {"html": 5, "css": 3, "javascript": 2}
+    data["project_structure"] = {
+        "root": {"files": ["index.html", "style.css"], "dirs": []}
+    }
+    content = ReadmeGenerator().generate(data, None)
+    assert "Website" in content or "website" in content.lower()

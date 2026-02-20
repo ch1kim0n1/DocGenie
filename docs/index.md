@@ -18,13 +18,20 @@
 
 ```bash
 # Install DocGenie
-pip install docgenie[full]
+pip install docgenie
 
 # Generate documentation for your project
-docgenie /path/to/project --format both
+docgenie generate /path/to/project --format both
 
 # That's it! README.md and docs.html are now in your project
 ```
+
+## Latest Release (1.2.0)
+
+- ✅ Fixed async Python parsing (`async def` at module and class scope)
+- ✅ Fixed HTML TOC state carry-over between repeated conversions
+- ✅ Added `examples/demo_library/` and `scripts/run_demo.py` for an end-to-end demo
+- ✅ Expanded unit and integration test coverage across CLI and core modules
 
 ## Why DocGenie?
 
@@ -47,16 +54,15 @@ Traditional documentation tools are often limited to single languages or require
 ## What's Next?
 
 - [Installation Guide](getting-started/installation.md) - Get DocGenie installed
-- [Quick Start](getting-started/quickstart.md) - Generate your first documentation
-- [CLI Usage](guide/cli.md) - Learn all the commands and options
-- [Python API](guide/api.md) - Use DocGenie in your code
+- [Core API](api/core.md) - Analyze codebases programmatically
+- [Parsers API](api/parsers.md) - Understand parser behavior and extensibility
 
 ## Community
 
-- **GitHub**: [github.com/docgenie/docgenie](https://github.com/docgenie/docgenie)
+- **GitHub**: [github.com/ch1kim0n1/DocGenie](https://github.com/ch1kim0n1/DocGenie)
 - **Issues**: Report bugs and request features
 - **Contributing**: We welcome contributions!
 
 ## License
 
-DocGenie is licensed under the MIT License. See [LICENSE](https://github.com/docgenie/docgenie/blob/main/LICENSE) for details.
+DocGenie is licensed under the MIT License. See [LICENSE](https://github.com/ch1kim0n1/DocGenie/blob/main/LICENSE) for details.

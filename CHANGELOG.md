@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Changed
+- Documentation refreshed for the 1.2.0 release:
+  - Added an explicit "What's New in 1.2.0" section to the main README.
+  - Updated docs home quick-start examples to use current CLI commands.
+  - Clarified parser behavior around `async def` discovery in API docs.
+  - Corrected docs repository links to `ch1kim0n1/DocGenie`.
+
 ## [1.2.0] - 2026-02-20
 
 ### Added
@@ -15,6 +22,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   all CLI commands (`generate`, `analyze`, `init`, `html`).
 - Shared `tests/conftest.py` and `tests/integration/conftest.py` fixtures for reuse
   across unit and integration tests.
+- New integration test validating module entrypoint execution via `python -m docgenie`.
 - `HTMLGenerator` exported from the top-level `docgenie` package (`__all__`).
 - `keywords` field in `pyproject.toml` for better PyPI discoverability.
 - `"Typing :: Typed"` PyPI classifier (since `py.typed` marker is present).
@@ -38,6 +46,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   per-file suppressions.
 - `pyproject.toml` TOML formatting normalized (removed stray leading spaces from section
   headers).
+- Ruff configuration updated to modern `[tool.ruff.lint]` / `[tool.ruff.lint.per-file-ignores]`
+  layout and expanded test-file lint ignores.
+- HTML sidebar TOC presentation improved (clearer nested heading hierarchy and active-link
+  styling).
 
 ## [1.1.0] - 2026-01-24
 

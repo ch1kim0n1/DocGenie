@@ -2,6 +2,16 @@
 
 Auto-documentation tool that generates `README.md` and HTML docs for a codebase.
 
+## What's New in 1.2.0
+
+- Fixed Python AST parsing for `async def` at module level and in class methods.
+- Fixed `HTMLGenerator.generate_from_readme()` state reset to prevent TOC bleed across repeated calls.
+- Improved HTML sidebar TOC styling for nested sections and active-link state.
+- Added a runnable end-to-end demo project in `examples/demo_library/`.
+- Expanded unit and integration tests for CLI and core modules.
+- Exported `HTMLGenerator` from top-level `docgenie` package.
+- Updated packaging metadata (`Typing :: Typed`, bug tracker URL, refined Ruff lint config layout).
+
 ## Quick Guide
 
 ### Installation
@@ -18,6 +28,9 @@ Requirements: **Python 3.10+**
 git clone https://github.com/ch1kim0n1/DocGenie.git
 cd DocGenie
 python3 -m pip install -e "."
+
+# optional development tooling (tests, docs, packaging checks)
+python3 -m pip install -e ".[dev]"
 ```
 
 ### Usage
@@ -51,14 +64,19 @@ docgenie-html README.md --source readme --output docs.html
 #### Programmatic Usage (Python API)
 
 ```python
-from docgenie.core import CodebaseAnalyzer
-from docgenie.html_generator import HTMLGenerator
+from docgenie import CodebaseAnalyzer, HTMLGenerator
 
 analyzer = CodebaseAnalyzer('/path/to/project')
 data = analyzer.analyze()
 
 html_generator = HTMLGenerator()
 html_content = html_generator.generate_from_analysis(data, "output.html")
+```
+
+#### Run the bundled demo project
+
+```bash
+python scripts/run_demo.py
 ```
 
 ## Troubleshooting

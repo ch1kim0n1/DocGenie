@@ -25,6 +25,13 @@ DocGenie uses a pluggable parser architecture to support multiple programming la
       show_source: true
       heading_level: 4
 
+`PythonAstParser` extracts both sync and async callables:
+
+- Module-level `def` and `async def`
+- Class methods declared with `def` and `async def`
+
+As of 1.2.0, async functions are included consistently in both locations.
+
 ### TreeSitterParser
 
 ::: docgenie.parsers.TreeSitterParser

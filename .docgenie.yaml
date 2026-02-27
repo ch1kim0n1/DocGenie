@@ -1,0 +1,10 @@
+# DocGenie configuration
+ignore_patterns:
+  - "*.log"
+  - "build/"
+  - "dist/"
+
+template_customizations:
+  include_api_docs: true
+  include_directory_tree: true
+  max_functions_documented: 25

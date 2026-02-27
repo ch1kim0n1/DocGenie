@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 from jinja2 import Template
 
 from .logging import get_logger
+from .redaction import redact_text
 from .utils import create_directory_tree, get_project_type, is_website_project
 
 
@@ -36,6 +37,15 @@ class ReadmeGenerator:
 
         # Render template
         readme_content = self.template.render(**context)
+        config = analysis_data.get("config", {})
+        safety = config.get("safety", {}) if isinstance(config, dict) else {}
+        redaction_mode = str(safety.get("redaction_mode", "strict"))
+        patterns = safety.get("redact_patterns", []) if isinstance(safety, dict) else []
+        readme_content = redact_text(
+            readme_content,
+            redaction_mode,
+            patterns if isinstance(patterns, list) else [],
+        )
         # Save to file if path provided
         if output_path:
             with open(output_path, "w", encoding="utf-8") as f:
@@ -92,8 +102,26 @@ class ReadmeGenerator:
         # Usage examples
         usage_examples = self._generate_usage_examples(analysis_data)
 
+        quality_config = config.get("quality", {}) if isinstance(config, dict) else {}
+        quality_enabled = bool(quality_config.get("confidence_enabled", True))
+        include_warnings = bool(quality_config.get("include_warnings", True))
+        min_confidence = str(quality_config.get("min_confidence_for_api_docs", "low")).lower()
+        quality = (
+            self._build_quality_report(analysis_data)
+            if quality_enabled
+            else {
+                "score": 100,
+                "confidence": "High",
+                "warnings": [],
+            }
+        )
+        confidence_rank = {"low": 0, "medium": 1, "high": 2}
+        allow_api = confidence_rank.get(
+            str(quality["confidence"]).lower(), 0
+        ) >= confidence_rank.get(min_confidence, 0)
+
         # API documentation
-        if include_api_docs and not is_website:
+        if include_api_docs and not is_website and allow_api:
             api_docs = self._generate_api_docs(
                 functions, classes, config if isinstance(config, dict) else {}
             )
@@ -122,8 +150,99 @@ class ReadmeGenerator:
             "has_tests": self._has_tests(analysis_data),
             "has_docs": len(analysis_data.get("documentation_files", [])) > 0,
             "config_files": analysis_data.get("config_files", []),
+            "packages": analysis_data.get("packages", []),
+            "run_metrics": analysis_data.get("run_metrics", {}),
             "website_info": self._get_website_info(analysis_data) if is_website else None,
+            "analysis_quality": quality["score"],
+            "confidence_level": quality["confidence"],
+            "analysis_warnings": quality["warnings"] if include_warnings else [],
         }
+
+    def generate_package_docs(
+        self, analysis_data: Dict[str, Any], output_dir: Path
+    ) -> dict[str, str]:
+        """Generate per-package README docs for monorepos."""
+        artifacts: dict[str, str] = {}
+        packages = analysis_data.get("packages", [])
+        if not isinstance(packages, list):
+            return artifacts
+        root_path = Path(str(analysis_data.get("root_path", ".")))
+        for pkg in packages:
+            pkg_path = str(pkg.get("path", "."))
+            if pkg_path == ".":
+                continue
+            abs_pkg = root_path / pkg_path
+            package_data = dict(analysis_data)
+            package_data["project_name"] = abs_pkg.name
+            package_data["functions"] = [
+                f
+                for f in analysis_data.get("functions", [])
+                if str(f.get("file", "")).startswith(str(abs_pkg))
+            ]
+            package_data["classes"] = [
+                c
+                for c in analysis_data.get("classes", [])
+                if str(c.get("file", "")).startswith(str(abs_pkg))
+            ]
+            package_data["files_analyzed"] = len(package_data["functions"]) + len(
+                package_data["classes"]
+            )
+            output_path = output_dir / pkg_path / "README.md"
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            content = self.generate(package_data, str(output_path))
+            artifacts[pkg_path] = content
+        return artifacts
+
+    def _build_quality_report(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Compute simple quality/confidence signals for generated docs."""
+        files_analyzed = int(analysis_data.get("files_analyzed", 0) or 0)
+        languages = analysis_data.get("languages", {})
+        functions = analysis_data.get("functions", [])
+        classes = analysis_data.get("classes", [])
+        dependencies = analysis_data.get("dependencies", {})
+
+        score = 30
+        warnings: list[str] = []
+
+        if files_analyzed >= 20:
+            score += 20
+        elif files_analyzed >= 5:
+            score += 10
+        else:
+            warnings.append("Low file count analyzed. Results may be incomplete.")
+
+        if len(languages) >= 2:
+            score += 15
+        elif len(languages) == 1:
+            score += 8
+        else:
+            warnings.append("No recognized source languages detected.")
+
+        if len(functions) + len(classes) >= 10:
+            score += 20
+        elif len(functions) + len(classes) >= 1:
+            score += 10
+        else:
+            warnings.append("No functions/classes were extracted from source files.")
+
+        if dependencies:
+            score += 10
+        else:
+            warnings.append("No dependency metadata files were detected.")
+
+        if self._has_tests(analysis_data):
+            score += 5
+        else:
+            warnings.append("No tests detected. Generated usage guidance may need manual review.")
+
+        score = max(0, min(score, 100))
+        if score >= 75:
+            confidence = "High"
+        elif score >= 50:
+            confidence = "Medium"
+        else:
+            confidence = "Low"
+        return {"score": score, "confidence": confidence, "warnings": warnings}
 
     def _get_project_name(self, analysis_data: Dict[str, Any]) -> str:
         """Extract project name from various sources."""
@@ -330,39 +449,39 @@ class ReadmeGenerator:
         dep_strings = [str(deps).lower() for deps in dependencies.values()]
 
         if any("web" in deps or "http" in deps for deps in dep_strings):
-            features.append("🌐 Web interface")
+            features.append("Web interface")
 
         if any("api" in deps or "rest" in deps for deps in dep_strings):
-            features.append("🔌 REST API")
+            features.append("REST API")
 
         if any("database" in deps or "db" in deps or "sql" in deps for deps in dep_strings):
-            features.append("🗄️ Database integration")
+            features.append("Database integration")
 
         if any("test" in deps for deps in dep_strings):
-            features.append("🧪 Comprehensive testing")
+            features.append("Comprehensive testing")
 
         if any("auth" in deps or "login" in deps for deps in dep_strings):
-            features.append("🔐 Authentication system")
+            features.append("Authentication system")
 
         if any("cache" in deps or "redis" in deps for deps in dep_strings):
-            features.append("⚡ Caching system")
+            features.append("Caching system")
 
         if any("async" in f["name"] or f.get("is_async") for f in functions):
-            features.append("🔄 Asynchronous processing")
+            features.append("Asynchronous processing")
 
         if len(classes) > 5:
-            features.append("🏗️ Object-oriented architecture")
+            features.append("Object-oriented architecture")
 
         if analysis_data.get("git_info", {}).get("contributor_count", 0) > 1:
-            features.append("👥 Collaborative development")
+            features.append("Collaborative development")
 
         # Add generic features if none found
         if not features:
             features = [
-                "⚡ High performance",
-                "🛠️ Easy to use",
-                "📦 Modular design",
-                "🔧 Configurable",
+                "High performance",
+                "Easy to use",
+                "Modular design",
+                "Configurable",
             ]
 
         return features
@@ -418,10 +537,10 @@ class ReadmeGenerator:
 {{ description }}
 
 {% if is_website %}
-*🌐 Website project detected - Documentation format optimized for web applications*
+Website project detected. Documentation format optimized for web applications.
 
 {% if website_info.framework_detected %}
-## �️ Technology Stack
+## Technology Stack
 
 **Frontend Framework:** {{ website_info.framework_detected }}
 {% if website_info.build_system %}**Build System:** {{ website_info.build_system }}{% endif %}
@@ -430,7 +549,7 @@ class ReadmeGenerator:
 {% endif %}
 
 {% if website_info.entry_points %}
-## 🏠 Entry Points
+## Entry Points
 
 {% for entry in website_info.entry_points %}
 - `{{ entry }}` - Main entry point
@@ -539,6 +658,16 @@ This website is configured for deployment on:
 ```
 {% endif %}
 
+{% if packages %}
+## Monorepo Inventory
+
+| Package Path | Type | Manifest | Parent |
+| --- | --- | --- | --- |
+{% for pkg in packages %}
+| `{{ pkg.path }}` | {{ pkg.package_type }} | {{ pkg.manifest or '-' }} | {{ pkg.parent_path or '-' }} |
+{% endfor %}
+{% endif %}
+
 ## Architecture
 
 This {{ project_type.lower() }} is built with {{ main_language }} and consists of:
@@ -548,11 +677,32 @@ This {{ project_type.lower() }} is built with {{ main_language }} and consists o
 - **{{ total_files }}** source files analyzed
 - **{{ languages|length }}** programming languages used
 
+## Documentation Quality
+
+- **Quality Score**: {{ analysis_quality }}/100
+- **Confidence**: {{ confidence_level }}
+{% if analysis_warnings %}
+- **Warnings**:
+{% for warning in analysis_warnings %}
+  - {{ warning }}
+{% endfor %}
+{% endif %}
+
 ### Language Distribution
 
 {% for lang, count in languages.items() %}
 - **{{ lang.title() }}**: {{ count }} files
 {% endfor %}
+
+{% if run_metrics %}
+## Run Metrics
+
+- Scanned files: {{ run_metrics.scanned_files }}
+- Changed files: {{ run_metrics.changed_files }}
+- Skipped files: {{ run_metrics.skipped_files }}
+- Duration (sec): {{ run_metrics.duration_sec }}
+- Cache hit ratio: {{ run_metrics.cache_hit_ratio }}
+{% endif %}
 
 {% if api_docs.functions and not is_website %}
 ## API Reference

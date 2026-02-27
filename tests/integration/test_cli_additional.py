@@ -100,6 +100,12 @@ def test_generate_and_init_and_html_commands(tmp_path: Path, monkeypatch: pytest
     analyze_yaml = runner.invoke(app, ["analyze", str(tmp_path), "--format", "yaml"])
     assert analyze_yaml.exit_code == 0
     assert "files_analyzed" in analyze_yaml.stdout
+    metrics_path = tmp_path / "metrics.json"
+    analyze_metrics = runner.invoke(
+        app, ["analyze", str(tmp_path), "--format", "json", "--metrics-json", str(metrics_path)]
+    )
+    assert analyze_metrics.exit_code == 0
+    assert metrics_path.exists()
 
     # html command readme source
     html_out = tmp_path / "out.html"
@@ -130,6 +136,15 @@ def test_generate_and_init_and_html_commands(tmp_path: Path, monkeypatch: pytest
     code_result = runner.invoke(app, ["html", str(tmp_path), "--source", "codebase", "--open-browser", "--force", "--verbose"])
     assert code_result.exit_code == 0
     assert opened
+
+    # New commands
+    idx_stats = runner.invoke(app, ["index", "stats", str(tmp_path)])
+    assert idx_stats.exit_code == 0
+    idx_rebuild = runner.invoke(app, ["index", "rebuild", str(tmp_path)])
+    assert idx_rebuild.exit_code == 0
+    diff_res = runner.invoke(app, ["diff", str(tmp_path), "--since", "1"])
+    # may fail on first run depending on available runs but command should not crash
+    assert diff_res.exit_code in {0, 1}
 
 
 def test_render_outputs_direct(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

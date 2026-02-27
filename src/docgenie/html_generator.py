@@ -11,6 +11,7 @@ import markdown
 
 from .generator import ReadmeGenerator
 from .logging import get_logger
+from .redaction import redact_text
 from .sanitize import sanitize_html
 from .utils import is_website_project
 
@@ -43,6 +44,8 @@ class HTMLGenerator:
         readme_content: str,
         output_path: str | None = None,
         project_name: str = "Project Documentation",
+        redaction_mode: str = "strict",
+        redact_patterns: list[str] | None = None,
     ) -> str:
         """
         Generate HTML documentation from README markdown content.
@@ -55,8 +58,9 @@ class HTMLGenerator:
         Returns:
             Generated HTML content as string
         """
+        safe_readme = redact_text(readme_content, redaction_mode, redact_patterns or [])
         # Convert markdown to HTML
-        html_content = self.markdown_processor.convert(readme_content)
+        html_content = self.markdown_processor.convert(safe_readme)
 
         # Create full HTML document
         full_html = self._create_html_document(html_content, project_name)
@@ -84,19 +88,37 @@ class HTMLGenerator:
         """  # First generate README content, then convert to HTML
         readme_gen = ReadmeGenerator()
         readme_content = readme_gen.generate(analysis_data)
+        config = analysis_data.get("config", {})
+        safety = config.get("safety", {}) if isinstance(config, dict) else {}
+        redaction_mode = str(safety.get("redaction_mode", "strict"))
+        redact_patterns = safety.get("redact_patterns", []) if isinstance(safety, dict) else []
+        if not isinstance(redact_patterns, list):
+            redact_patterns = []
 
         project_name = self._extract_project_name(analysis_data)
 
         # Check if website and inform user
         if is_website_project(analysis_data):
-            html_content = self.generate_from_readme(readme_content, output_path, project_name)
+            html_content = self.generate_from_readme(
+                readme_content,
+                output_path,
+                project_name,
+                redaction_mode=redaction_mode,
+                redact_patterns=redact_patterns,
+            )
             if output_path:
                 get_logger(__name__).info(
                     "Website detected; generated website-optimized HTML documentation",
                     output_path=output_path,
                 )
             return html_content
-        return self.generate_from_readme(readme_content, output_path, project_name)
+        return self.generate_from_readme(
+            readme_content,
+            output_path,
+            project_name,
+            redaction_mode=redaction_mode,
+            redact_patterns=redact_patterns,
+        )
 
     def _create_html_document(self, content: str, project_name: str) -> str:
         """Create a complete HTML document with styling."""
@@ -120,18 +142,26 @@ class HTMLGenerator:
     </style>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <button class="mobile-menu-btn" aria-label="Toggle navigation" aria-controls="doc-sidebar" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+    </button>
     <div class="container">
-        <nav class="sidebar">
+        <nav id="doc-sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-header">
                 <h2><i class="fas fa-file-alt"></i> {safe_project_name}</h2>
                 <p class="sidebar-subtitle">Documentation</p>
+            </div>
+            <div class="sidebar-search">
+                <label class="sr-only" for="toc-filter">Filter sections</label>
+                <input id="toc-filter" type="search" placeholder="Filter sections..." autocomplete="off">
             </div>
             <div class="toc">
                 {toc_html}
             </div>
         </nav>
         
-        <main class="content">
+        <main id="main-content" class="content">
             <div class="content-header">
                 <h1 class="main-title">{safe_project_name}</h1>
                 <p class="generation-info">
@@ -152,6 +182,9 @@ class HTMLGenerator:
             </footer>
         </main>
     </div>
+    <button class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
@@ -165,14 +198,14 @@ class HTMLGenerator:
         """Get CSS styles for the HTML documentation."""
         return """
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #64748b;
-            --accent-color: #0ea5e9;
-            --background-color: #f8fafc;
+            --primary-color: #0f4c81;
+            --secondary-color: #486581;
+            --accent-color: #2f855a;
+            --background-color: #eef2f7;
             --card-background: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
+            --text-primary: #102a43;
+            --text-secondary: #627d98;
+            --border-color: #d9e2ec;
             --code-background: #f1f5f9;
             --sidebar-width: 280px;
         }
@@ -184,10 +217,23 @@ class HTMLGenerator:
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'IBM Plex Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             color: var(--text-primary);
             background-color: var(--background-color);
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            z-index: 1000;
+        }
+        .skip-link:focus {
+            top: 0;
         }
         
         .container {
@@ -209,7 +255,7 @@ class HTMLGenerator:
         .sidebar-header {
             padding: 2rem 1.5rem 1rem;
             border-bottom: 1px solid var(--border-color);
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            background: linear-gradient(145deg, var(--primary-color), #123d63);
             color: white;
         }
         
@@ -226,6 +272,18 @@ class HTMLGenerator:
         
         .toc {
             padding: 1.5rem;
+        }
+        
+        .sidebar-search {
+            padding: 1rem 1.5rem 0.5rem;
+        }
+        
+        .sidebar-search input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            font-size: 0.875rem;
         }
         
         .toc ul {
@@ -253,6 +311,11 @@ class HTMLGenerator:
             color: var(--primary-color);
         }
         
+        .toc a:focus-visible {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 1px;
+        }
+        
         .content {
             margin-left: var(--sidebar-width);
             flex: 1;
@@ -264,6 +327,10 @@ class HTMLGenerator:
             margin-bottom: 3rem;
             padding-bottom: 2rem;
             border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--background-color);
+            z-index: 5;
         }
         
         .main-title {
@@ -402,9 +469,62 @@ class HTMLGenerator:
             color: var(--primary-color);
             text-decoration: none;
         }
+
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            border: 0;
+            border-radius: 999px;
+            width: 2.8rem;
+            height: 2.8rem;
+            background: var(--primary-color);
+            color: #fff;
+            z-index: 200;
+            box-shadow: 0 8px 22px rgba(16, 42, 67, 0.3);
+            cursor: pointer;
+        }
+
+        .back-to-top {
+            position: fixed;
+            right: 1rem;
+            bottom: 4.4rem;
+            border: 0;
+            border-radius: 999px;
+            width: 2.4rem;
+            height: 2.4rem;
+            background: var(--accent-color);
+            color: #fff;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
         
         /* Responsive Design */
         @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
@@ -425,7 +545,7 @@ class HTMLGenerator:
             }
         }
         
-        /* Emoji enhancement */
+        /* Heading spacing refinement */
         .markdown-content h1:before,
         .markdown-content h2:before {
             margin-right: 0.5rem;
@@ -460,16 +580,28 @@ class HTMLGenerator:
         // Mobile menu toggle
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
+            const button = document.querySelector('.mobile-menu-btn');
             sidebar.classList.toggle('active');
+            if (button) {
+                button.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false');
+            }
         }
         
-        // Add mobile menu button if needed
-        if (window.innerWidth <= 768) {
-            const menuButton = document.createElement('button');
-            menuButton.innerHTML = '<i class="fas fa-bars"></i>';
-            menuButton.className = 'mobile-menu-btn';
-            menuButton.onclick = toggleSidebar;
-            document.body.appendChild(menuButton);
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        if (mobileBtn) {
+            mobileBtn.addEventListener('click', toggleSidebar);
+        }
+
+        // TOC filter
+        const tocFilter = document.getElementById('toc-filter');
+        if (tocFilter) {
+            tocFilter.addEventListener('input', function () {
+                const query = this.value.toLowerCase().trim();
+                document.querySelectorAll('.toc li').forEach(item => {
+                    const label = item.textContent.toLowerCase();
+                    item.style.display = label.includes(query) ? '' : 'none';
+                });
+            });
         }
         
         // Highlight current section in TOC
@@ -497,6 +629,21 @@ class HTMLGenerator:
         document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
             observer.observe(heading);
         });
+
+        // Back to top behavior
+        const backToTop = document.querySelector('.back-to-top');
+        if (backToTop) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 400) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            });
+            backToTop.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
         """
 
     def _extract_project_name(self, analysis_data: dict[str, Any]) -> str:

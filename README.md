@@ -73,13 +73,13 @@ MIT License. See LICENSE file for details.
 
 ## What DocGenie Analyzes
 
-- **📁 Project Structure**: Directory tree and file organization
-- **💻 Source Code**: Functions, classes, methods, and documentation
-- **📦 Dependencies**: Package files (requirements.txt, package.json, etc.)
-- **🔧 Configuration**: Config files and project settings
-- **📝 Documentation**: Existing docs and README files
-- **🌿 Git Information**: Repository details, branches, contributors
-- **📊 Statistics**: Language distribution, code metrics
+- **Project Structure**: Directory tree and file organization
+- **Source Code**: Functions, classes, methods, and documentation
+- **Dependencies**: Package files (requirements.txt, package.json, etc.)
+- **Configuration**: Config files and project settings
+- **Documentation**: Existing docs and README files
+- **Git Information**: Repository details, branches, contributors
+- **Statistics**: Language distribution, code metrics
 
 ## Example Output
 
@@ -137,7 +137,7 @@ template_customizations:
   max_functions_documented: 20
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 DocGenie consists of several key components:
 
@@ -147,7 +147,7 @@ DocGenie consists of several key components:
 - **HTMLGenerator**: Beautiful HTML documentation generator with responsive design
 - **CLI Interface**: Typer + Rich powered user experience
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how to get started:
 
@@ -168,11 +168,11 @@ pip install -e ".[dev]"
 pytest
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Thanks to all contributors who help make DocGenie better
 - Inspired by the need for better automated documentation tools
@@ -180,4 +180,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⭐ If DocGenie helps you, please star this repository to support the project!**
+If DocGenie helps you, please star this repository.

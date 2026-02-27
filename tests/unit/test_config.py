@@ -14,6 +14,12 @@ def test_get_default_config_shape() -> None:
     assert "template_customizations" in config
     assert isinstance(config["template_customizations"], dict)
     assert "max_functions_documented" in config["template_customizations"]
+    assert "analysis" in config
+    assert config["analysis"]["use_gitignore"] is True
+    assert config["analysis"]["exclude_generated"] is True
+    assert "monorepo" in config
+    assert "quality" in config
+    assert "safety" in config
 
 
 def test_merge_configs_deep_merge_overrides_nested_values() -> None:
@@ -65,4 +71,3 @@ def test_load_config_valid_yaml_merges_with_defaults(tmp_path: Path) -> None:
 def test_load_config_invalid_yaml_falls_back_to_default(tmp_path: Path) -> None:
     (tmp_path / ".docgenie.yaml").write_text("ignore_patterns: [\n", encoding="utf-8")
     assert load_config(tmp_path) == get_default_config()
-

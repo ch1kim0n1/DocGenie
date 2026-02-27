@@ -147,10 +147,10 @@ def test_api_docs_features_requirements_and_tests_detection() -> None:
     assert len(features) >= 8
 
     assert gen._extract_features(_base()) == [
-        "⚡ High performance",
-        "🛠️ Easy to use",
-        "📦 Modular design",
-        "🔧 Configurable",
+        "High performance",
+        "Easy to use",
+        "Modular design",
+        "Configurable",
     ]
 
     reqs = gen._extract_requirements(
@@ -252,3 +252,43 @@ def test_prepare_context_non_dict_config_and_generate_output(tmp_path: Path) -> 
     website["dependencies"] = {"package.json": ["react"]}
     gen.generate(website, str(tmp_path / "README-website.md"))
     assert (tmp_path / "README-website.md").exists()
+
+
+def test_quality_report_and_template_section() -> None:
+    gen = ReadmeGenerator()
+    analysis = _base()
+    analysis["files_analyzed"] = 25
+    analysis["languages"] = {"python": 10, "javascript": 3}
+    analysis["functions"] = [{"name": f"f{i}"} for i in range(8)]
+    analysis["classes"] = [{"name": f"C{i}"} for i in range(3)]
+    analysis["dependencies"] = {"requirements.txt": ["requests"]}
+    analysis["project_structure"] = {"root": {"files": ["README.md"], "dirs": []}, "tests": {}}
+
+    quality = gen._build_quality_report(analysis)
+    assert quality["score"] >= 75
+    assert quality["confidence"] == "High"
+
+    content = gen.generate(analysis)
+    assert "Documentation Quality" in content
+    assert "Quality Score" in content
+    assert "Confidence" in content
+
+
+def test_generator_redaction_and_package_docs(tmp_path: Path) -> None:
+    gen = ReadmeGenerator()
+    analysis = _base()
+    analysis["config"] = {"safety": {"redaction_mode": "strict"}}
+    analysis["project_name"] = "token=abcdef12345678"
+    out = gen.generate(analysis)
+    assert "[REDACTED]" in out
+
+    analysis2 = _base()
+    analysis2["root_path"] = str(tmp_path)
+    analysis2["packages"] = [{"path": "pkg-a"}, {"path": "."}]
+    abs_pkg = tmp_path / "pkg-a"
+    abs_pkg.mkdir(parents=True, exist_ok=True)
+    analysis2["functions"] = [{"name": "f", "file": str(abs_pkg / "main.py")}]
+    analysis2["classes"] = []
+    artifacts = gen.generate_package_docs(analysis2, tmp_path / ".docgenie" / "packages")
+    assert "pkg-a" in artifacts
+    assert (tmp_path / ".docgenie" / "packages" / "pkg-a" / "README.md").exists()

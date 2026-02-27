@@ -6,17 +6,33 @@ import hashlib
 import json
 import os
 import re
+import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
 import toml
+from pathspec import PathSpec
 
+from .index_store import IndexStore
 from .models import AnalysisResult
 from .parsers import ParserRegistry
-from .utils import extract_git_info, get_file_language, is_website_project, should_ignore_file
+from .utils import (
+    detect_packages,
+    extract_git_info,
+    get_file_language,
+    is_hidden_path,
+    is_path_ignored_by_gitignore,
+    is_probably_generated_file,
+    is_website_project,
+    load_gitignore_spec,
+    should_ignore_file,
+)
+
+HARD_BLOB_SIZE_BYTES = 5 * 1024 * 1024
 
 
 def _hash_file(path: Path) -> str:
@@ -99,9 +115,32 @@ class CodebaseAnalyzer:
         self.ignore_patterns = ignore_patterns or []
         self.enable_tree_sitter = enable_tree_sitter
         self.config = config or {}
+        analysis_config = self.config.get("analysis", {}) if isinstance(self.config, dict) else {}
+        self.use_gitignore = bool(analysis_config.get("use_gitignore", True))
+        self.exclude_generated = bool(analysis_config.get("exclude_generated", True))
+        self.include_hidden = bool(analysis_config.get("include_hidden", False))
+        max_size_raw = analysis_config.get("max_file_size_kb", 512)
+        try:
+            self.max_file_size_kb: int | None = int(max_size_raw)
+        except (TypeError, ValueError):
+            self.max_file_size_kb = None
+        generated_patterns = analysis_config.get("generated_patterns", [])
+        self.generated_patterns = generated_patterns if isinstance(generated_patterns, list) else []
+        self.engine = str(analysis_config.get("engine", "hybrid_index"))
+        self.incremental = bool(analysis_config.get("incremental", True))
+        self.parallelism = analysis_config.get("parallelism", "auto")
+        self.hard_file_cap = int(analysis_config.get("hard_file_cap", 300000))
+        self.full_rescan_interval_runs = int(analysis_config.get("full_rescan_interval_runs", 20))
+        self.gitignore_spec: PathSpec | None = (
+            load_gitignore_spec(self.root_path) if self.use_gitignore else None
+        )
         self.cache = CacheManager(self.root_path)
+        self.index_store = IndexStore(self.root_path)
 
         self.files_analyzed = 0
+        self.files_discovered = 0
+        self.skipped_reasons: Counter[str] = Counter()
+        self.cache_hits = 0
         self.languages: Counter[str] = Counter()
         self.dependencies: dict[str, Any] = {}
         self.project_structure: dict[str, Any] = {}
@@ -113,40 +152,187 @@ class CodebaseAnalyzer:
         self.git_info: dict[str, Any] = {}
         self.is_website = False
         self.website_detection_reason = ""
+        self.packages: list[dict[str, Any]] = []
+        self.run_metrics: dict[str, Any] = {}
+        self.active_run_id: int | None = None
 
-    def analyze(self) -> dict[str, Any]:
+    def close(self) -> None:
+        with suppress(Exception):
+            self.index_store.close()
+
+    def __del__(self) -> None:
+        self.close()
+
+    def _relative_path(self, path: Path) -> str:
+        return path.relative_to(self.root_path).as_posix()
+
+    def _skip_reason(self, path: Path, *, is_dir: bool) -> str | None:  # noqa: PLR0911
+        rel_path = self._relative_path(path)
+        normalized = rel_path.replace("\\", "/")
+        if normalized == ".git" or normalized.startswith(".git/"):
+            return "hard_exclude_vcs"
+
+        if not is_dir:
+            language = get_file_language(path)
+            try:
+                if language is None and path.stat().st_size > HARD_BLOB_SIZE_BYTES:
+                    return "hard_exclude_large_binary"
+            except OSError:
+                return "hard_exclude_unreadable"
+
+        if should_ignore_file(rel_path, self.ignore_patterns):
+            return "user_ignore"
+
+        if is_path_ignored_by_gitignore(rel_path, self.gitignore_spec, is_dir=is_dir):
+            return "gitignore"
+
+        if (
+            (not is_dir)
+            and self.exclude_generated
+            and is_probably_generated_file(rel_path, self.generated_patterns)
+        ):
+            return "generated"
+
+        if not self.include_hidden and is_hidden_path(rel_path):
+            return "hidden"
+
+        if (not is_dir) and self.max_file_size_kb is not None:
+            try:
+                if path.stat().st_size > self.max_file_size_kb * 1024:
+                    return "size_limit"
+            except OSError:
+                return "stat_error"
+        return None
+
+    def _should_skip_path(self, path: Path, *, is_dir: bool) -> bool:
+        reason = self._skip_reason(path, is_dir=is_dir)
+        if reason:
+            self.skipped_reasons[reason] += 1
+            return True
+        return False
+
+    def analyze(self) -> dict[str, Any]:  # noqa: PLR0915
         """Perform comprehensive analysis of the codebase."""
-        self.git_info = extract_git_info(self.root_path)
-        files = list(self._iter_source_files())
+        started = time.perf_counter()
+        try:
+            self.git_info = extract_git_info(self.root_path)
+            self.packages = detect_packages(self.root_path)
+            self.index_store.replace_packages(self.packages)
+            self.active_run_id = self.index_store.start_run(
+                mode="auto",
+                engine=self.engine,
+                incremental=self.incremental,
+            )
+            files = list(self._iter_source_files())
+            if len(files) > self.hard_file_cap:
+                files = files[: self.hard_file_cap]
+                self.skipped_reasons["hard_file_cap"] += 1
 
-        tasks: list[tuple[str, list[str], bool]] = []
-        for file_path in files:
-            digest = _hash_file(file_path)
-            cached = self.cache.get(file_path, digest)
-            if cached:
-                self._apply_parsed_data(cached, file_path, cached_language=cached.get("language"))
-                continue
-            tasks.append((str(file_path), self.ignore_patterns, self.enable_tree_sitter))
-
-        if tasks:
-            with ProcessPoolExecutor() as executor:
-                futures = {
-                    executor.submit(_analyze_file_task, payload): payload[0] for payload in tasks
-                }
-                for future in as_completed(futures):
-                    file_path_str, language, parsed, file_hash = future.result()
-                    if not language or parsed is None:
+            tasks: list[tuple[str, list[str], bool]] = []
+            task_meta: dict[str, tuple[str, int, int]] = {}
+            changed_files = 0
+            for file_path in files:
+                rel = self._relative_path(file_path)
+                try:
+                    stat = file_path.stat()
+                except OSError:
+                    self.skipped_reasons["stat_error"] += 1
+                    continue
+                indexed = self.index_store.get_file_record(rel) if self.incremental else None
+                if (
+                    indexed
+                    and int(indexed.get("mtime_ns", -1)) == int(stat.st_mtime_ns)
+                    and int(indexed.get("size", -1)) == int(stat.st_size)
+                ):
+                    cached = self.cache.get(file_path, str(indexed.get("hash", "")))
+                    if cached:
+                        self.cache_hits += 1
+                        self._apply_parsed_data(
+                            cached, file_path, cached_language=cached.get("language")
+                        )
                         continue
-                    self._apply_parsed_data(parsed, Path(file_path_str), cached_language=language)
-                    self.cache.set(Path(file_path_str), file_hash, parsed, language)
+                tasks.append((str(file_path), self.ignore_patterns, self.enable_tree_sitter))
+                task_meta[str(file_path)] = (rel, int(stat.st_size), int(stat.st_mtime_ns))
+                changed_files += 1
 
-        self._analyze_project_structure()
-        self._detect_dependencies()
-        compiled = self._compile_results()
-        compiled.is_website = is_website_project(compiled.to_public_dict())
-        compiled.website_detection_reason = "Heuristic detection based on project assets"
-        self.cache.persist()
-        return compiled.to_public_dict()
+            if tasks:
+                with ProcessPoolExecutor() as executor:
+                    futures = {
+                        executor.submit(_analyze_file_task, payload): payload[0]
+                        for payload in tasks
+                    }
+                    for future in as_completed(futures):
+                        file_path_str, language, parsed, file_hash = future.result()
+                        if not language or parsed is None:
+                            continue
+                        file_path = Path(file_path_str)
+                        rel, size, mtime_ns = task_meta.get(
+                            file_path_str, (self._relative_path(file_path), 0, 0)
+                        )
+                        self._apply_parsed_data(parsed, file_path, cached_language=language)
+                        self.cache.set(file_path, file_hash, parsed, language)
+                        is_generated = is_probably_generated_file(rel, self.generated_patterns)
+                        is_hidden = is_hidden_path(rel)
+                        self.index_store.upsert_file(
+                            path=rel,
+                            size=size,
+                            mtime_ns=mtime_ns,
+                            digest=file_hash,
+                            language=language,
+                            is_generated=is_generated,
+                            is_hidden=is_hidden,
+                            ignored_reason=None,
+                        )
+                        symbols: list[dict[str, Any]] = []
+                        for func in parsed.get("functions", []):
+                            symbols.append(
+                                {
+                                    "symbol_type": "function",
+                                    "qualified_name": func.get("name", ""),
+                                    "line": func.get("line", 0),
+                                }
+                            )
+                        for cls in parsed.get("classes", []):
+                            symbols.append(
+                                {
+                                    "symbol_type": "class",
+                                    "qualified_name": cls.get("name", ""),
+                                    "line": cls.get("line", 0),
+                                }
+                            )
+                        self.index_store.replace_symbols_and_imports(
+                            rel,
+                            symbols,
+                            [str(imp) for imp in parsed.get("imports", [])],
+                            language,
+                        )
+
+            self._analyze_project_structure()
+            self._detect_dependencies()
+            compiled = self._compile_results()
+            compiled.is_website = is_website_project(compiled.to_public_dict())
+            compiled.website_detection_reason = "Heuristic detection based on project assets"
+            elapsed = time.perf_counter() - started
+            scanned_files = len(files)
+            skip_total = sum(self.skipped_reasons.values())
+            cache_ratio = self.cache_hits / scanned_files if scanned_files else 0.0
+            self.run_metrics = {
+                "scanned_files": scanned_files,
+                "changed_files": changed_files,
+                "skipped_files": skip_total,
+                "duration_sec": round(elapsed, 4),
+                "cache_hit_ratio": round(cache_ratio, 4),
+                "skip_reasons": dict(sorted(self.skipped_reasons.items())),
+            }
+            compiled.run_metrics = self.run_metrics
+            compiled.packages = [dict(pkg) for pkg in self.packages]
+            if self.active_run_id is not None:
+                self.index_store.finish_run(self.active_run_id, self.run_metrics)
+            self.index_store.commit()
+            self.cache.persist()
+            return compiled.to_public_dict()
+        finally:
+            self.close()
 
     def _apply_parsed_data(
         self, parsed: dict[str, Any], file_path: Path, cached_language: str | None
@@ -163,20 +349,25 @@ class CodebaseAnalyzer:
 
     def _iter_source_files(self) -> Iterable[Path]:
         for root, dirs, files in os.walk(self.root_path):
-            dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
+            root_path = Path(root)
+            dirs[:] = [d for d in dirs if not self._should_skip_path(root_path / d, is_dir=True)]
             for file in files:
-                file_path = Path(root) / file
-                if should_ignore_file(str(file_path), self.ignore_patterns):
+                self.files_discovered += 1
+                file_path = root_path / file
+                if self._should_skip_path(file_path, is_dir=False):
                     continue
                 yield file_path
 
     def _analyze_project_structure(self) -> None:
         structure: dict[str, Any] = {}
         for root, dirs, files in os.walk(self.root_path):
-            dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
+            root_path = Path(root)
+            dirs[:] = [d for d in dirs if not self._should_skip_path(root_path / d, is_dir=True)]
             rel_path = os.path.relpath(root, self.root_path)
             entry = {
-                "files": [f for f in files if not should_ignore_file(f, self.ignore_patterns)],
+                "files": [
+                    f for f in files if not self._should_skip_path(root_path / f, is_dir=False)
+                ],
                 "dirs": dirs,
             }
             structure["root" if rel_path == "." else rel_path] = entry
@@ -290,14 +481,23 @@ class CodebaseAnalyzer:
         return deps
 
     def _compile_results(self) -> AnalysisResult:
+        sorted_languages = dict(sorted(self.languages.items(), key=lambda kv: (-kv[1], kv[0])))
+        sorted_functions = sorted(
+            self.functions,
+            key=lambda f: (str(f.get("file", "")), int(f.get("line", 0)), str(f.get("name", ""))),
+        )
+        sorted_classes = sorted(
+            self.classes,
+            key=lambda c: (str(c.get("file", "")), int(c.get("line", 0)), str(c.get("name", ""))),
+        )
         return AnalysisResult(
             project_name=self.root_path.name,
             files_analyzed=self.files_analyzed,
-            languages=dict(self.languages.most_common()),
+            languages=sorted_languages,
             dependencies=self.dependencies,
             project_structure=self.project_structure,
-            functions=self.functions,
-            classes=self.classes,
+            functions=sorted_functions,
+            classes=sorted_classes,
             imports={lang: sorted(imps) for lang, imps in self.imports.items()},
             documentation_files=self.documentation_files,
             config_files=self.config_files,
@@ -306,4 +506,6 @@ class CodebaseAnalyzer:
             website_detection_reason=self.website_detection_reason,
             root_path=self.root_path,
             config=self.config,
+            packages=[dict(pkg) for pkg in self.packages],
+            run_metrics=self.run_metrics,
         )

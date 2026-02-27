@@ -54,6 +54,65 @@ def test_iter_source_files_and_structure_ignore(tmp_path: Path) -> None:
     assert "root" in analyzer.project_structure
 
 
+def test_iter_source_files_honors_gitignore_generated_hidden_and_size(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text("ignored_dir/\nignored.py\n", encoding="utf-8")
+    (tmp_path / "ignored.py").write_text("def x(): pass\n", encoding="utf-8")
+    (tmp_path / "ignored_dir").mkdir()
+    (tmp_path / "ignored_dir" / "a.py").write_text("def x(): pass\n", encoding="utf-8")
+    (tmp_path / ".hidden.py").write_text("def x(): pass\n", encoding="utf-8")
+    (tmp_path / "generated.lock").write_text("lock", encoding="utf-8")
+    (tmp_path / "big.py").write_text("x" * 4096, encoding="utf-8")
+    (tmp_path / "ok.py").write_text("def ok():\n    return 1\n", encoding="utf-8")
+
+    analyzer = CodebaseAnalyzer(
+        str(tmp_path),
+        enable_tree_sitter=False,
+        config={
+            "analysis": {
+                "use_gitignore": True,
+                "exclude_generated": True,
+                "include_hidden": False,
+                "max_file_size_kb": 1,
+                "generated_patterns": [],
+            }
+        },
+    )
+    files = {p.name for p in analyzer._iter_source_files()}
+    assert "ok.py" in files
+    assert "ignored.py" not in files
+    assert "a.py" not in files
+    assert ".hidden.py" not in files
+    assert "generated.lock" not in files
+    assert "big.py" not in files
+
+
+def test_core_handles_invalid_size_config_and_stat_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    analyzer = CodebaseAnalyzer(
+        str(tmp_path),
+        enable_tree_sitter=False,
+        config={"analysis": {"max_file_size_kb": "not-a-number"}},
+    )
+    assert analyzer.max_file_size_kb is None
+
+    analyzer_with_limit = CodebaseAnalyzer(
+        str(tmp_path),
+        enable_tree_sitter=False,
+        config={"analysis": {"max_file_size_kb": 1}},
+    )
+
+    test_file = tmp_path / "err.py"
+    test_file.write_text("pass\n", encoding="utf-8")
+
+    def broken_stat(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        _ = (args, kwargs)
+        raise OSError("stat failed")
+
+    monkeypatch.setattr(Path, "stat", broken_stat)
+    assert analyzer_with_limit._should_skip_path(test_file, is_dir=False) is True
+
+
 def test_dependency_parsers_and_detect_dependencies(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
 

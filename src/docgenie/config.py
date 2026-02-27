@@ -43,6 +43,33 @@ def get_default_config() -> dict[str, Any]:
             ".venv",
             "env",
         ],
+        "analysis": {
+            "use_gitignore": True,
+            "exclude_generated": True,
+            "include_hidden": False,
+            "max_file_size_kb": 512,
+            "generated_patterns": [],
+            "engine": "hybrid_index",
+            "incremental": True,
+            "parallelism": "auto",
+            "hard_file_cap": 300000,
+            "full_rescan_interval_runs": 20,
+        },
+        "monorepo": {
+            "mode": "auto",
+            "root_doc": True,
+            "per_package_docs": True,
+            "package_output_dir": ".docgenie/packages",
+        },
+        "quality": {
+            "confidence_enabled": True,
+            "include_warnings": True,
+            "min_confidence_for_api_docs": "low",
+        },
+        "safety": {
+            "redaction_mode": "strict",
+            "redact_patterns": [],
+        },
         "template_customizations": {
             "include_api_docs": True,
             "include_directory_tree": True,

@@ -10,6 +10,7 @@ import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
@@ -156,10 +157,8 @@ class CodebaseAnalyzer:
         self.active_run_id: int | None = None
 
     def close(self) -> None:
-        try:
+        with suppress(Exception):
             self.index_store.close()
-        except Exception:
-            pass
 
     def __del__(self) -> None:
         self.close()
@@ -167,7 +166,7 @@ class CodebaseAnalyzer:
     def _relative_path(self, path: Path) -> str:
         return path.relative_to(self.root_path).as_posix()
 
-    def _skip_reason(self, path: Path, *, is_dir: bool) -> str | None:
+    def _skip_reason(self, path: Path, *, is_dir: bool) -> str | None:  # noqa: PLR0911
         rel_path = self._relative_path(path)
         normalized = rel_path.replace("\\", "/")
         if normalized == ".git" or normalized.startswith(".git/"):
@@ -187,8 +186,10 @@ class CodebaseAnalyzer:
         if is_path_ignored_by_gitignore(rel_path, self.gitignore_spec, is_dir=is_dir):
             return "gitignore"
 
-        if (not is_dir) and self.exclude_generated and is_probably_generated_file(
-            rel_path, self.generated_patterns
+        if (
+            (not is_dir)
+            and self.exclude_generated
+            and is_probably_generated_file(rel_path, self.generated_patterns)
         ):
             return "generated"
 
@@ -210,7 +211,7 @@ class CodebaseAnalyzer:
             return True
         return False
 
-    def analyze(self) -> dict[str, Any]:
+    def analyze(self) -> dict[str, Any]:  # noqa: PLR0915
         """Perform comprehensive analysis of the codebase."""
         started = time.perf_counter()
         try:
@@ -246,7 +247,9 @@ class CodebaseAnalyzer:
                     cached = self.cache.get(file_path, str(indexed.get("hash", "")))
                     if cached:
                         self.cache_hits += 1
-                        self._apply_parsed_data(cached, file_path, cached_language=cached.get("language"))
+                        self._apply_parsed_data(
+                            cached, file_path, cached_language=cached.get("language")
+                        )
                         continue
                 tasks.append((str(file_path), self.ignore_patterns, self.enable_tree_sitter))
                 task_meta[str(file_path)] = (rel, int(stat.st_size), int(stat.st_mtime_ns))
@@ -255,14 +258,17 @@ class CodebaseAnalyzer:
             if tasks:
                 with ProcessPoolExecutor() as executor:
                     futures = {
-                        executor.submit(_analyze_file_task, payload): payload[0] for payload in tasks
+                        executor.submit(_analyze_file_task, payload): payload[0]
+                        for payload in tasks
                     }
                     for future in as_completed(futures):
                         file_path_str, language, parsed, file_hash = future.result()
                         if not language or parsed is None:
                             continue
                         file_path = Path(file_path_str)
-                        rel, size, mtime_ns = task_meta.get(file_path_str, (self._relative_path(file_path), 0, 0))
+                        rel, size, mtime_ns = task_meta.get(
+                            file_path_str, (self._relative_path(file_path), 0, 0)
+                        )
                         self._apply_parsed_data(parsed, file_path, cached_language=language)
                         self.cache.set(file_path, file_hash, parsed, language)
                         is_generated = is_probably_generated_file(rel, self.generated_patterns)
@@ -360,9 +366,7 @@ class CodebaseAnalyzer:
             rel_path = os.path.relpath(root, self.root_path)
             entry = {
                 "files": [
-                    f
-                    for f in files
-                    if not self._should_skip_path(root_path / f, is_dir=False)
+                    f for f in files if not self._should_skip_path(root_path / f, is_dir=False)
                 ],
                 "dirs": dirs,
             }

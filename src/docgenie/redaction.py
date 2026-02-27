@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import re
-from typing import Pattern
-
+from re import Pattern
 
 BASE_PATTERNS = [
-    (r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----", "[REDACTED_PRIVATE_KEY]"),
+    (
+        r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?"
+        r"-----END [A-Z ]*PRIVATE KEY-----",
+        "[REDACTED_PRIVATE_KEY]",
+    ),
     (r"(?i)(api[_-]?key\s*[:=]\s*)[\"']?[A-Za-z0-9_\-]{12,}[\"']?", r"\1[REDACTED]"),
     (r"(?i)(token\s*[:=]\s*)[\"']?[A-Za-z0-9_\-\.]{12,}[\"']?", r"\1[REDACTED]"),
     (r"(?i)(secret\s*[:=]\s*)[\"']?[A-Za-z0-9_\-\.]{8,}[\"']?", r"\1[REDACTED]"),

@@ -173,7 +173,8 @@ def should_ignore_file(file_path: str, additional_patterns: List[str] | None = N
             return True
 
         # Check if any part of the path matches the pattern
-        path_parts = file_path.split(os.sep)
+        normalized_path = file_path.replace("\\", "/")
+        path_parts = normalized_path.split("/")
         for part in path_parts:
             if fnmatch.fnmatch(part, pattern):
                 return True
@@ -225,7 +226,8 @@ def is_probably_generated_file(file_path: str, extra_patterns: List[str] | None 
         return True
 
     for pattern in patterns:
-        if fnmatch.fnmatch(path_str, pattern) or fnmatch.fnmatch(os.path.basename(path_str), pattern):
+        base_name = os.path.basename(path_str)
+        if fnmatch.fnmatch(path_str, pattern) or fnmatch.fnmatch(base_name, pattern):
             return True
     return False
 
@@ -584,5 +586,12 @@ def detect_packages(root_path: Path) -> list[dict[str, Any]]:
         )
 
     if not packages:
-        packages.append({"path": ".", "package_type": "unknown", "manifest": None, "parent_path": None})
+        packages.append(
+            {
+                "path": ".",
+                "package_type": "unknown",
+                "manifest": None,
+                "parent_path": None,
+            }
+        )
     return sorted(packages, key=lambda p: str(p["path"]))

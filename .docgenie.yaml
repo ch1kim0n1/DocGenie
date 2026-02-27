@@ -8,3 +8,30 @@ template_customizations:
   include_api_docs: true
   include_directory_tree: true
   max_functions_documented: 25
+
+analysis:
+  use_gitignore: true
+  exclude_generated: true
+  include_hidden: false
+  max_file_size_kb: 512
+  generated_patterns: []
+  engine: hybrid_index
+  incremental: true
+  parallelism: auto
+  hard_file_cap: 300000
+  full_rescan_interval_runs: 20
+
+monorepo:
+  mode: auto
+  root_doc: true
+  per_package_docs: true
+  package_output_dir: ".docgenie/packages"
+
+quality:
+  confidence_enabled: true
+  include_warnings: true
+  min_confidence_for_api_docs: low
+
+safety:
+  redaction_mode: strict
+  redact_patterns: []

@@ -106,15 +106,19 @@ class ReadmeGenerator:
         quality_enabled = bool(quality_config.get("confidence_enabled", True))
         include_warnings = bool(quality_config.get("include_warnings", True))
         min_confidence = str(quality_config.get("min_confidence_for_api_docs", "low")).lower()
-        quality = self._build_quality_report(analysis_data) if quality_enabled else {
-            "score": 100,
-            "confidence": "High",
-            "warnings": [],
-        }
-        confidence_rank = {"low": 0, "medium": 1, "high": 2}
-        allow_api = confidence_rank.get(str(quality["confidence"]).lower(), 0) >= confidence_rank.get(
-            min_confidence, 0
+        quality = (
+            self._build_quality_report(analysis_data)
+            if quality_enabled
+            else {
+                "score": 100,
+                "confidence": "High",
+                "warnings": [],
+            }
         )
+        confidence_rank = {"low": 0, "medium": 1, "high": 2}
+        allow_api = confidence_rank.get(
+            str(quality["confidence"]).lower(), 0
+        ) >= confidence_rank.get(min_confidence, 0)
 
         # API documentation
         if include_api_docs and not is_website and allow_api:

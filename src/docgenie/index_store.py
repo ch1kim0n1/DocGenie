@@ -9,6 +9,23 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 1
+RESET_TABLES = ("docs_artifacts", "symbols", "imports", "files", "packages", "runs")
+RESET_QUERIES = {
+    "docs_artifacts": "DELETE FROM docs_artifacts",
+    "symbols": "DELETE FROM symbols",
+    "imports": "DELETE FROM imports",
+    "files": "DELETE FROM files",
+    "packages": "DELETE FROM packages",
+    "runs": "DELETE FROM runs",
+}
+TABLE_COUNT_QUERIES = {
+    "files": "SELECT COUNT(*) AS c FROM files",
+    "symbols": "SELECT COUNT(*) AS c FROM symbols",
+    "imports": "SELECT COUNT(*) AS c FROM imports",
+    "packages": "SELECT COUNT(*) AS c FROM packages",
+    "runs": "SELECT COUNT(*) AS c FROM runs",
+    "docs_artifacts": "SELECT COUNT(*) AS c FROM docs_artifacts",
+}
 
 
 class IndexStore:
@@ -107,18 +124,21 @@ class IndexStore:
         self._conn.commit()
 
     def clear_all(self) -> None:
-        for table in ["docs_artifacts", "symbols", "imports", "files", "packages", "runs"]:
-            self._conn.execute(f"DELETE FROM {table}")
+        for table in RESET_TABLES:
+            self._conn.execute(RESET_QUERIES[table])
         self._conn.commit()
 
     def get_file_record(self, path: str) -> dict[str, Any] | None:
         row = self._conn.execute(
-            "SELECT path,size,mtime_ns,hash,language,is_generated,is_hidden,ignored_reason FROM files WHERE path=?",
+            (
+                "SELECT path,size,mtime_ns,hash,language,is_generated,is_hidden,ignored_reason "
+                "FROM files WHERE path=?"
+            ),
             (path,),
         ).fetchone()
         return dict(row) if row else None
 
-    def upsert_file(
+    def upsert_file(  # noqa: PLR0913
         self,
         *,
         path: str,
@@ -131,19 +151,20 @@ class IndexStore:
         ignored_reason: str | None,
     ) -> None:
         self._conn.execute(
-            """
-            INSERT INTO files(path,size,mtime_ns,hash,language,is_generated,is_hidden,ignored_reason,updated_at)
-            VALUES(?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(path) DO UPDATE SET
-              size=excluded.size,
-              mtime_ns=excluded.mtime_ns,
-              hash=excluded.hash,
-              language=excluded.language,
-              is_generated=excluded.is_generated,
-              is_hidden=excluded.is_hidden,
-              ignored_reason=excluded.ignored_reason,
-              updated_at=excluded.updated_at
-            """,
+            (
+                "INSERT INTO files("
+                "path,size,mtime_ns,hash,language,is_generated,is_hidden,ignored_reason,updated_at"
+                ") VALUES(?,?,?,?,?,?,?,?,?) "
+                "ON CONFLICT(path) DO UPDATE SET "
+                "size=excluded.size, "
+                "mtime_ns=excluded.mtime_ns, "
+                "hash=excluded.hash, "
+                "language=excluded.language, "
+                "is_generated=excluded.is_generated, "
+                "is_hidden=excluded.is_hidden, "
+                "ignored_reason=excluded.ignored_reason, "
+                "updated_at=excluded.updated_at"
+            ),
             (
                 path,
                 size,
@@ -170,12 +191,22 @@ class IndexStore:
                 ),
             )
 
-    def replace_symbols_and_imports(self, path: str, symbols: list[dict[str, Any]], imports: list[str], language: str) -> None:
+    def replace_symbols_and_imports(
+        self,
+        path: str,
+        symbols: list[dict[str, Any]],
+        imports: list[str],
+        language: str,
+    ) -> None:
         self._conn.execute("DELETE FROM symbols WHERE path=?", (path,))
         self._conn.execute("DELETE FROM imports WHERE path=?", (path,))
         for sym in symbols:
             self._conn.execute(
-                "INSERT OR IGNORE INTO symbols(symbol_type,qualified_name,path,line,signature_hash) VALUES(?,?,?,?,?)",
+                (
+                    "INSERT OR IGNORE INTO symbols("
+                    "symbol_type,qualified_name,path,line,signature_hash"
+                    ") VALUES(?,?,?,?,?)"
+                ),
                 (
                     sym.get("symbol_type", "function"),
                     sym.get("qualified_name") or sym.get("name", ""),
@@ -195,7 +226,9 @@ class IndexStore:
             "INSERT INTO runs(started_at,mode,engine,incremental) VALUES(?,?,?,?)",
             (time.time(), mode, engine, 1 if incremental else 0),
         )
-        return int(cur.lastrowid)
+        if cur.lastrowid is None:
+            raise RuntimeError("SQLite did not return lastrowid for runs insert")
+        return cur.lastrowid
 
     def finish_run(self, run_id: int, metrics: dict[str, Any]) -> None:
         self._conn.execute(
@@ -232,7 +265,12 @@ class IndexStore:
         section_hashes: dict[str, str] | None,
     ) -> None:
         self._conn.execute(
-            "INSERT INTO docs_artifacts(run_id,artifact_path,target,content_hash,section_hashes) VALUES(?,?,?,?,?)",
+            (
+                "INSERT INTO docs_artifacts("
+                "run_id,artifact_path,target,content_hash,section_hashes"
+                ") "
+                "VALUES(?,?,?,?,?)"
+            ),
             (
                 run_id,
                 artifact_path,
@@ -252,14 +290,18 @@ class IndexStore:
 
     def list_artifacts_for_run(self, run_id: int) -> list[dict[str, Any]]:
         rows = self._conn.execute(
-            "SELECT artifact_path,target,content_hash,section_hashes FROM docs_artifacts WHERE run_id=?",
+            (
+                "SELECT artifact_path,target,content_hash,section_hashes "
+                "FROM docs_artifacts WHERE run_id=?"
+            ),
             (run_id,),
         ).fetchall()
         return [dict(r) for r in rows]
 
     def stats(self) -> dict[str, Any]:
         def count(table: str) -> int:
-            row = self._conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()
+            query = TABLE_COUNT_QUERIES[table]
+            row = self._conn.execute(query).fetchone()
             return int(row["c"] if row else 0)
 
         latest = self.latest_run_id()

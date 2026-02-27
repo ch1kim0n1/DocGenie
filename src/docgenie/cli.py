@@ -216,11 +216,19 @@ def generate(  # noqa: PLR0913
         "monorepo": {"mode": mode},
         "safety": {"redaction_mode": redaction_mode},
     }
-    analysis_data = _run_analysis(path, ignore, tree_sitter, verbose, config_overrides=config_overrides)
+    analysis_data = _run_analysis(
+        path, ignore, tree_sitter, verbose, config_overrides=config_overrides
+    )
     outputs = _build_outputs(target_formats, output, path)
     _confirm_overwrite(outputs, preview=preview, force=force)
-    monorepo_config = analysis_data.get("config", {}).get("monorepo", {}) if isinstance(analysis_data.get("config"), dict) else {}
-    package_mode = mode == "package" or (mode == "auto" and len(analysis_data.get("packages", [])) > 1)
+    monorepo_config = (
+        analysis_data.get("config", {}).get("monorepo", {})
+        if isinstance(analysis_data.get("config"), dict)
+        else {}
+    )
+    package_mode = mode == "package" or (
+        mode == "auto" and len(analysis_data.get("packages", [])) > 1
+    )
     generate_root_doc = bool(monorepo_config.get("root_doc", True)) or not package_mode
     per_package_docs = bool(monorepo_config.get("per_package_docs", True))
     package_output_dir = Path(str(monorepo_config.get("package_output_dir", ".docgenie/packages")))
@@ -237,7 +245,9 @@ def generate(  # noqa: PLR0913
                     console.log(f"[green]README generated:[/green] {output_path}")
                     _record_artifact(output_path, "root", content, path)
             if package_mode and per_package_docs and not preview:
-                pkg_artifacts = generator.generate_package_docs(analysis_data, path / package_output_dir)
+                pkg_artifacts = generator.generate_package_docs(
+                    analysis_data, path / package_output_dir
+                )
                 for pkg_name, pkg_content in pkg_artifacts.items():
                     artifact_path = path / package_output_dir / pkg_name / "README.md"
                     _record_artifact(artifact_path, pkg_name, pkg_content, path)
@@ -459,11 +469,8 @@ def diff_command(
         store.close()
         raise typer.Exit(code=1)
 
-    if since.isdigit():
-        base_id = int(since)
-    else:
-        # Git ref mode falls back to previous run for compatibility.
-        base_id = max(1, latest - 1)
+    # Git ref mode falls back to previous run for compatibility.
+    base_id = int(since) if since.isdigit() else max(1, latest - 1)
 
     latest_artifacts = {a["artifact_path"]: a for a in store.list_artifacts_for_run(latest)}
     base_artifacts = {a["artifact_path"]: a for a in store.list_artifacts_for_run(base_id)}

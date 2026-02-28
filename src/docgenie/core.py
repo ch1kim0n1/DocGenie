@@ -6,13 +6,16 @@ import hashlib
 import json
 import os
 import re
+import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
 import toml
+from pathspec import PathSpec
 
 from .diff_engine import compute_git_diff_summary
 from .index_store import IndexStore
@@ -103,11 +106,33 @@ class CodebaseAnalyzer:
         self.ignore_patterns = ignore_patterns or []
         self.enable_tree_sitter = enable_tree_sitter
         self.config = config or {}
+        analysis_config = self.config.get("analysis", {}) if isinstance(self.config, dict) else {}
+        self.use_gitignore = bool(analysis_config.get("use_gitignore", True))
+        self.exclude_generated = bool(analysis_config.get("exclude_generated", True))
+        self.include_hidden = bool(analysis_config.get("include_hidden", False))
+        max_size_raw = analysis_config.get("max_file_size_kb", 512)
+        try:
+            self.max_file_size_kb: int | None = int(max_size_raw)
+        except (TypeError, ValueError):
+            self.max_file_size_kb = None
+        generated_patterns = analysis_config.get("generated_patterns", [])
+        self.generated_patterns = generated_patterns if isinstance(generated_patterns, list) else []
+        self.engine = str(analysis_config.get("engine", "hybrid_index"))
+        self.incremental = bool(analysis_config.get("incremental", True))
+        self.parallelism = analysis_config.get("parallelism", "auto")
+        self.hard_file_cap = int(analysis_config.get("hard_file_cap", 300000))
+        self.full_rescan_interval_runs = int(analysis_config.get("full_rescan_interval_runs", 20))
+        self.gitignore_spec: PathSpec | None = (
+            load_gitignore_spec(self.root_path) if self.use_gitignore else None
+        )
         self.cache = CacheManager(self.root_path)
         self.index_store = IndexStore(self.root_path)
         self.active_run_id: int | None = None
 
         self.files_analyzed = 0
+        self.files_discovered = 0
+        self.skipped_reasons: Counter[str] = Counter()
+        self.cache_hits = 0
         self.languages: Counter[str] = Counter()
         self.dependencies: dict[str, Any] = {}
         self.project_structure: dict[str, Any] = {}
@@ -126,7 +151,22 @@ class CodebaseAnalyzer:
         self.output_links: list[dict[str, Any]] = []
         self.readme_readiness: dict[str, Any] = {}
 
-    def analyze(self) -> dict[str, Any]:
+        if (not is_dir) and self.max_file_size_kb is not None:
+            try:
+                if path.stat().st_size > self.max_file_size_kb * 1024:
+                    return "size_limit"
+            except OSError:
+                return "stat_error"
+        return None
+
+    def _should_skip_path(self, path: Path, *, is_dir: bool) -> bool:
+        reason = self._skip_reason(path, is_dir=is_dir)
+        if reason:
+            self.skipped_reasons[reason] += 1
+            return True
+        return False
+
+    def analyze(self) -> dict[str, Any]:  # noqa: PLR0915
         """Perform comprehensive analysis of the codebase."""
         self.active_run_id = self.index_store.start_run(mode="analyze")
         self.git_info = extract_git_info(self.root_path)
@@ -251,20 +291,25 @@ class CodebaseAnalyzer:
 
     def _iter_source_files(self) -> Iterable[Path]:
         for root, dirs, files in os.walk(self.root_path):
-            dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
+            root_path = Path(root)
+            dirs[:] = [d for d in dirs if not self._should_skip_path(root_path / d, is_dir=True)]
             for file in files:
-                file_path = Path(root) / file
-                if should_ignore_file(str(file_path), self.ignore_patterns):
+                self.files_discovered += 1
+                file_path = root_path / file
+                if self._should_skip_path(file_path, is_dir=False):
                     continue
                 yield file_path
 
     def _analyze_project_structure(self) -> None:
         structure: dict[str, Any] = {}
         for root, dirs, files in os.walk(self.root_path):
-            dirs[:] = [d for d in dirs if not should_ignore_file(d, self.ignore_patterns)]
+            root_path = Path(root)
+            dirs[:] = [d for d in dirs if not self._should_skip_path(root_path / d, is_dir=True)]
             rel_path = os.path.relpath(root, self.root_path)
             entry = {
-                "files": [f for f in files if not should_ignore_file(f, self.ignore_patterns)],
+                "files": [
+                    f for f in files if not self._should_skip_path(root_path / f, is_dir=False)
+                ],
                 "dirs": dirs,
             }
             structure["root" if rel_path == "." else rel_path] = entry
@@ -378,14 +423,23 @@ class CodebaseAnalyzer:
         return deps
 
     def _compile_results(self) -> AnalysisResult:
+        sorted_languages = dict(sorted(self.languages.items(), key=lambda kv: (-kv[1], kv[0])))
+        sorted_functions = sorted(
+            self.functions,
+            key=lambda f: (str(f.get("file", "")), int(f.get("line", 0)), str(f.get("name", ""))),
+        )
+        sorted_classes = sorted(
+            self.classes,
+            key=lambda c: (str(c.get("file", "")), int(c.get("line", 0)), str(c.get("name", ""))),
+        )
         return AnalysisResult(
             project_name=self.root_path.name,
             files_analyzed=self.files_analyzed,
-            languages=dict(self.languages.most_common()),
+            languages=sorted_languages,
             dependencies=self.dependencies,
             project_structure=self.project_structure,
-            functions=self.functions,
-            classes=self.classes,
+            functions=sorted_functions,
+            classes=sorted_classes,
             imports={lang: sorted(imps) for lang, imps in self.imports.items()},
             file_imports={path: sorted(imps) for path, imps in self.file_imports.items()},
             documentation_files=self.documentation_files,

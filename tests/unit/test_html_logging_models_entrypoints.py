@@ -72,8 +72,15 @@ def test_html_generator_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     html = gen.generate_from_readme("# Title\n\nBody", str(out), "<My Project>")
     assert out.exists()
     assert "&lt;My Project&gt;" in html
+    assert "Skip to main content" in html
+    assert "toc-filter" in html
+    assert "mobile-menu-btn" in html
+    assert "back-to-top" in html
     assert "Smooth scrolling" in gen._get_javascript()
+    assert "TOC filter" in gen._get_javascript()
     assert "--primary-color" in gen._get_css_styles()
+    redacted_html = gen.generate_from_readme("token=abcdef12345678", None, "P")
+    assert "[REDACTED]" in redacted_html
 
     analysis = {
         "project_name": "Name",

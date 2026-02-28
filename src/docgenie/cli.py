@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import webbrowser
 from pathlib import Path
@@ -18,11 +19,14 @@ from .core import CodebaseAnalyzer
 from .diff_engine import compute_git_diff_summary
 from .generator import ReadmeGenerator
 from .html_generator import HTMLGenerator
+from .index_store import IndexStore
 from .logging import configure_logging, get_logger
 from .pr_summary import render_pr_summary
 from .readme_gate import evaluate_readme_readiness
 
 app = typer.Typer(add_completion=False, help="DocGenie - Auto-documentation for any codebase.")
+index_app = typer.Typer(add_completion=False, help="Manage persistent DocGenie index store.")
+app.add_typer(index_app, name="index")
 console = Console()
 
 OutputSpec = tuple[str, Path]
@@ -91,6 +95,38 @@ def _run_analysis(
     if verbose:
         console.log("Analysis complete")
     return analysis_data
+
+
+def _content_hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _section_hashes(content: str) -> dict[str, str]:
+    hashes: dict[str, str] = {}
+    for block in content.split("\n## "):
+        if not block.strip():
+            continue
+        title = block.splitlines()[0].lstrip("# ").strip()
+        hashes[title or "document"] = _content_hash(block)
+    return hashes
+
+
+def _record_artifact(path: Path, target: str, content: str, root: Path) -> None:
+    try:
+        store = IndexStore(root)
+        run_id = store.latest_run_id()
+        if run_id is not None:
+            store.add_doc_artifact(
+                run_id=run_id,
+                artifact_path=str(path),
+                target=target,
+                content_hash=_content_hash(content),
+                section_hashes=_section_hashes(content),
+            )
+            store.commit()
+        store.close()
+    except OSError:
+        pass
 
 
 def _build_outputs(target_formats: str, output: Path | None, base: Path) -> list[OutputSpec]:
@@ -242,17 +278,38 @@ def analyze(
         "--tree-sitter/--no-tree-sitter",
         help="Enable tree-sitter parsing when available",
     ),
+    metrics_json: Path | None = typer.Option(
+        None, "--metrics-json", help="Optional path to write run metrics as JSON"
+    ),
+    engine: str = typer.Option("hybrid", "--engine", help="Engine: hybrid|stateless"),
+    incremental: bool = typer.Option(True, "--incremental/--no-incremental"),
 ) -> None:
     """Analyze a codebase and print structured results."""
-    analyzer = CodebaseAnalyzer(str(path), enable_tree_sitter=tree_sitter)
-    analysis_data = analyzer.analyze()
+    analysis_data = _run_analysis(
+        path,
+        ignore=[],
+        tree_sitter=tree_sitter,
+        verbose=False,
+        config_overrides={
+            "analysis": {
+                "engine": "hybrid_index" if engine == "hybrid" else "stateless",
+                "incremental": incremental,
+            }
+        },
+    )
+
+    if metrics_json is not None:
+        metrics_json.write_text(
+            json.dumps(analysis_data.get("run_metrics", {}), indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
 
     if fmt == "json":
         typer.echo(json.dumps(analysis_data, indent=2))
     elif fmt == "yaml":
         typer.echo(yaml.dump(analysis_data, default_flow_style=False))
     else:
-        typer.echo("🔍 Codebase Analysis Results")
+        typer.echo("Codebase Analysis Results")
         typer.echo(f"Path: {analysis_data.get('root_path')}")
         typer.echo(f"Files analyzed: {analysis_data['files_analyzed']}")
         typer.echo(f"Languages: {', '.join(analysis_data['languages'].keys())}")
@@ -444,6 +501,68 @@ def _extract_title(content: str) -> str | None:
         if line.startswith("# "):
             return line[2:].strip()
     return None
+
+
+@index_app.command("rebuild")
+def index_rebuild(
+    path: Path = typer.Argument(Path("."), exists=True, file_okay=False, resolve_path=True),
+) -> None:
+    """Rebuild persistent index for a repository."""
+    store = IndexStore(path)
+    store.clear_all()
+    store.commit()
+    store.close()
+    typer.echo(f"Index rebuilt at {path / '.docgenie' / 'index.db'}")
+
+
+@index_app.command("stats")
+def index_stats(
+    path: Path = typer.Argument(Path("."), exists=True, file_okay=False, resolve_path=True),
+) -> None:
+    """Print index statistics."""
+    store = IndexStore(path)
+    stats = store.stats()
+    store.close()
+    typer.echo(json.dumps(stats, indent=2, sort_keys=True))
+
+
+@app.command("diff")
+def diff_command(
+    path: Path = typer.Argument(Path("."), exists=True, file_okay=False, resolve_path=True),
+    since: str = typer.Option(..., "--since", help="Run ID or git ref"),
+) -> None:
+    """Show documentation impact since a prior indexed run/git ref."""
+    store = IndexStore(path)
+    latest = store.latest_run_id()
+    if latest is None:
+        typer.echo("No runs in index yet.")
+        store.close()
+        raise typer.Exit(code=1)
+
+    # Git ref mode falls back to previous run for compatibility.
+    base_id = int(since) if since.isdigit() else max(1, latest - 1)
+
+    latest_artifacts = {a["artifact_path"]: a for a in store.list_artifacts_for_run(latest)}
+    base_artifacts = {a["artifact_path"]: a for a in store.list_artifacts_for_run(base_id)}
+    changed: list[str] = []
+    for artifact_path, latest_art in latest_artifacts.items():
+        base_art = base_artifacts.get(artifact_path)
+        if not base_art or base_art.get("content_hash") != latest_art.get("content_hash"):
+            changed.append(artifact_path)
+
+    typer.echo(
+        json.dumps(
+            {
+                "latest_run_id": latest,
+                "base_run_id": base_id,
+                "changed_artifacts": sorted(changed),
+                "changed_count": len(changed),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    store.close()
 
 
 if __name__ == "__main__":

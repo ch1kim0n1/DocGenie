@@ -85,7 +85,7 @@ class PythonAstParser(ParserPlugin):
                         methods=methods,
                     )
                 )
-            elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            elif isinstance(node, ast.Import | ast.ImportFrom):
                 if isinstance(node, ast.Import):
                     imports.update(alias.name for alias in node.names)
                 else:

@@ -76,6 +76,59 @@ class FileAnalysis:
     parse: ParseResult
 
 
+@dataclass(frozen=True)
+class FileIndexRecord:
+    path: str
+    size: int
+    mtime_ns: int
+    digest: str
+    language: str | None
+    is_generated: bool
+    is_hidden: bool
+    ignored_reason: str | None
+
+
+@dataclass(frozen=True)
+class SymbolRecord:
+    symbol_type: str
+    qualified_name: str
+    path: str
+    line: int
+    signature_hash: str | None = None
+
+
+@dataclass(frozen=True)
+class PackageRecord:
+    path: str
+    package_type: str
+    manifest: str | None
+    parent_path: str | None
+
+
+@dataclass(frozen=True)
+class RunMetrics:
+    scanned_files: int = 0
+    changed_files: int = 0
+    skipped_files: int = 0
+    duration_sec: float = 0.0
+    cache_hit_ratio: float = 0.0
+    skip_reasons: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class DocArtifactRecord:
+    artifact_path: str
+    target: str
+    content_hash: str
+    section_hashes: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class SkipReason:
+    path: str
+    reason: str
+
+
 @dataclass
 class AnalysisResult:
     project_name: str

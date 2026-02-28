@@ -17,6 +17,49 @@ def test_should_ignore_file_with_additional_pattern() -> None:
     assert not utils.should_ignore_file("src/main.keep", ["*.cache"])
 
 
+def test_gitignore_and_generated_helpers(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text("ignored_dir/\n*.secret\n", encoding="utf-8")
+    matcher = utils.load_gitignore_spec(tmp_path)
+    assert matcher is not None
+    assert utils.is_path_ignored_by_gitignore("ignored_dir/file.py", matcher, is_dir=False)
+    assert utils.is_path_ignored_by_gitignore("ignored_dir", matcher, is_dir=True)
+    assert utils.is_path_ignored_by_gitignore("key.secret", matcher, is_dir=False)
+    assert not utils.is_path_ignored_by_gitignore("src/main.py", matcher, is_dir=False)
+    assert utils.load_gitignore_spec(tmp_path / "missing") is None
+
+    assert utils.is_hidden_path(".env")
+    assert utils.is_hidden_path("src/.cache/file.py")
+    assert not utils.is_hidden_path("src/main.py")
+
+    assert utils.is_probably_generated_file("dist/app.js")
+    assert utils.is_probably_generated_file("foo.lock")
+    assert utils.is_probably_generated_file("main.pb.go")
+    assert utils.is_probably_generated_file("src/custom.xyz", ["*.xyz"])
+    assert not utils.is_probably_generated_file("src/main.py")
+
+
+def test_load_gitignore_spec_read_error(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    file_path = tmp_path / ".gitignore"
+    file_path.write_text("*.tmp\n", encoding="utf-8")
+
+    def broken_read_text(self, encoding: str = "utf-8"):  # type: ignore[no-untyped-def]
+        raise OSError("read failure")
+
+    monkeypatch.setattr(Path, "read_text", broken_read_text)
+    assert utils.load_gitignore_spec(tmp_path) is None
+
+
+def test_detect_packages(tmp_path: Path) -> None:
+    (tmp_path / "service-a").mkdir()
+    (tmp_path / "service-a" / "pyproject.toml").write_text("[project]\nname='a'\n", encoding="utf-8")
+    (tmp_path / "service-b").mkdir()
+    (tmp_path / "service-b" / "package.json").write_text("{\"name\":\"b\"}", encoding="utf-8")
+    pkgs = utils.detect_packages(tmp_path)
+    paths = {p["path"] for p in pkgs}
+    assert "service-a" in paths
+    assert "service-b" in paths
+
+
 def test_extract_repo_name_from_url_variants() -> None:
     assert utils.extract_repo_name_from_url("git@github.com:owner/repo.git") == "owner/repo"
     assert utils.extract_repo_name_from_url("https://github.com/owner/repo.git") == "owner/repo"

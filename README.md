@@ -150,7 +150,7 @@ template_customizations:
   include_trust_badges: true
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 DocGenie consists of several key components:
 
@@ -160,7 +160,7 @@ DocGenie consists of several key components:
 - **HTMLGenerator**: Beautiful HTML documentation generator with responsive design
 - **CLI Interface**: Typer + Rich powered user experience
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how to get started:
 
@@ -181,11 +181,11 @@ pip install -e ".[dev]"
 pytest
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Thanks to all contributors who help make DocGenie better
 - Inspired by the need for better automated documentation tools
@@ -193,4 +193,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⭐ If DocGenie helps you, please star this repository to support the project!**
+If DocGenie helps you, please star this repository.

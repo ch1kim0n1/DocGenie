@@ -89,6 +89,7 @@ def test_html_generator_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     }
     html2 = gen.generate_from_analysis(analysis, str(tmp_path / "docs2.html"))
     assert "Name" in html2
+    assert "Impact Graph" in html2
     assert gen._extract_project_name({"git_info": {"repo_name": "org/repo"}}) == "org/repo"
     assert gen._extract_project_name({"root_path": "/tmp/proj"}) == "proj"
     assert gen._extract_project_name({}) == "Project Documentation"

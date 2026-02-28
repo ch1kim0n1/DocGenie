@@ -183,3 +183,44 @@ def test_cli_module_main_guard(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", ["docgenie", "--help"])
     with pytest.raises(SystemExit):
         runpy.run_module("docgenie.cli", run_name="__main__")
+
+
+def test_diff_command_and_strict_readme_flag(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sample = tmp_path / "main.py"
+    sample.write_text("def hello():\n    return 'world'\n", encoding="utf-8")
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["diff", str(tmp_path), "--format", "json"])
+    assert result.exit_code == 0
+    assert "available" in result.stdout
+
+    monkeypatch.setattr(
+        cli,
+        "evaluate_readme_readiness",
+        lambda *_args, **_kwargs: {"status": "fail", "score": 10, "reasons": ["x"]},
+    )
+    strict_result = runner.invoke(
+        app,
+        ["generate", str(tmp_path), "--format", "markdown", "--strict-readme", "--force"],
+    )
+    assert strict_result.exit_code != 0
+
+
+def test_pr_summary_command(tmp_path: Path) -> None:
+    sample = tmp_path / "main.py"
+    sample.write_text("def hello():\n    return 'world'\n", encoding="utf-8")
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["pr-summary", str(tmp_path), "--format", "markdown"])
+    assert result.exit_code == 0
+    assert "DocGenie PR Summary" in result.stdout
+
+    out = tmp_path / "pr-summary.md"
+    result_out = runner.invoke(
+        app,
+        ["pr-summary", str(tmp_path), "--format", "markdown", "--output", str(out)],
+    )
+    assert result_out.exit_code == 0
+    assert out.exists()

@@ -14,8 +14,12 @@ from typing import Any
 
 import toml
 
+from .diff_engine import compute_git_diff_summary
+from .index_store import IndexStore
 from .models import AnalysisResult
+from .output_links import scan_output_links
 from .parsers import ParserRegistry
+from .review_engine import build_reviews
 from .utils import extract_git_info, get_file_language, is_website_project, should_ignore_file
 
 
@@ -100,6 +104,8 @@ class CodebaseAnalyzer:
         self.enable_tree_sitter = enable_tree_sitter
         self.config = config or {}
         self.cache = CacheManager(self.root_path)
+        self.index_store = IndexStore(self.root_path)
+        self.active_run_id: int | None = None
 
         self.files_analyzed = 0
         self.languages: Counter[str] = Counter()
@@ -108,14 +114,21 @@ class CodebaseAnalyzer:
         self.functions: list[dict[str, Any]] = []
         self.classes: list[dict[str, Any]] = []
         self.imports: dict[str, set[str]] = defaultdict(set)
+        self.file_imports: dict[str, set[str]] = defaultdict(set)
         self.documentation_files: list[str] = []
         self.config_files: list[str] = []
         self.git_info: dict[str, Any] = {}
         self.is_website = False
         self.website_detection_reason = ""
+        self.diff_summary: dict[str, Any] = {}
+        self.file_reviews: list[dict[str, Any]] = []
+        self.folder_reviews: list[dict[str, Any]] = []
+        self.output_links: list[dict[str, Any]] = []
+        self.readme_readiness: dict[str, Any] = {}
 
     def analyze(self) -> dict[str, Any]:
         """Perform comprehensive analysis of the codebase."""
+        self.active_run_id = self.index_store.start_run(mode="analyze")
         self.git_info = extract_git_info(self.root_path)
         files = list(self._iter_source_files())
 
@@ -142,11 +155,77 @@ class CodebaseAnalyzer:
 
         self._analyze_project_structure()
         self._detect_dependencies()
+        self._run_diff_and_review()
+        self._run_output_link_scan()
         compiled = self._compile_results()
         compiled.is_website = is_website_project(compiled.to_public_dict())
         compiled.website_detection_reason = "Heuristic detection based on project assets"
+        if self.active_run_id is not None:
+            self.index_store.finish_run(
+                self.active_run_id,
+                {
+                    "files_analyzed": self.files_analyzed,
+                    "diff_available": bool(self.diff_summary.get("available")),
+                    "output_links": len(self.output_links),
+                },
+            )
+            if self.diff_summary:
+                self.index_store.add_diff_run(
+                    self.active_run_id,
+                    self.diff_summary.get("from_ref"),
+                    self.diff_summary.get("to_ref"),
+                    self.diff_summary,
+                )
+            if self.file_reviews:
+                self.index_store.replace_file_reviews(self.active_run_id, self.file_reviews)
+            if self.output_links:
+                self.index_store.replace_output_links(self.active_run_id, self.output_links)
+            self.index_store.commit()
         self.cache.persist()
         return compiled.to_public_dict()
+
+    def __del__(self) -> None:
+        try:
+            self.index_store.close()
+        except Exception:
+            pass
+
+    def _run_diff_and_review(self) -> None:
+        diff_config = self.config.get("diff", {}) if isinstance(self.config, dict) else {}
+        review_config = self.config.get("review", {}) if isinstance(self.config, dict) else {}
+        if not isinstance(diff_config, dict) or not diff_config.get("enabled", True):
+            return
+
+        self.diff_summary = compute_git_diff_summary(
+            self.root_path,
+            from_ref=diff_config.get("from_ref"),
+            to_ref=str(diff_config.get("to_ref", "HEAD")),
+            rename_detection=bool(diff_config.get("rename_detection", True)),
+            enable_tree_sitter=self.enable_tree_sitter,
+        )
+
+        if not isinstance(review_config, dict) or not review_config.get("enabled", True):
+            return
+        self.file_reviews, self.folder_reviews = build_reviews(
+            diff_summary=self.diff_summary,
+            functions=self.functions,
+            classes=self.classes,
+            weights=review_config.get("risk_weights")
+            if isinstance(review_config.get("risk_weights"), dict)
+            else None,
+            max_files_per_folder=int(review_config.get("max_files_per_folder", 50)),
+        )
+
+    def _run_output_link_scan(self) -> None:
+        output_config = self.config.get("output_links", {}) if isinstance(self.config, dict) else {}
+        if not isinstance(output_config, dict) or not output_config.get("enabled", True):
+            return
+        languages = output_config.get("languages", ["python", "javascript", "typescript", "shell"])
+        self.output_links = scan_output_links(
+            self.root_path,
+            ignore_patterns=self.ignore_patterns,
+            languages=languages if isinstance(languages, list) else None,
+        )
 
     def _apply_parsed_data(
         self, parsed: dict[str, Any], file_path: Path, cached_language: str | None
@@ -160,6 +239,15 @@ class CodebaseAnalyzer:
         self.classes.extend(parsed.get("classes", []))
         for imp in parsed.get("imports", []):
             self.imports[language].add(imp)
+            rel_file = self._relative_file_path(file_path)
+            if rel_file:
+                self.file_imports[rel_file].add(str(imp))
+
+    def _relative_file_path(self, file_path: Path) -> str:
+        try:
+            return file_path.resolve().relative_to(self.root_path).as_posix()
+        except ValueError:
+            return file_path.as_posix()
 
     def _iter_source_files(self) -> Iterable[Path]:
         for root, dirs, files in os.walk(self.root_path):
@@ -299,6 +387,7 @@ class CodebaseAnalyzer:
             functions=self.functions,
             classes=self.classes,
             imports={lang: sorted(imps) for lang, imps in self.imports.items()},
+            file_imports={path: sorted(imps) for path, imps in self.file_imports.items()},
             documentation_files=self.documentation_files,
             config_files=self.config_files,
             git_info=self.git_info,
@@ -306,4 +395,9 @@ class CodebaseAnalyzer:
             website_detection_reason=self.website_detection_reason,
             root_path=self.root_path,
             config=self.config,
+            diff_summary=self.diff_summary,
+            folder_reviews=self.folder_reviews,
+            file_reviews=self.file_reviews,
+            output_links=self.output_links,
+            readme_readiness=self.readme_readiness,
         )

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import webbrowser
 from pathlib import Path
+from typing import Any
 
 import typer
 import yaml
@@ -14,9 +15,12 @@ from rich.table import Table
 
 from .config import load_config
 from .core import CodebaseAnalyzer
+from .diff_engine import compute_git_diff_summary
 from .generator import ReadmeGenerator
 from .html_generator import HTMLGenerator
 from .logging import configure_logging, get_logger
+from .pr_summary import render_pr_summary
+from .readme_gate import evaluate_readme_readiness
 
 app = typer.Typer(add_completion=False, help="DocGenie - Auto-documentation for any codebase.")
 console = Console()
@@ -37,6 +41,9 @@ def _print_summary(analysis_data: dict, target_formats: str) -> None:
     repo = analysis_data.get("git_info", {}).get("remote_url")
     if repo:
         table.add_row("Repository", repo)
+    readiness = analysis_data.get("readme_readiness", {})
+    if readiness:
+        table.add_row("README readiness", f"{readiness.get('status')} ({readiness.get('score')}/100)")
     console.print(table)
 
 
@@ -48,9 +55,26 @@ def _validate_format(fmt: str) -> str:
     return target_formats
 
 
-def _run_analysis(path: Path, ignore: list[str], tree_sitter: bool, verbose: bool) -> dict:
+def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _run_analysis(
+    path: Path,
+    ignore: list[str],
+    tree_sitter: bool,
+    verbose: bool,
+    config_overrides: dict[str, Any] | None = None,
+) -> dict:
     config = load_config(path)
-    # Merge CLI ignore patterns with config ignore patterns
+    if config_overrides:
+        config = _deep_merge(config, config_overrides)
     config_ignore = config.get("ignore_patterns", [])
     combined_ignore = list(set(ignore + config_ignore))
 
@@ -87,16 +111,50 @@ def _confirm_overwrite(outputs: list[OutputSpec], *, preview: bool, force: bool)
             raise typer.Exit(code=1)
 
 
-def _render_outputs(outputs: list[OutputSpec], analysis_data: dict, *, preview: bool) -> None:
+def _render_outputs(
+    outputs: list[OutputSpec],
+    analysis_data: dict,
+    *,
+    preview: bool,
+    strict_readme: bool = False,
+) -> None:
+    quality_cfg = analysis_data.get("config", {}).get("quality", {})
+    required_sections = quality_cfg.get("required_sections", []) if isinstance(quality_cfg, dict) else []
+    min_confidence = str(quality_cfg.get("min_confidence", "medium")) if isinstance(quality_cfg, dict) else "medium"
+
+    if not analysis_data.get("readme_readiness"):
+        preview_readme = ReadmeGenerator().generate(analysis_data, None)
+        analysis_data["readme_readiness"] = evaluate_readme_readiness(
+            preview_readme,
+            analysis_data=analysis_data,
+            required_sections=required_sections if isinstance(required_sections, list) else None,
+            min_confidence=min_confidence,
+        )
+
     for output_format, output_path in outputs:
         if output_format == "markdown":
             generator = ReadmeGenerator()
+            initial_content = generator.generate(analysis_data, None)
+            readiness = evaluate_readme_readiness(
+                initial_content,
+                analysis_data=analysis_data,
+                required_sections=required_sections if isinstance(required_sections, list) else None,
+                min_confidence=min_confidence,
+            )
+            analysis_data["readme_readiness"] = readiness
             content = generator.generate(analysis_data, None if preview else str(output_path))
             if preview:
                 console.rule("README Preview")
                 typer.echo(content)
             else:
                 console.log(f"[green]README generated:[/green] {output_path}")
+
+            if readiness["status"] != "pass":
+                console.log("[yellow]README readiness warning[/yellow]")
+                for reason in readiness.get("reasons", []):
+                    console.log(f"- {reason}")
+                if strict_readme and readiness["status"] == "fail":
+                    raise typer.Exit(code=1)
         else:
             html_generator = HTMLGenerator()
             content = html_generator.generate_from_analysis(
@@ -118,7 +176,7 @@ def generate(  # noqa: PLR0913
         None, "--output", "-o", help="Output path for documentation."
     ),
     fmt: str = typer.Option(
-        "markdown",
+        "both",
         "--format",
         "--fmt",
         help="Output format",
@@ -134,6 +192,13 @@ def generate(  # noqa: PLR0913
         "--tree-sitter/--no-tree-sitter",
         help="Enable tree-sitter parsing when available",
     ),
+    from_ref: str | None = typer.Option(None, "--from-ref", help="Git ref/tag/commit to diff from"),
+    to_ref: str = typer.Option("HEAD", "--to-ref", help="Git ref/tag/commit to diff to"),
+    include_diffs: bool = typer.Option(True, "--include-diffs/--no-diffs"),
+    include_file_review: bool = typer.Option(True, "--include-file-review/--no-file-review"),
+    include_output_links: bool = typer.Option(True, "--include-output-links/--no-output-links"),
+    strict_readme: bool = typer.Option(False, "--strict-readme", help="Fail when readiness is low"),
+    template_profile: str = typer.Option("pro", "--template-profile", help="legacy or pro"),
     json_logs: bool = typer.Option(False, "--json-logs", help="Output structured logs as JSON"),
 ) -> None:
     """Generate README and/or HTML docs for a codebase."""
@@ -144,10 +209,17 @@ def generate(  # noqa: PLR0913
     console.rule("[bold cyan]DocGenie")
     logger.info("Starting documentation generation", path=str(path), format=target_formats)
 
-    analysis_data = _run_analysis(path, ignore, tree_sitter, verbose)
+    config_overrides: dict[str, Any] = {
+        "diff": {"enabled": include_diffs, "from_ref": from_ref, "to_ref": to_ref},
+        "review": {"enabled": include_file_review},
+        "output_links": {"enabled": include_output_links},
+        "template_customizations": {"template_profile": template_profile},
+    }
+
+    analysis_data = _run_analysis(path, ignore, tree_sitter, verbose, config_overrides)
     outputs = _build_outputs(target_formats, output, path)
     _confirm_overwrite(outputs, preview=preview, force=force)
-    _render_outputs(outputs, analysis_data, preview=preview)
+    _render_outputs(outputs, analysis_data, preview=preview, strict_readme=strict_readme)
 
     if not preview:
         _print_summary(analysis_data, target_formats)
@@ -188,6 +260,85 @@ def analyze(
         typer.echo(f"Classes: {len(analysis_data['classes'])}")
 
 
+@app.command("diff")
+def diff_command(
+    path: Path = typer.Argument(Path("."), exists=True, resolve_path=True),
+    from_ref: str | None = typer.Option(None, "--from-ref"),
+    to_ref: str = typer.Option("HEAD", "--to-ref"),
+    fmt: str = typer.Option("text", "--format", "-f", help="text or json"),
+    rename_detection: bool = typer.Option(True, "--rename-detection/--no-rename-detection"),
+) -> None:
+    """Show version-aware git diff metadata for documentation."""
+    summary = compute_git_diff_summary(
+        path,
+        from_ref=from_ref,
+        to_ref=to_ref,
+        rename_detection=rename_detection,
+    )
+    if fmt == "json":
+        typer.echo(json.dumps(summary, indent=2))
+        return
+
+    if not summary.get("available"):
+        typer.echo(f"Diff unavailable: {summary.get('message')}")
+        return
+
+    typer.echo(f"Diff {summary.get('from_ref')} -> {summary.get('to_ref')}")
+    totals = summary.get("totals", {})
+    typer.echo(
+        "Added: {added}, Modified: {modified}, Deleted: {deleted}, Renamed: {renamed}, Churn: {changes}".format(
+            added=totals.get("added", 0),
+            modified=totals.get("modified", 0),
+            deleted=totals.get("deleted", 0),
+            renamed=totals.get("renamed", 0),
+            changes=totals.get("changes", 0),
+        )
+    )
+
+
+@app.command("pr-summary")
+def pr_summary_command(
+    path: Path = typer.Argument(Path("."), exists=True, resolve_path=True),
+    from_ref: str | None = typer.Option(None, "--from-ref"),
+    to_ref: str = typer.Option("HEAD", "--to-ref"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    fmt: str = typer.Option("markdown", "--format", "-f", help="markdown or json"),
+    max_files: int = typer.Option(10, "--max-files"),
+    tree_sitter: bool = typer.Option(True, "--tree-sitter/--no-tree-sitter"),
+) -> None:
+    """Generate a PR-ready markdown summary from diff and review artifacts."""
+    config_overrides: dict[str, Any] = {
+        "diff": {"enabled": True, "from_ref": from_ref, "to_ref": to_ref},
+        "review": {"enabled": True},
+        "output_links": {"enabled": True},
+    }
+    analysis_data = _run_analysis(path, ignore=[], tree_sitter=tree_sitter, verbose=False, config_overrides=config_overrides)
+
+    if not analysis_data.get("readme_readiness"):
+        readme_content = ReadmeGenerator().generate(analysis_data, None)
+        analysis_data["readme_readiness"] = evaluate_readme_readiness(
+            readme_content,
+            analysis_data=analysis_data,
+        )
+
+    if fmt.lower() == "json":
+        payload = {
+            "diff_summary": analysis_data.get("diff_summary", {}),
+            "file_reviews": analysis_data.get("file_reviews", []),
+            "output_links": analysis_data.get("output_links", []),
+            "readme_readiness": analysis_data.get("readme_readiness", {}),
+        }
+        rendered = json.dumps(payload, indent=2)
+    else:
+        rendered = render_pr_summary(analysis_data, max_files=max_files)
+
+    if output:
+        output.write_text(rendered, encoding="utf-8")
+        console.log(f"[green]PR summary generated:[/green] {output}")
+    else:
+        typer.echo(rendered)
+
+
 @app.command("init")
 def init_project_config(
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing config"),
@@ -208,6 +359,31 @@ template_customizations:
   include_api_docs: true
   include_directory_tree: true
   max_functions_documented: 25
+  template_profile: pro
+  include_trust_badges: true
+
+diff:
+  enabled: true
+  from_ref: null
+  to_ref: "HEAD"
+  rename_detection: true
+
+review:
+  enabled: true
+  risk_weights:
+    churn: 0.35
+    complexity: 0.35
+    surface: 0.30
+  max_files_per_folder: 50
+
+output_links:
+  enabled: true
+  languages: ["python", "javascript", "typescript", "shell"]
+  confidence_threshold: "low"
+
+quality:
+  readme_replacement_gate: "advisory"
+  min_confidence: "medium"
 """
     config_path.write_text(template, encoding="utf-8")
     console.log(f"[green]Created {config_path}[/green]")

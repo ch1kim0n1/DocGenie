@@ -47,6 +47,35 @@ def get_default_config() -> dict[str, Any]:
             "include_api_docs": True,
             "include_directory_tree": True,
             "max_functions_documented": 10,
+            "template_profile": "pro",
+            "include_trust_badges": True,
+        },
+        "diff": {
+            "enabled": True,
+            "from_ref": None,
+            "to_ref": "HEAD",
+            "rename_detection": True,
+        },
+        "review": {
+            "enabled": True,
+            "risk_weights": {"churn": 0.35, "complexity": 0.35, "surface": 0.30},
+            "max_files_per_folder": 50,
+        },
+        "output_links": {
+            "enabled": True,
+            "languages": ["python", "javascript", "typescript", "shell"],
+            "confidence_threshold": "low",
+        },
+        "quality": {
+            "readme_replacement_gate": "advisory",
+            "required_sections": [
+                "#",
+                "## Installation",
+                "## Usage",
+                "## Architecture",
+                "## License",
+            ],
+            "min_confidence": "medium",
         },
     }
 

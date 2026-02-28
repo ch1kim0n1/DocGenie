@@ -92,7 +92,13 @@ class AnalysisResult:
     is_website: bool
     website_detection_reason: str
     root_path: Path
+    file_imports: dict[str, list[str]] = field(default_factory=dict)
     config: dict[str, object] = field(default_factory=dict)
+    diff_summary: dict[str, object] = field(default_factory=dict)
+    folder_reviews: list[dict[str, object]] = field(default_factory=list)
+    file_reviews: list[dict[str, object]] = field(default_factory=list)
+    output_links: list[dict[str, object]] = field(default_factory=list)
+    readme_readiness: dict[str, object] = field(default_factory=dict)
 
     def to_public_dict(self) -> dict[str, object]:
         return {
@@ -107,6 +113,7 @@ class AnalysisResult:
             "functions": self.functions,
             "classes": self.classes,
             "imports": self.imports,
+            "file_imports": self.file_imports,
             "documentation_files": self.documentation_files,
             "config_files": self.config_files,
             "git_info": self.git_info,
@@ -114,4 +121,9 @@ class AnalysisResult:
             "website_detection_reason": self.website_detection_reason,
             "root_path": str(self.root_path),
             "config": self.config,
+            "diff_summary": self.diff_summary,
+            "folder_reviews": self.folder_reviews,
+            "file_reviews": self.file_reviews,
+            "output_links": self.output_links,
+            "readme_readiness": self.readme_readiness,
         }

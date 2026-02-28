@@ -8,3 +8,28 @@ template_customizations:
   include_api_docs: true
   include_directory_tree: true
   max_functions_documented: 25
+  template_profile: pro
+  include_trust_badges: true
+
+diff:
+  enabled: true
+  from_ref: null
+  to_ref: "HEAD"
+  rename_detection: true
+
+review:
+  enabled: true
+  risk_weights:
+    churn: 0.35
+    complexity: 0.35
+    surface: 0.30
+  max_files_per_folder: 50
+
+output_links:
+  enabled: true
+  languages: ["python", "javascript", "typescript", "shell"]
+  confidence_threshold: "low"
+
+quality:
+  readme_replacement_gate: "advisory"
+  min_confidence: "medium"

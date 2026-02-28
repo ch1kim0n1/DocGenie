@@ -8,6 +8,12 @@
 - 🎨 **Multiple Output Formats**: Markdown (README.md) and HTML documentation
 - 🧩 **Plugin Architecture**: Extensible parser system with tree-sitter support
 - ⚡ **High Performance**: Parallel processing and intelligent caching
+- 🔀 **Version Diffing**: Compare refs/tags and surface code/documentation deltas
+- 🧭 **Risk Reviews**: Folder and file-level risk scoring for changed files
+- 🔗 **Output Flow Links**: Detect and show source-to-output file relationships
+- 🕸️ **Impact Graph**: Interactive HTML graph for dependency/output impact
+- 🛡️ **Trust Badges**: Section-level confidence + source citations
+- 🧾 **PR Summary Mode**: Generate PR-ready markdown from diff/review data
 - 🔒 **Security First**: XSS protection, security scanning, automated dependency updates
 - 📊 **Rich CLI**: Beautiful terminal output with progress bars and tables
 - 🐍 **Python API**: Use DocGenie programmatically in your own tools

@@ -164,27 +164,29 @@ class CodebaseAnalyzer:
             rel = path.resolve().relative_to(self.root_path).as_posix()
         except ValueError:
             rel = path.as_posix()
+
+        reason: str | None = None
         if is_path_ignored_by_gitignore(rel, self.gitignore_spec, is_dir=is_dir):
-            return "gitignore"
-        if should_ignore_file(rel, self.ignore_patterns or None):
-            return "ignore_pattern"
-        if not self.include_hidden and any(
+            reason = "gitignore"
+        elif should_ignore_file(rel, self.ignore_patterns or None):
+            reason = "ignore_pattern"
+        elif not self.include_hidden and any(
             part.startswith(".") for part in Path(rel).parts if part not in ("", ".")
         ):
-            return "hidden"
-        if (
+            reason = "hidden"
+        elif (
             not is_dir
             and self.exclude_generated
             and is_probably_generated_file(rel, self.generated_patterns or None)
         ):
-            return "generated"
-        if (not is_dir) and self.max_file_size_kb is not None:
+            reason = "generated"
+        elif (not is_dir) and self.max_file_size_kb is not None:
             try:
-                if path.stat().st_size > self.max_file_size_kb * 1024:
-                    return "size_limit"
+                over_limit = path.stat().st_size > self.max_file_size_kb * 1024
+                reason = "size_limit" if over_limit else None
             except OSError:
-                return "stat_error"
-        return None
+                reason = "stat_error"
+        return reason
 
     def _should_skip_path(self, path: Path, *, is_dir: bool) -> bool:
         reason = self._skip_reason(path, is_dir=is_dir)

@@ -1,0 +1,418 @@
+﻿2026-03-01T05:26:36.9171450Z Current runner version: '2.331.0'
+2026-03-01T05:26:36.9206890Z ##[group]Runner Image Provisioner
+2026-03-01T05:26:36.9207530Z Hosted Compute Agent
+2026-03-01T05:26:36.9207900Z Version: 20260213.493
+2026-03-01T05:26:36.9208980Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-03-01T05:26:36.9210030Z Build Date: 2026-02-13T00:28:41Z
+2026-03-01T05:26:36.9210450Z Worker ID: {b5627c89-d258-428b-89e8-98a203e4224b}
+2026-03-01T05:26:36.9211020Z Azure Region: westus
+2026-03-01T05:26:36.9211390Z ##[endgroup]
+2026-03-01T05:26:36.9214160Z ##[group]Operating System
+2026-03-01T05:26:36.9216260Z macOS
+2026-03-01T05:26:36.9217380Z 15.7.4
+2026-03-01T05:26:36.9217840Z 24G517
+2026-03-01T05:26:36.9218180Z ##[endgroup]
+2026-03-01T05:26:36.9218530Z ##[group]Runner Image
+2026-03-01T05:26:36.9219360Z Image: macos-15-arm64
+2026-03-01T05:26:36.9220670Z Version: 20260224.0170.1
+2026-03-01T05:26:36.9221710Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20260224.0170/images/macos/macos-15-arm64-Readme.md
+2026-03-01T05:26:36.9222880Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20260224.0170
+2026-03-01T05:26:36.9223530Z ##[endgroup]
+2026-03-01T05:26:36.9224490Z ##[group]GITHUB_TOKEN Permissions
+2026-03-01T05:26:36.9227520Z Contents: read
+2026-03-01T05:26:36.9227890Z Metadata: read
+2026-03-01T05:26:36.9228200Z Packages: read
+2026-03-01T05:26:36.9228600Z ##[endgroup]
+2026-03-01T05:26:36.9231450Z Secret source: Actions
+2026-03-01T05:26:36.9231950Z Prepare workflow directory
+2026-03-01T05:26:36.9707530Z Prepare all required actions
+2026-03-01T05:26:36.9749100Z Getting action download info
+2026-03-01T05:26:37.4080060Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-03-01T05:26:37.7259570Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-03-01T05:26:37.9261830Z Complete job name: test (macos-latest, 3.12)
+2026-03-01T05:26:37.9629110Z ##[group]Run actions/checkout@v4
+2026-03-01T05:26:37.9629600Z with:
+2026-03-01T05:26:37.9629860Z   repository: ch1kim0n1/DocGenie
+2026-03-01T05:26:37.9630260Z   token: ***
+2026-03-01T05:26:37.9630510Z   ssh-strict: true
+2026-03-01T05:26:37.9630770Z   ssh-user: git
+2026-03-01T05:26:37.9631030Z   persist-credentials: true
+2026-03-01T05:26:37.9631320Z   clean: true
+2026-03-01T05:26:37.9631580Z   sparse-checkout-cone-mode: true
+2026-03-01T05:26:37.9631900Z   fetch-depth: 1
+2026-03-01T05:26:37.9632160Z   fetch-tags: false
+2026-03-01T05:26:37.9632420Z   show-progress: true
+2026-03-01T05:26:37.9632690Z   lfs: false
+2026-03-01T05:26:37.9632930Z   submodules: false
+2026-03-01T05:26:37.9633210Z   set-safe-directory: true
+2026-03-01T05:26:37.9633590Z ##[endgroup]
+2026-03-01T05:26:38.2715370Z Syncing repository: ch1kim0n1/DocGenie
+2026-03-01T05:26:38.2716650Z ##[group]Getting Git version info
+2026-03-01T05:26:38.2717200Z Working directory is '/Users/runner/work/DocGenie/DocGenie'
+2026-03-01T05:26:38.2719070Z [command]/opt/homebrew/bin/git version
+2026-03-01T05:26:38.3267390Z git version 2.53.0
+2026-03-01T05:26:38.3290810Z ##[endgroup]
+2026-03-01T05:26:38.3297480Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/4a248894-7ad4-4687-86fc-88d9c1cafae0/.gitconfig'
+2026-03-01T05:26:38.3304710Z Temporarily overriding HOME='/Users/runner/work/_temp/4a248894-7ad4-4687-86fc-88d9c1cafae0' before making global git config changes
+2026-03-01T05:26:38.3305710Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-01T05:26:38.3307910Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:26:38.3417450Z Deleting the contents of '/Users/runner/work/DocGenie/DocGenie'
+2026-03-01T05:26:38.3422080Z ##[group]Initializing the repository
+2026-03-01T05:26:38.3426090Z [command]/opt/homebrew/bin/git init /Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:26:38.3632050Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-03-01T05:26:38.3633610Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-03-01T05:26:38.3634310Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-03-01T05:26:38.3634850Z hint: call:
+2026-03-01T05:26:38.3635150Z hint:
+2026-03-01T05:26:38.3635530Z hint: 	git config --global init.defaultBranch <name>
+2026-03-01T05:26:38.3635970Z hint:
+2026-03-01T05:26:38.3636410Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-03-01T05:26:38.3637090Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-03-01T05:26:38.3637620Z hint:
+2026-03-01T05:26:38.3637930Z hint: 	git branch -m <name>
+2026-03-01T05:26:38.3638280Z hint:
+2026-03-01T05:26:38.3638740Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-03-01T05:26:38.3648020Z Initialized empty Git repository in /Users/runner/work/DocGenie/DocGenie/.git/
+2026-03-01T05:26:38.3654450Z [command]/opt/homebrew/bin/git remote add origin https://github.com/ch1kim0n1/DocGenie
+2026-03-01T05:26:38.3732690Z ##[endgroup]
+2026-03-01T05:26:38.3733440Z ##[group]Disabling automatic garbage collection
+2026-03-01T05:26:38.3735300Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-03-01T05:26:38.3802750Z ##[endgroup]
+2026-03-01T05:26:38.3804330Z ##[group]Setting up auth
+2026-03-01T05:26:38.3806650Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-01T05:26:38.3893130Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-01T05:26:38.4918320Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-01T05:26:38.4994840Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-01T05:26:38.6832690Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-01T05:26:38.6884620Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-01T05:26:38.7636650Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-03-01T05:26:38.7702250Z ##[endgroup]
+2026-03-01T05:26:38.7703050Z ##[group]Fetching the repository
+2026-03-01T05:26:38.7708760Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +727553f88b1431778676e5699c033fbe1dbd2803:refs/remotes/pull/18/merge
+2026-03-01T05:26:39.3708580Z From https://github.com/ch1kim0n1/DocGenie
+2026-03-01T05:26:39.3714730Z  * [new ref]         727553f88b1431778676e5699c033fbe1dbd2803 -> pull/18/merge
+2026-03-01T05:26:39.3826450Z ##[endgroup]
+2026-03-01T05:26:39.3827570Z ##[group]Determining the checkout info
+2026-03-01T05:26:39.3828640Z ##[endgroup]
+2026-03-01T05:26:39.3829380Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-03-01T05:26:39.3876120Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-03-01T05:26:39.4016460Z ##[group]Checking out the ref
+2026-03-01T05:26:39.4118510Z [command]/opt/homebrew/bin/git checkout --progress --force refs/remotes/pull/18/merge
+2026-03-01T05:26:39.4221650Z HEAD is now at 727553f Merge 2587d4747b1285950ae0feed0ba243c81ba5ef31 into da2f4a9d14c84530764b7c068c78bd306cb2de20
+2026-03-01T05:26:39.4536910Z ##[endgroup]
+2026-03-01T05:26:39.4677510Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-03-01T05:26:39.4689050Z 727553f88b1431778676e5699c033fbe1dbd2803
+2026-03-01T05:26:39.4924140Z ##[group]Run actions/setup-python@v5
+2026-03-01T05:26:39.4925070Z with:
+2026-03-01T05:26:39.4925670Z   python-version: 3.12
+2026-03-01T05:26:39.4926340Z   check-latest: false
+2026-03-01T05:26:39.4927470Z   token: ***
+2026-03-01T05:26:39.4928130Z   update-environment: true
+2026-03-01T05:26:39.4928860Z   allow-prereleases: false
+2026-03-01T05:26:39.4929570Z   freethreaded: false
+2026-03-01T05:26:39.4930230Z ##[endgroup]
+2026-03-01T05:26:39.6134410Z ##[group]Installed versions
+2026-03-01T05:26:39.6225080Z Successfully set up CPython (3.12.10)
+2026-03-01T05:26:39.6227010Z ##[endgroup]
+2026-03-01T05:26:39.6331560Z ##[group]Run python -m pip install --upgrade pip
+2026-03-01T05:26:39.6332660Z [36;1mpython -m pip install --upgrade pip[0m
+2026-03-01T05:26:39.6333480Z [36;1mpip install -e .[dev][0m
+2026-03-01T05:26:39.6388700Z shell: /bin/bash -e {0}
+2026-03-01T05:26:39.6389380Z env:
+2026-03-01T05:26:39.6390190Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:39.6391650Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.12.10/arm64/lib/pkgconfig
+2026-03-01T05:26:39.6393020Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:39.6394350Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:39.6395610Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:39.6396630Z ##[endgroup]
+2026-03-01T05:26:40.7565290Z Requirement already satisfied: pip in /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages (26.0.1)
+2026-03-01T05:26:41.2810580Z Obtaining file:///Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:26:41.2843580Z   Installing build dependencies: started
+2026-03-01T05:26:41.8136880Z   Installing build dependencies: finished with status 'done'
+2026-03-01T05:26:41.8145110Z   Checking if build backend supports build_editable: started
+2026-03-01T05:26:41.8529850Z   Checking if build backend supports build_editable: finished with status 'done'
+2026-03-01T05:26:41.8536930Z   Getting requirements to build editable: started
+2026-03-01T05:26:41.9604510Z   Getting requirements to build editable: finished with status 'done'
+2026-03-01T05:26:41.9617840Z   Installing backend dependencies: started
+2026-03-01T05:26:42.3184870Z   Installing backend dependencies: finished with status 'done'
+2026-03-01T05:26:42.3193170Z   Preparing editable metadata (pyproject.toml): started
+2026-03-01T05:26:42.4349510Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+2026-03-01T05:26:42.4795330Z Collecting click>=8.1 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.5127810Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+2026-03-01T05:26:42.5298890Z Collecting gitpython>=3.1 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.5337880Z   Downloading gitpython-3.1.46-py3-none-any.whl.metadata (13 kB)
+2026-03-01T05:26:42.5493960Z Collecting jinja2>=3.1 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.5604660Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-03-01T05:26:42.5732180Z Collecting markdown>=3.3 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.5758330Z   Downloading markdown-3.10.2-py3-none-any.whl.metadata (5.1 kB)
+2026-03-01T05:26:42.5848900Z Collecting pathspec>=0.9 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.5859460Z   Using cached pathspec-1.0.4-py3-none-any.whl.metadata (13 kB)
+2026-03-01T05:26:42.5983490Z Collecting pygments>=2.10 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.6008300Z   Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+2026-03-01T05:26:42.6214950Z Collecting pyyaml>=6.0 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.6252720Z   Downloading pyyaml-6.0.3-cp312-cp312-macosx_11_0_arm64.whl.metadata (2.4 kB)
+2026-03-01T05:26:42.6426970Z Collecting requests>=2.25 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.6453710Z   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+2026-03-01T05:26:42.6639450Z Collecting rich>=13.7 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.6685940Z   Downloading rich-14.3.3-py3-none-any.whl.metadata (18 kB)
+2026-03-01T05:26:42.6858080Z Collecting structlog>=24.1 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.6886220Z   Downloading structlog-25.5.0-py3-none-any.whl.metadata (9.5 kB)
+2026-03-01T05:26:42.7046230Z Collecting toml>=0.10 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.7072830Z   Downloading toml-0.10.2-py2.py3-none-any.whl.metadata (7.1 kB)
+2026-03-01T05:26:42.7314650Z Collecting tree-sitter-language-pack>=0.13.0 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.7364560Z   Downloading tree_sitter_language_pack-0.13.0-cp310-abi3-macosx_10_15_universal2.whl.metadata (19 kB)
+2026-03-01T05:26:42.7503350Z Collecting typer>=0.12 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.7548020Z   Downloading typer-0.24.1-py3-none-any.whl.metadata (16 kB)
+2026-03-01T05:26:42.7672450Z Collecting bandit>=1.7 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.7777500Z   Downloading bandit-1.9.4-py3-none-any.whl.metadata (7.1 kB)
+2026-03-01T05:26:42.9009830Z Collecting hypothesis>=6.0 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.9057960Z   Downloading hypothesis-6.151.9-py3-none-any.whl.metadata (5.6 kB)
+2026-03-01T05:26:42.9459470Z Collecting mkdocs-material>=9.5 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.9514170Z   Downloading mkdocs_material-9.7.3-py3-none-any.whl.metadata (19 kB)
+2026-03-01T05:26:42.9650930Z Collecting mkdocs>=1.5 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:42.9769320Z   Downloading mkdocs-1.6.1-py3-none-any.whl.metadata (6.0 kB)
+2026-03-01T05:26:42.9985770Z Collecting mkdocstrings>=0.24 (from mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.0047580Z   Downloading mkdocstrings-1.0.3-py3-none-any.whl.metadata (15 kB)
+2026-03-01T05:26:43.0537930Z Collecting mypy>=1.10 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.0633800Z   Downloading mypy-1.19.1-cp312-cp312-macosx_11_0_arm64.whl.metadata (2.2 kB)
+2026-03-01T05:26:43.0806090Z Collecting pre-commit>=3.6 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.0879840Z   Downloading pre_commit-4.5.1-py2.py3-none-any.whl.metadata (1.2 kB)
+2026-03-01T05:26:43.0996830Z Collecting pytest-cov>=4.0 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.1058870Z   Downloading pytest_cov-7.0.0-py3-none-any.whl.metadata (31 kB)
+2026-03-01T05:26:43.1222080Z Collecting pytest>=8.0 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.1257560Z   Downloading pytest-9.0.2-py3-none-any.whl.metadata (7.6 kB)
+2026-03-01T05:26:43.3185840Z Collecting ruff>=0.6 (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.3408640Z   Downloading ruff-0.15.4-py3-none-macosx_11_0_arm64.whl.metadata (26 kB)
+2026-03-01T05:26:43.3577710Z Collecting types-markdown (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.3617480Z   Downloading types_markdown-3.10.2.20260211-py3-none-any.whl.metadata (1.8 kB)
+2026-03-01T05:26:43.3797720Z Collecting types-pyyaml (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.3834970Z   Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl.metadata (1.7 kB)
+2026-03-01T05:26:43.3986360Z Collecting types-toml (from docgenie-cli==1.1.5)
+2026-03-01T05:26:43.4044120Z   Downloading types_toml-0.10.8.20240310-py3-none-any.whl.metadata (1.5 kB)
+2026-03-01T05:26:43.4211890Z Collecting stevedore>=1.20.0 (from bandit>=1.7->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.4246120Z   Downloading stevedore-5.7.0-py3-none-any.whl.metadata (2.4 kB)
+2026-03-01T05:26:43.4370370Z Collecting gitdb<5,>=4.0.1 (from gitpython>=3.1->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.4413960Z   Downloading gitdb-4.0.12-py3-none-any.whl.metadata (1.2 kB)
+2026-03-01T05:26:43.4550280Z Collecting smmap<6,>=3.0.1 (from gitdb<5,>=4.0.1->gitpython>=3.1->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.4581230Z   Downloading smmap-5.0.2-py3-none-any.whl.metadata (4.3 kB)
+2026-03-01T05:26:43.4703950Z Collecting sortedcontainers<3.0.0,>=2.1.0 (from hypothesis>=6.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.4748400Z   Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+2026-03-01T05:26:43.5159740Z Collecting MarkupSafe>=2.0 (from jinja2>=3.1->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.5232690Z   Downloading markupsafe-3.0.3-cp312-cp312-macosx_11_0_arm64.whl.metadata (2.7 kB)
+2026-03-01T05:26:43.5345430Z Collecting ghp-import>=1.0 (from mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.5389810Z   Downloading ghp_import-2.1.0-py3-none-any.whl.metadata (7.2 kB)
+2026-03-01T05:26:43.5616300Z Collecting mergedeep>=1.3.4 (from mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.5650990Z   Downloading mergedeep-1.3.4-py3-none-any.whl.metadata (4.3 kB)
+2026-03-01T05:26:43.5794650Z Collecting mkdocs-get-deps>=0.2.0 (from mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.5833010Z   Downloading mkdocs_get_deps-0.2.0-py3-none-any.whl.metadata (4.0 kB)
+2026-03-01T05:26:43.5966710Z Collecting packaging>=20.5 (from mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.5978810Z   Using cached packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+2026-03-01T05:26:43.6108660Z Collecting pyyaml-env-tag>=0.1 (from mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.6147520Z   Downloading pyyaml_env_tag-1.1-py3-none-any.whl.metadata (5.5 kB)
+2026-03-01T05:26:43.6565730Z Collecting watchdog>=2.0 (from mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.6616940Z   Downloading watchdog-6.0.0-cp312-cp312-macosx_11_0_arm64.whl.metadata (44 kB)
+2026-03-01T05:26:43.6812410Z Collecting python-dateutil>=2.8.1 (from ghp-import>=1.0->mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.6848790Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-03-01T05:26:43.7034260Z Collecting platformdirs>=2.2.0 (from mkdocs-get-deps>=0.2.0->mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.7059430Z   Downloading platformdirs-4.9.2-py3-none-any.whl.metadata (4.7 kB)
+2026-03-01T05:26:43.7167010Z Collecting babel>=2.10 (from mkdocs-material>=9.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.7313330Z   Downloading babel-2.18.0-py3-none-any.whl.metadata (2.2 kB)
+2026-03-01T05:26:43.7476830Z Collecting backrefs>=5.7.post1 (from mkdocs-material>=9.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.7513600Z   Downloading backrefs-6.2-py312-none-any.whl.metadata (3.0 kB)
+2026-03-01T05:26:43.7622310Z Collecting colorama>=0.4 (from mkdocs-material>=9.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.7649540Z   Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+2026-03-01T05:26:43.7752740Z Collecting mkdocs-material-extensions>=1.3 (from mkdocs-material>=9.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.7781460Z   Downloading mkdocs_material_extensions-1.3.1-py3-none-any.whl.metadata (6.9 kB)
+2026-03-01T05:26:43.8009900Z Collecting paginate>=0.5 (from mkdocs-material>=9.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.8044660Z   Downloading paginate-0.5.7-py2.py3-none-any.whl.metadata (11 kB)
+2026-03-01T05:26:43.8216170Z Collecting pymdown-extensions>=10.2 (from mkdocs-material>=9.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.8247060Z   Downloading pymdown_extensions-10.21-py3-none-any.whl.metadata (3.1 kB)
+2026-03-01T05:26:43.8445280Z Collecting mkdocs-autorefs>=1.4 (from mkdocstrings>=0.24->mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.8579400Z   Downloading mkdocs_autorefs-1.4.4-py3-none-any.whl.metadata (14 kB)
+2026-03-01T05:26:43.8756960Z Collecting mkdocstrings-python>=1.16.2 (from mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.8793040Z   Downloading mkdocstrings_python-2.0.3-py3-none-any.whl.metadata (12 kB)
+2026-03-01T05:26:43.8913650Z Collecting griffelib>=2.0 (from mkdocstrings-python>=1.16.2->mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.8939560Z   Downloading griffelib-2.0.0-py3-none-any.whl.metadata (1.3 kB)
+2026-03-01T05:26:43.9071330Z Collecting typing_extensions>=4.6.0 (from mypy>=1.10->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.9100710Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2026-03-01T05:26:43.9196980Z Collecting mypy_extensions>=1.0.0 (from mypy>=1.10->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.9224530Z   Downloading mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+2026-03-01T05:26:43.9869420Z Collecting librt>=0.6.2 (from mypy>=1.10->docgenie-cli==1.1.5)
+2026-03-01T05:26:43.9922780Z   Downloading librt-0.8.1-cp312-cp312-macosx_11_0_arm64.whl.metadata (1.3 kB)
+2026-03-01T05:26:44.0055150Z Collecting cfgv>=2.0.0 (from pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.0081790Z   Downloading cfgv-3.5.0-py2.py3-none-any.whl.metadata (8.9 kB)
+2026-03-01T05:26:44.0309340Z Collecting identify>=1.0.0 (from pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.0343200Z   Downloading identify-2.6.16-py2.py3-none-any.whl.metadata (4.4 kB)
+2026-03-01T05:26:44.0459390Z Collecting nodeenv>=0.11.1 (from pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.0487250Z   Downloading nodeenv-1.10.0-py2.py3-none-any.whl.metadata (24 kB)
+2026-03-01T05:26:44.0714610Z Collecting virtualenv>=20.10.0 (from pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.0794300Z   Downloading virtualenv-21.1.0-py3-none-any.whl.metadata (3.5 kB)
+2026-03-01T05:26:44.0912540Z Collecting iniconfig>=1.0.1 (from pytest>=8.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.0950810Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+2026-03-01T05:26:44.1040190Z Collecting pluggy<2,>=1.5 (from pytest>=8.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.1050490Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+2026-03-01T05:26:44.3213820Z Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov>=4.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.3433600Z   Downloading coverage-7.13.4-cp312-cp312-macosx_11_0_arm64.whl.metadata (8.5 kB)
+2026-03-01T05:26:44.3568830Z Collecting six>=1.5 (from python-dateutil>=2.8.1->ghp-import>=1.0->mkdocs>=1.5->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.3600860Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-03-01T05:26:44.4082320Z Collecting charset_normalizer<4,>=2 (from requests>=2.25->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.4112380Z   Downloading charset_normalizer-3.4.4-cp312-cp312-macosx_10_13_universal2.whl.metadata (37 kB)
+2026-03-01T05:26:44.4236200Z Collecting idna<4,>=2.5 (from requests>=2.25->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.4265680Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+2026-03-01T05:26:44.4421710Z Collecting urllib3<3,>=1.21.1 (from requests>=2.25->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.4451090Z   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+2026-03-01T05:26:44.4493310Z Requirement already satisfied: certifi>=2017.4.17 in /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages (from requests>=2.25->docgenie-cli==1.1.5) (2026.1.4)
+2026-03-01T05:26:44.4579840Z Collecting markdown-it-py>=2.2.0 (from rich>=13.7->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.4608720Z   Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+2026-03-01T05:26:44.4751000Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.7->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.4783090Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+2026-03-01T05:26:44.5180980Z Collecting tree-sitter>=0.25.2 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.5236410Z   Downloading tree_sitter-0.25.2-cp312-cp312-macosx_11_0_arm64.whl.metadata (10.0 kB)
+2026-03-01T05:26:44.5469780Z Collecting tree-sitter-c-sharp>=0.23.1 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.5504450Z   Downloading tree_sitter_c_sharp-0.23.1-cp39-abi3-macosx_11_0_arm64.whl.metadata (2.7 kB)
+2026-03-01T05:26:44.5633370Z Collecting tree-sitter-embedded-template>=0.25.0 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.5677770Z   Downloading tree_sitter_embedded_template-0.25.0-cp310-abi3-macosx_11_0_arm64.whl.metadata (2.3 kB)
+2026-03-01T05:26:44.5813700Z Collecting tree-sitter-yaml>=0.7.2 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.5991820Z   Downloading tree_sitter_yaml-0.7.2-cp310-abi3-macosx_11_0_arm64.whl.metadata (1.8 kB)
+2026-03-01T05:26:44.6155640Z Collecting shellingham>=1.3.0 (from typer>=0.12->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.6197430Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-03-01T05:26:44.6313000Z Collecting annotated-doc>=0.0.2 (from typer>=0.12->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.6340620Z   Downloading annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+2026-03-01T05:26:44.6478620Z Collecting distlib<1,>=0.3.7 (from virtualenv>=20.10.0->pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.6507880Z   Downloading distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
+2026-03-01T05:26:44.6664640Z Collecting filelock<4,>=3.24.2 (from virtualenv>=20.10.0->pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.6690830Z   Downloading filelock-3.24.3-py3-none-any.whl.metadata (2.0 kB)
+2026-03-01T05:26:44.6801490Z Collecting python-discovery>=1 (from virtualenv>=20.10.0->pre-commit>=3.6->docgenie-cli==1.1.5)
+2026-03-01T05:26:44.6904060Z   Downloading python_discovery-1.1.0-py3-none-any.whl.metadata (4.0 kB)
+2026-03-01T05:26:44.7040890Z Downloading bandit-1.9.4-py3-none-any.whl (134 kB)
+2026-03-01T05:26:44.7229790Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+2026-03-01T05:26:44.7293770Z Downloading gitpython-3.1.46-py3-none-any.whl (208 kB)
+2026-03-01T05:26:44.7366610Z Downloading gitdb-4.0.12-py3-none-any.whl (62 kB)
+2026-03-01T05:26:44.7436470Z Downloading smmap-5.0.2-py3-none-any.whl (24 kB)
+2026-03-01T05:26:44.7508910Z Downloading hypothesis-6.151.9-py3-none-any.whl (529 kB)
+2026-03-01T05:26:44.7562560Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 529.3/529.3 kB 77.0 MB/s  0:00:00
+2026-03-01T05:26:44.7602700Z Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+2026-03-01T05:26:44.7653830Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+2026-03-01T05:26:44.7714060Z Downloading markdown-3.10.2-py3-none-any.whl (108 kB)
+2026-03-01T05:26:44.7772670Z Downloading markupsafe-3.0.3-cp312-cp312-macosx_11_0_arm64.whl (12 kB)
+2026-03-01T05:26:44.7851290Z Downloading mkdocs-1.6.1-py3-none-any.whl (3.9 MB)
+2026-03-01T05:26:44.8301480Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.9/3.9 MB 83.2 MB/s  0:00:00
+2026-03-01T05:26:44.8367250Z Downloading ghp_import-2.1.0-py3-none-any.whl (11 kB)
+2026-03-01T05:26:44.8443010Z Downloading mergedeep-1.3.4-py3-none-any.whl (6.4 kB)
+2026-03-01T05:26:44.8497480Z Downloading mkdocs_get_deps-0.2.0-py3-none-any.whl (9.5 kB)
+2026-03-01T05:26:44.8611930Z Downloading mkdocs_material-9.7.3-py3-none-any.whl (9.3 MB)
+2026-03-01T05:26:45.0201670Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.3/9.3 MB 58.3 MB/s  0:00:00
+2026-03-01T05:26:45.0254230Z Downloading babel-2.18.0-py3-none-any.whl (10.2 MB)
+2026-03-01T05:26:45.0927280Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 162.6 MB/s  0:00:00
+2026-03-01T05:26:45.0987210Z Downloading backrefs-6.2-py312-none-any.whl (398 kB)
+2026-03-01T05:26:45.1052140Z Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+2026-03-01T05:26:45.1119810Z Downloading mkdocs_material_extensions-1.3.1-py3-none-any.whl (8.7 kB)
+2026-03-01T05:26:45.1184930Z Downloading mkdocstrings-1.0.3-py3-none-any.whl (35 kB)
+2026-03-01T05:26:45.1238940Z Downloading mkdocs_autorefs-1.4.4-py3-none-any.whl (25 kB)
+2026-03-01T05:26:45.1297020Z Downloading mkdocstrings_python-2.0.3-py3-none-any.whl (104 kB)
+2026-03-01T05:26:45.1378000Z Downloading griffelib-2.0.0-py3-none-any.whl (142 kB)
+2026-03-01T05:26:45.1472240Z Downloading mypy-1.19.1-cp312-cp312-macosx_11_0_arm64.whl (12.2 MB)
+2026-03-01T05:26:45.2260400Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.2/12.2 MB 156.5 MB/s  0:00:00
+2026-03-01T05:26:45.2334040Z Downloading librt-0.8.1-cp312-cp312-macosx_11_0_arm64.whl (68 kB)
+2026-03-01T05:26:45.2456990Z Downloading mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+2026-03-01T05:26:45.2494910Z Using cached packaging-26.0-py3-none-any.whl (74 kB)
+2026-03-01T05:26:45.2520930Z Downloading paginate-0.5.7-py2.py3-none-any.whl (13 kB)
+2026-03-01T05:26:45.2589200Z Using cached pathspec-1.0.4-py3-none-any.whl (55 kB)
+2026-03-01T05:26:45.2624840Z Downloading platformdirs-4.9.2-py3-none-any.whl (21 kB)
+2026-03-01T05:26:45.2722040Z Downloading pre_commit-4.5.1-py2.py3-none-any.whl (226 kB)
+2026-03-01T05:26:45.2824540Z Downloading cfgv-3.5.0-py2.py3-none-any.whl (7.4 kB)
+2026-03-01T05:26:45.2910140Z Downloading identify-2.6.16-py2.py3-none-any.whl (99 kB)
+2026-03-01T05:26:45.2989330Z Downloading nodeenv-1.10.0-py2.py3-none-any.whl (23 kB)
+2026-03-01T05:26:45.3059340Z Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+2026-03-01T05:26:45.3141050Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 161.7 MB/s  0:00:00
+2026-03-01T05:26:45.3169690Z Downloading pymdown_extensions-10.21-py3-none-any.whl (268 kB)
+2026-03-01T05:26:45.3298800Z Downloading pytest-9.0.2-py3-none-any.whl (374 kB)
+2026-03-01T05:26:45.3360170Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+2026-03-01T05:26:45.3385820Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+2026-03-01T05:26:45.3467700Z Downloading pytest_cov-7.0.0-py3-none-any.whl (22 kB)
+2026-03-01T05:26:45.3563970Z Downloading coverage-7.13.4-cp312-cp312-macosx_11_0_arm64.whl (219 kB)
+2026-03-01T05:26:45.3625610Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2026-03-01T05:26:45.3738060Z Downloading pyyaml-6.0.3-cp312-cp312-macosx_11_0_arm64.whl (173 kB)
+2026-03-01T05:26:45.3827890Z Downloading pyyaml_env_tag-1.1-py3-none-any.whl (4.7 kB)
+2026-03-01T05:26:45.3876440Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+2026-03-01T05:26:45.3931790Z Downloading charset_normalizer-3.4.4-cp312-cp312-macosx_10_13_universal2.whl (208 kB)
+2026-03-01T05:26:45.3994760Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+2026-03-01T05:26:45.4058560Z Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+2026-03-01T05:26:45.4122100Z Downloading rich-14.3.3-py3-none-any.whl (310 kB)
+2026-03-01T05:26:45.4188060Z Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+2026-03-01T05:26:45.4239530Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+2026-03-01T05:26:45.4308160Z Downloading ruff-0.15.4-py3-none-macosx_11_0_arm64.whl (10.2 MB)
+2026-03-01T05:26:45.4904450Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 172.3 MB/s  0:00:00
+2026-03-01T05:26:45.4989610Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-03-01T05:26:45.5084220Z Downloading stevedore-5.7.0-py3-none-any.whl (54 kB)
+2026-03-01T05:26:45.5156380Z Downloading structlog-25.5.0-py3-none-any.whl (72 kB)
+2026-03-01T05:26:45.5244670Z Downloading toml-0.10.2-py2.py3-none-any.whl (16 kB)
+2026-03-01T05:26:45.5431290Z Downloading tree_sitter_language_pack-0.13.0-cp310-abi3-macosx_10_15_universal2.whl (33.0 MB)
+2026-03-01T05:26:45.7705830Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 33.0/33.0 MB 145.3 MB/s  0:00:00
+2026-03-01T05:26:45.7832010Z Downloading tree_sitter-0.25.2-cp312-cp312-macosx_11_0_arm64.whl (137 kB)
+2026-03-01T05:26:45.7928250Z Downloading tree_sitter_c_sharp-0.23.1-cp39-abi3-macosx_11_0_arm64.whl (419 kB)
+2026-03-01T05:26:45.8061050Z Downloading tree_sitter_embedded_template-0.25.0-cp310-abi3-macosx_11_0_arm64.whl (10 kB)
+2026-03-01T05:26:45.8191800Z Downloading tree_sitter_yaml-0.7.2-cp310-abi3-macosx_11_0_arm64.whl (44 kB)
+2026-03-01T05:26:45.8287060Z Downloading typer-0.24.1-py3-none-any.whl (56 kB)
+2026-03-01T05:26:45.8365650Z Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+2026-03-01T05:26:45.8432980Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+2026-03-01T05:26:45.8499240Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2026-03-01T05:26:45.8673710Z Downloading virtualenv-21.1.0-py3-none-any.whl (5.8 MB)
+2026-03-01T05:26:45.8985370Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/5.8 MB 190.5 MB/s  0:00:00
+2026-03-01T05:26:45.9040060Z Downloading distlib-0.4.0-py2.py3-none-any.whl (469 kB)
+2026-03-01T05:26:45.9168730Z Downloading filelock-3.24.3-py3-none-any.whl (24 kB)
+2026-03-01T05:26:45.9268820Z Downloading python_discovery-1.1.0-py3-none-any.whl (30 kB)
+2026-03-01T05:26:45.9392080Z Downloading watchdog-6.0.0-cp312-cp312-macosx_11_0_arm64.whl (89 kB)
+2026-03-01T05:26:45.9488260Z Downloading types_markdown-3.10.2.20260211-py3-none-any.whl (25 kB)
+2026-03-01T05:26:45.9591410Z Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl (20 kB)
+2026-03-01T05:26:45.9739880Z Downloading types_toml-0.10.8.20240310-py3-none-any.whl (4.8 kB)
+2026-03-01T05:26:46.1812870Z Building wheels for collected packages: docgenie-cli
+2026-03-01T05:26:46.1819130Z   Building editable for docgenie-cli (pyproject.toml): started
+2026-03-01T05:26:46.2317230Z   Building editable for docgenie-cli (pyproject.toml): finished with status 'done'
+2026-03-01T05:26:46.2325970Z   Created wheel for docgenie-cli: filename=docgenie_cli-1.1.5-py3-none-any.whl size=5587 sha256=da97438b4ec36d4a606e8492bfbeb7811b21ada79d12d348d9bc5ea3dee04ea6
+2026-03-01T05:26:46.2328810Z   Stored in directory: /private/var/folders/q_/pk8v8g4n3qq2gcnsvqjc3sd40000gn/T/pip-ephem-wheel-cache-wudaw0u1/wheels/a5/1d/56/247816ff749d650293107441d4f472cb0c5f26a1838d161b1f
+2026-03-01T05:26:46.2346030Z Successfully built docgenie-cli
+2026-03-01T05:26:46.3546400Z Installing collected packages: sortedcontainers, paginate, distlib, watchdog, urllib3, typing_extensions, types-toml, types-pyyaml, types-markdown, tree-sitter-yaml, tree-sitter-embedded-template, tree-sitter-c-sharp, tree-sitter, toml, structlog, stevedore, smmap, six, shellingham, ruff, pyyaml, pygments, pluggy, platformdirs, pathspec, packaging, nodeenv, mypy_extensions, mkdocs-material-extensions, mergedeep, mdurl, MarkupSafe, markdown, librt, iniconfig, idna, identify, hypothesis, griffelib, filelock, coverage, colorama, click, charset_normalizer, cfgv, backrefs, babel, annotated-doc, tree-sitter-language-pack, requests, pyyaml-env-tag, python-discovery, python-dateutil, pytest, pymdown-extensions, mypy, mkdocs-get-deps, markdown-it-py, jinja2, gitdb, virtualenv, rich, pytest-cov, gitpython, ghp-import, typer, pre-commit, mkdocs, bandit, mkdocs-material, mkdocs-autorefs, docgenie-cli, mkdocstrings, mkdocstrings-python
+2026-03-01T05:26:54.2513950Z 
+2026-03-01T05:26:54.2549960Z Successfully installed MarkupSafe-3.0.3 annotated-doc-0.0.4 babel-2.18.0 backrefs-6.2 bandit-1.9.4 cfgv-3.5.0 charset_normalizer-3.4.4 click-8.3.1 colorama-0.4.6 coverage-7.13.4 distlib-0.4.0 docgenie-cli-1.1.5 filelock-3.24.3 ghp-import-2.1.0 gitdb-4.0.12 gitpython-3.1.46 griffelib-2.0.0 hypothesis-6.151.9 identify-2.6.16 idna-3.11 iniconfig-2.3.0 jinja2-3.1.6 librt-0.8.1 markdown-3.10.2 markdown-it-py-4.0.0 mdurl-0.1.2 mergedeep-1.3.4 mkdocs-1.6.1 mkdocs-autorefs-1.4.4 mkdocs-get-deps-0.2.0 mkdocs-material-9.7.3 mkdocs-material-extensions-1.3.1 mkdocstrings-1.0.3 mkdocstrings-python-2.0.3 mypy-1.19.1 mypy_extensions-1.1.0 nodeenv-1.10.0 packaging-26.0 paginate-0.5.7 pathspec-1.0.4 platformdirs-4.9.2 pluggy-1.6.0 pre-commit-4.5.1 pygments-2.19.2 pymdown-extensions-10.21 pytest-9.0.2 pytest-cov-7.0.0 python-dateutil-2.9.0.post0 python-discovery-1.1.0 pyyaml-6.0.3 pyyaml-env-tag-1.1 requests-2.32.5 rich-14.3.3 ruff-0.15.4 shellingham-1.5.4 six-1.17.0 smmap-5.0.2 sortedcontainers-2.4.0 stevedore-5.7.0 structlog-25.5.0 toml-0.10.2 tree-sitter-0.25.2 tree-sitter-c-sharp-0.23.1 tree-sitter-embedded-template-0.25.0 tree-sitter-language-pack-0.13.0 tree-sitter-yaml-0.7.2 typer-0.24.1 types-markdown-3.10.2.20260211 types-pyyaml-6.0.12.20250915 types-toml-0.10.8.20240310 typing_extensions-4.15.0 urllib3-2.6.3 virtualenv-21.1.0 watchdog-6.0.0
+2026-03-01T05:26:54.5418390Z ##[group]Run ruff check src
+2026-03-01T05:26:54.5418630Z [36;1mruff check src[0m
+2026-03-01T05:26:54.5418860Z [36;1mruff format --check src[0m
+2026-03-01T05:26:54.5419030Z [36;1mmypy src[0m
+2026-03-01T05:26:54.5470070Z shell: /bin/bash -e {0}
+2026-03-01T05:26:54.5470260Z env:
+2026-03-01T05:26:54.5470570Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:54.5470990Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.12.10/arm64/lib/pkgconfig
+2026-03-01T05:26:54.5471380Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:54.5471790Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:54.5472130Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.12.10/arm64
+2026-03-01T05:26:54.5472390Z ##[endgroup]
+2026-03-01T05:26:54.6624200Z PLR0911 Too many return statements (7 > 6)
+2026-03-01T05:26:54.6625200Z    --> src/docgenie/core.py:161:9
+2026-03-01T05:26:54.6625550Z     |
+2026-03-01T05:26:54.6625790Z 159 |         self.readme_readiness: dict[str, Any] = {}
+2026-03-01T05:26:54.6626070Z 160 |
+2026-03-01T05:26:54.6626320Z 161 |     def _skip_reason(self, path: Path, *, is_dir: bool) -> str | None:
+2026-03-01T05:26:54.6626610Z     |         ^^^^^^^^^^^^
+2026-03-01T05:26:54.6626950Z 162 |         """Return a skip reason string if path should be skipped, else None."""
+2026-03-01T05:26:54.6627240Z 163 |         try:
+2026-03-01T05:26:54.6627610Z     |
+2026-03-01T05:26:54.6627710Z 
+2026-03-01T05:26:54.6627760Z Found 1 error.
+2026-03-01T05:26:54.6642540Z ##[error]Process completed with exit code 1.
+2026-03-01T05:26:54.6732960Z Post job cleanup.
+2026-03-01T05:26:54.8965940Z [command]/opt/homebrew/bin/git version
+2026-03-01T05:26:54.9162340Z git version 2.53.0
+2026-03-01T05:26:54.9195900Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/ddf0dd15-ce59-41cd-a226-e95e0ce88dde/.gitconfig'
+2026-03-01T05:26:54.9206010Z Temporarily overriding HOME='/Users/runner/work/_temp/ddf0dd15-ce59-41cd-a226-e95e0ce88dde' before making global git config changes
+2026-03-01T05:26:54.9206740Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-01T05:26:54.9209460Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:26:54.9303500Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-01T05:26:54.9380830Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-01T05:26:55.0053150Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-01T05:26:55.0102090Z http.https://github.com/.extraheader
+2026-03-01T05:26:55.0110240Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-03-01T05:26:55.0166650Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-01T05:26:55.1044580Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-01T05:26:55.1109780Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-01T05:26:55.2079220Z Cleaning up orphan processes

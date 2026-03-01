@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-
 CONFIDENCE_ORDER = {"low": 0, "medium": 1, "high": 2}
+PASS_THRESHOLD = 80
+WARN_THRESHOLD = 60
 DEFAULT_REQUIRED_SECTIONS = [
     "#",
     "## Installation",
@@ -34,9 +35,7 @@ def evaluate_readme_readiness(
     confidence = str(analysis_data.get("confidence_level", "low")).lower()
     if CONFIDENCE_ORDER.get(confidence, 0) < CONFIDENCE_ORDER.get(min_confidence, 1):
         score -= 20
-        reasons.append(
-            f"Analysis confidence {confidence} is below minimum {min_confidence}"
-        )
+        reasons.append(f"Analysis confidence {confidence} is below minimum {min_confidence}")
 
     unresolved_outputs = [x for x in analysis_data.get("output_links", []) if not x.get("resolved")]
     if unresolved_outputs:
@@ -49,9 +48,9 @@ def evaluate_readme_readiness(
         reasons.append(f"{len(high_risk)} high-risk changed file(s)")
 
     score = max(0, min(score, 100))
-    if score >= 80:
+    if score >= PASS_THRESHOLD:
         status = "pass"
-    elif score >= 60:
+    elif score >= WARN_THRESHOLD:
         status = "warn"
     else:
         status = "fail"

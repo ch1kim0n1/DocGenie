@@ -47,7 +47,9 @@ def _print_summary(analysis_data: dict, target_formats: str) -> None:
         table.add_row("Repository", repo)
     readiness = analysis_data.get("readme_readiness", {})
     if readiness:
-        table.add_row("README readiness", f"{readiness.get('status')} ({readiness.get('score')}/100)")
+        status = readiness.get("status")
+        score = readiness.get("score")
+        table.add_row("README readiness", f"{status} ({score}/100)")
     console.print(table)
 
 
@@ -155,15 +157,22 @@ def _render_outputs(
     strict_readme: bool = False,
 ) -> None:
     quality_cfg = analysis_data.get("config", {}).get("quality", {})
-    required_sections = quality_cfg.get("required_sections", []) if isinstance(quality_cfg, dict) else []
-    min_confidence = str(quality_cfg.get("min_confidence", "medium")) if isinstance(quality_cfg, dict) else "medium"
+    required_sections = (
+        quality_cfg.get("required_sections", []) if isinstance(quality_cfg, dict) else []
+    )
+    min_confidence = (
+        str(quality_cfg.get("min_confidence", "medium"))
+        if isinstance(quality_cfg, dict)
+        else "medium"
+    )
 
+    req_sections = required_sections if isinstance(required_sections, list) else None
     if not analysis_data.get("readme_readiness"):
         preview_readme = ReadmeGenerator().generate(analysis_data, None)
         analysis_data["readme_readiness"] = evaluate_readme_readiness(
             preview_readme,
             analysis_data=analysis_data,
-            required_sections=required_sections if isinstance(required_sections, list) else None,
+            required_sections=req_sections,
             min_confidence=min_confidence,
         )
 
@@ -174,7 +183,7 @@ def _render_outputs(
             readiness = evaluate_readme_readiness(
                 initial_content,
                 analysis_data=analysis_data,
-                required_sections=required_sections if isinstance(required_sections, list) else None,
+                required_sections=req_sections,
                 min_confidence=min_confidence,
             )
             analysis_data["readme_readiness"] = readiness
@@ -342,15 +351,17 @@ def diff_command(
 
     typer.echo(f"Diff {summary.get('from_ref')} -> {summary.get('to_ref')}")
     totals = summary.get("totals", {})
-    typer.echo(
-        "Added: {added}, Modified: {modified}, Deleted: {deleted}, Renamed: {renamed}, Churn: {changes}".format(
-            added=totals.get("added", 0),
-            modified=totals.get("modified", 0),
-            deleted=totals.get("deleted", 0),
-            renamed=totals.get("renamed", 0),
-            changes=totals.get("changes", 0),
-        )
+    msg = (
+        "Added: {added}, Modified: {modified}, Deleted: {deleted}, "
+        "Renamed: {renamed}, Churn: {changes}"
+    ).format(
+        added=totals.get("added", 0),
+        modified=totals.get("modified", 0),
+        deleted=totals.get("deleted", 0),
+        renamed=totals.get("renamed", 0),
+        changes=totals.get("changes", 0),
     )
+    typer.echo(msg)
 
 
 @app.command("pr-summary")
@@ -369,7 +380,9 @@ def pr_summary_command(
         "review": {"enabled": True},
         "output_links": {"enabled": True},
     }
-    analysis_data = _run_analysis(path, ignore=[], tree_sitter=tree_sitter, verbose=False, config_overrides=config_overrides)
+    analysis_data = _run_analysis(
+        path, ignore=[], tree_sitter=tree_sitter, verbose=False, config_overrides=config_overrides
+    )
 
     if not analysis_data.get("readme_readiness"):
         readme_content = ReadmeGenerator().generate(analysis_data, None)
@@ -526,8 +539,8 @@ def index_stats(
     typer.echo(json.dumps(stats, indent=2, sort_keys=True))
 
 
-@app.command("diff")
-def diff_command(
+@app.command("diff-index")
+def diff_index_command(
     path: Path = typer.Argument(Path("."), exists=True, file_okay=False, resolve_path=True),
     since: str = typer.Option(..., "--since", help="Run ID or git ref"),
 ) -> None:

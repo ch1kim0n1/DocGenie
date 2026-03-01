@@ -16,9 +16,7 @@ try:
     from .redaction import redact_text
 except ModuleNotFoundError:  # pragma: no cover - optional in trimmed installs
 
-    def redact_text(
-        content: str, _mode: str = "strict", _patterns: list[str] | None = None
-    ) -> str:
+    def redact_text(content: str, _mode: str = "strict", _patterns: list[str] | None = None) -> str:
         return content
 
 
@@ -34,7 +32,7 @@ class HTMLGenerator:
             },
         )
 
-    def generate_from_readme(
+    def generate_from_readme(  # noqa: PLR0913
         self,
         readme_content: str,
         output_path: str | None = None,
@@ -340,14 +338,14 @@ function renderImpactGraph(svg, payload) {
     def _impact_graph_block(self, graph_data: dict[str, Any] | None) -> str:
         payload = json.dumps(graph_data or {"nodes": [], "edges": []}, sort_keys=True)
         return (
-            "<section class=\"impact-graph-card\">"
-            "<div class=\"impact-graph-header\"><h2>Impact Graph</h2></div>"
-            "<p class=\"impact-graph-hint\">Dependency and output-flow impact for changed files.</p>"
-            "<svg id=\"impact-graph\" aria-label=\"Impact graph\"></svg>"
-            "<div class=\"impact-graph-legend\">"
+            '<section class="impact-graph-card">'
+            '<div class="impact-graph-header"><h2>Impact Graph</h2></div>'
+            '<p class="impact-graph-hint">Dependency and output-flow impact for changed files.</p>'
+            '<svg id="impact-graph" aria-label="Impact graph"></svg>'
+            '<div class="impact-graph-legend">'
             "Blue: files, Teal: modules, Amber: output targets"
             "</div>"
-            f"<script id=\"impact-graph-data\" type=\"application/json\">{payload}</script>"
+            f'<script id="impact-graph-data" type="application/json">{payload}</script>'
             "</section>"
         )
 

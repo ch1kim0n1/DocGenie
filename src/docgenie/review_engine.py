@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 from typing import Any
 
-
 _DEFAULT_WEIGHTS = {"churn": 0.35, "complexity": 0.35, "surface": 0.30}
+RISK_HIGH = 0.7
+RISK_MEDIUM = 0.4
 
 
 def _risk_level(score: float) -> str:
-    if score >= 0.7:
+    if score >= RISK_HIGH:
         return "high"
-    if score >= 0.4:
+    if score >= RISK_MEDIUM:
         return "medium"
     return "low"
 
@@ -59,7 +59,8 @@ def build_reviews(
         grouped_files[item.get("folder", ".")].append(item)
 
     for folder, items in grouped_files.items():
-        for item in sorted(items, key=lambda i: i.get("churn", 0), reverse=True)[:max_files_per_folder]:
+        by_churn = sorted(items, key=lambda i: i.get("churn", 0), reverse=True)
+        for item in by_churn[:max_files_per_folder]:
             path = str(item.get("path", ""))
             churn = int(item.get("churn", 0))
             change_type = str(item.get("change_type", "M"))
@@ -108,12 +109,14 @@ def build_reviews(
     folder_reviews = []
     for folder, rollup in folder_rollups.items():
         top = sorted(rollup["top_risky_files"], key=lambda x: x["risk_score"], reverse=True)[:5]
-        folder_reviews.append({
-            "folder": folder,
-            "files_changed": rollup["files_changed"],
-            "risk_distribution": rollup["risk_distribution"],
-            "top_risky_files": top,
-        })
+        folder_reviews.append(
+            {
+                "folder": folder,
+                "files_changed": rollup["files_changed"],
+                "risk_distribution": rollup["risk_distribution"],
+                "top_risky_files": top,
+            }
+        )
 
     file_reviews.sort(key=lambda x: x["risk_score"], reverse=True)
     folder_reviews.sort(key=lambda x: x["files_changed"], reverse=True)

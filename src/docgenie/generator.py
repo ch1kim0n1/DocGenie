@@ -105,7 +105,6 @@ class ReadmeGenerator:
 
         quality_config = config.get("quality", {}) if isinstance(config, dict) else {}
         quality_enabled = bool(quality_config.get("confidence_enabled", True))
-        include_warnings = bool(quality_config.get("include_warnings", True))
         min_confidence = str(quality_config.get("min_confidence_for_api_docs", "low")).lower()
         quality = (
             self._build_quality_report(analysis_data)
@@ -586,7 +585,7 @@ class ReadmeGenerator:
             f"{item.get('source_file')}:{item.get('source_line')}" for item in output_links[:5]
         ]
         testing_sources = []
-        for key in structure.keys():
+        for key in structure:
             lowered = str(key).lower()
             if "test" in lowered or "spec" in lowered:
                 testing_sources.append(str(key))

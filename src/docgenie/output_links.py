@@ -8,7 +8,6 @@ from typing import Any
 
 from .utils import get_file_language, should_ignore_file
 
-
 PY_WRITE_RE = re.compile(r"open\((['\"])([^'\"]+)\1\s*,\s*(['\"])[wax][bt+]?\3")
 PY_PATH_WRITE_RE = re.compile(r"Path\((['\"])([^'\"]+)\1\)\.(write_text|write_bytes)\(")
 PY_OPEN_GENERIC_RE = re.compile(r"open\((.+?),\s*(['\"])[wax][bt+]?\2")
@@ -31,7 +30,7 @@ def _normalize_target(root: Path, source_file: Path, raw_target: str) -> tuple[s
     return rel.as_posix(), (root / rel).exists()
 
 
-def scan_output_links(
+def scan_output_links(  # noqa: PLR0912, PLR0915
     root_path: Path,
     *,
     ignore_patterns: list[str] | None = None,
@@ -62,7 +61,8 @@ def scan_output_links(
             confidence = "medium"
 
             if language == "python":
-                for regex, op_name in ((PY_WRITE_RE, "open-write"), (PY_PATH_WRITE_RE, "path-write")):
+                pairs = ((PY_WRITE_RE, "open-write"), (PY_PATH_WRITE_RE, "path-write"))
+                for regex, op_name in pairs:
                     m = regex.search(line)
                     if m:
                         raw_target = m.group(2)

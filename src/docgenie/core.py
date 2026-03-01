@@ -6,7 +6,6 @@ import hashlib
 import json
 import os
 import re
-import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -23,7 +22,14 @@ from .models import AnalysisResult
 from .output_links import scan_output_links
 from .parsers import ParserRegistry
 from .review_engine import build_reviews
-from .utils import extract_git_info, get_file_language, is_website_project, should_ignore_file
+from .utils import (
+    extract_git_info,
+    get_file_language,
+    is_path_ignored_by_gitignore,
+    is_website_project,
+    load_gitignore_spec,
+    should_ignore_file,
+)
 
 
 def _hash_file(path: Path) -> str:
@@ -151,6 +157,16 @@ class CodebaseAnalyzer:
         self.output_links: list[dict[str, Any]] = []
         self.readme_readiness: dict[str, Any] = {}
 
+    def _skip_reason(self, path: Path, *, is_dir: bool) -> str | None:
+        """Return a skip reason string if path should be skipped, else None."""
+        try:
+            rel = path.resolve().relative_to(self.root_path).as_posix()
+        except ValueError:
+            rel = path.as_posix()
+        if is_path_ignored_by_gitignore(rel, self.gitignore_spec, is_dir=is_dir):
+            return "gitignore"
+        if should_ignore_file(rel, self.ignore_patterns or None):
+            return "ignore_pattern"
         if (not is_dir) and self.max_file_size_kb is not None:
             try:
                 if path.stat().st_size > self.max_file_size_kb * 1024:
@@ -225,10 +241,8 @@ class CodebaseAnalyzer:
         return compiled.to_public_dict()
 
     def __del__(self) -> None:
-        try:
+        with suppress(Exception):
             self.index_store.close()
-        except Exception:
-            pass
 
     def _run_diff_and_review(self) -> None:
         diff_config = self.config.get("diff", {}) if isinstance(self.config, dict) else {}

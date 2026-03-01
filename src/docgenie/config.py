@@ -61,11 +61,6 @@ def get_default_config() -> dict[str, Any]:
             "per_package_docs": True,
             "package_output_dir": ".docgenie/packages",
         },
-        "quality": {
-            "confidence_enabled": True,
-            "include_warnings": True,
-            "min_confidence_for_api_docs": "low",
-        },
         "safety": {
             "redaction_mode": "strict",
             "redact_patterns": [],
@@ -94,6 +89,9 @@ def get_default_config() -> dict[str, Any]:
             "confidence_threshold": "low",
         },
         "quality": {
+            "confidence_enabled": True,
+            "include_warnings": True,
+            "min_confidence_for_api_docs": "low",
             "readme_replacement_gate": "advisory",
             "required_sections": [
                 "#",

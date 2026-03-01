@@ -100,7 +100,9 @@ class IndexStore:
             (time.time(), json.dumps(metrics or {}, sort_keys=True), run_id),
         )
 
-    def add_diff_run(self, run_id: int, from_ref: str | None, to_ref: str | None, summary: dict[str, Any]) -> None:
+    def add_diff_run(
+        self, run_id: int, from_ref: str | None, to_ref: str | None, summary: dict[str, Any]
+    ) -> None:
         self._conn.execute(
             "INSERT INTO diff_runs(run_id,from_ref,to_ref,summary_json) VALUES(?,?,?,?)",
             (run_id, from_ref, to_ref, json.dumps(summary, sort_keys=True)),
@@ -108,9 +110,13 @@ class IndexStore:
 
     def replace_file_reviews(self, run_id: int, reviews: list[dict[str, Any]]) -> None:
         self._conn.execute("DELETE FROM file_reviews WHERE run_id=?", (run_id,))
+        stmt = (
+            "INSERT INTO file_reviews(run_id,path,folder,risk_level,risk_score,review_json) "
+            "VALUES(?,?,?,?,?,?)"
+        )
         for review in reviews:
             self._conn.execute(
-                "INSERT INTO file_reviews(run_id,path,folder,risk_level,risk_score,review_json) VALUES(?,?,?,?,?,?)",
+                stmt,
                 (
                     run_id,
                     review.get("path", ""),

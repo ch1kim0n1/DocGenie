@@ -20,10 +20,12 @@ def render_pr_summary(analysis_data: dict[str, Any], *, max_files: int = 10) -> 
         reverse=True,
     )[:max_files]
 
+    from_ref = diff_summary.get("from_ref", "n/a")
+    to_ref = diff_summary.get("to_ref", "n/a")
     lines = [
         "## DocGenie PR Summary",
         "",
-        f"- Diff range: `{diff_summary.get('from_ref', 'n/a')}` -> `{diff_summary.get('to_ref', 'n/a')}`",
+        f"- Diff range: `{from_ref}` -> `{to_ref}`",
         (
             "- File changes: "
             f"added={totals.get('added', 0)}, modified={totals.get('modified', 0)}, "
@@ -33,25 +35,28 @@ def render_pr_summary(analysis_data: dict[str, Any], *, max_files: int = 10) -> 
     ]
 
     if readiness:
-        lines.append(
-            f"- README readiness: **{readiness.get('status', 'unknown')}** ({readiness.get('score', 0)}/100)"
-        )
+        status = readiness.get("status", "unknown")
+        score = readiness.get("score", 0)
+        lines.append(f"- README readiness: **{status}** ({score}/100)")
 
     lines.extend(["", "### Highest-Churn Files", ""])
     if top_changed:
         for item in top_changed:
-            lines.append(
-                f"- `{item.get('path')}` ({item.get('change_type')}) +{item.get('added_lines', 0)}/-{item.get('deleted_lines', 0)}"
-            )
+            p = item.get("path")
+            ct = item.get("change_type")
+            add = item.get("added_lines", 0)
+            dele = item.get("deleted_lines", 0)
+            lines.append(f"- `{p}` ({ct}) +{add}/-{dele}")
     else:
         lines.append("- No file-level churn data available.")
 
     lines.extend(["", "### High-Risk Files", ""])
     if high_risk:
         for item in high_risk:
-            lines.append(
-                f"- `{item.get('path')}` risk={item.get('risk_level')} score={item.get('risk_score')}"
-            )
+            p = item.get("path")
+            rl = item.get("risk_level")
+            rs = item.get("risk_score")
+            lines.append(f"- `{p}` risk={rl} score={rs}")
     else:
         lines.append("- No high-risk files detected.")
 
@@ -59,9 +64,10 @@ def render_pr_summary(analysis_data: dict[str, Any], *, max_files: int = 10) -> 
     if output_links:
         for item in output_links[:max_files]:
             target = item.get("target_file") or "unresolved"
-            lines.append(
-                f"- `{item.get('source_file')}:{item.get('source_line')}` -> `{target}` ({item.get('confidence')})"
-            )
+            src = item.get("source_file")
+            sl = item.get("source_line")
+            conf = item.get("confidence")
+            lines.append(f"- `{src}:{sl}` -> `{target}` ({conf})")
     else:
         lines.append("- No output links detected.")
 

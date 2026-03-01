@@ -11,6 +11,9 @@ from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Rep
 from .parsers import ParserRegistry
 from .utils import get_file_language
 
+MIN_TAGS_FOR_PREV = 2
+NUMSTAT_PARTS = 3
+
 
 _DIFF_UNAVAILABLE = {
     "available": False,
@@ -41,12 +44,12 @@ def _symbol_count(content: str, rel_path: str, parser_registry: ParserRegistry) 
 
 def _default_from_ref(repo: Repo) -> str:
     tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
-    if len(tags) >= 2:
+    if len(tags) >= MIN_TAGS_FOR_PREV:
         return str(tags[-2])
     return "HEAD~1"
 
 
-def compute_git_diff_summary(
+def compute_git_diff_summary(  # noqa: PLR0915
     root_path: Path,
     *,
     from_ref: str | None,
@@ -80,7 +83,7 @@ def compute_git_diff_summary(
     try:
         for line in repo.git.diff("--numstat", from_ref_resolved, to_ref).splitlines():
             parts = line.split("\t")
-            if len(parts) < 3:
+            if len(parts) < NUMSTAT_PARTS:
                 continue
             added_raw, deleted_raw, path_raw = parts[0], parts[1], parts[2]
             path = path_raw.split("=>")[-1].strip().replace("{", "").replace("}", "")

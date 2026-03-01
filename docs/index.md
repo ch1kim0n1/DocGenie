@@ -4,21 +4,21 @@
 
 ## Features
 
-- 🚀 **Multi-Language Support**: Python, JavaScript, TypeScript, Java, C++, Go, Rust, and more
-- 🎨 **Multiple Output Formats**: Markdown (README.md) and HTML documentation
-- 🧩 **Plugin Architecture**: Extensible parser system with tree-sitter support
-- ⚡ **High Performance**: Parallel processing and intelligent caching
-- 🔀 **Version Diffing**: Compare refs/tags and surface code/documentation deltas
-- 🧭 **Risk Reviews**: Folder and file-level risk scoring for changed files
-- 🔗 **Output Flow Links**: Detect and show source-to-output file relationships
-- 🕸️ **Impact Graph**: Interactive HTML graph for dependency/output impact
-- 🛡️ **Trust Badges**: Section-level confidence + source citations
-- 🧾 **PR Summary Mode**: Generate PR-ready markdown from diff/review data
-- 🔒 **Security First**: XSS protection, security scanning, automated dependency updates
-- 📊 **Rich CLI**: Beautiful terminal output with progress bars and tables
-- 🐍 **Python API**: Use DocGenie programmatically in your own tools
-- 🧪 **Well Tested**: 90%+ code coverage with comprehensive test suite
-- 📝 **Type Safe**: Full type hints with mypy strict mode
+- **Multi-Language Support**: Python, JavaScript, TypeScript, Java, C++, Go, Rust, and more
+- **Multiple Output Formats**: Markdown (README.md) and HTML documentation
+- **Plugin Architecture**: Extensible parser system with tree-sitter support
+- **High Performance**: Parallel processing and intelligent caching
+- **Version Diffing**: Compare refs/tags and surface code/documentation deltas
+- **Risk Reviews**: Folder and file-level risk scoring for changed files
+- **Output Flow Links**: Detect and show source-to-output file relationships
+- **Impact Graph**: Interactive HTML graph for dependency/output impact
+- **Trust Badges**: Section-level confidence and source citations
+- **PR Summary Mode**: Generate PR-ready markdown from diff/review data
+- **Security**: XSS protection, security scanning, automated dependency updates
+- **Rich CLI**: Terminal output with progress bars and tables
+- **Python API**: Use DocGenie programmatically in your own tools
+- **Tested**: High code coverage with a comprehensive test suite
+- **Type Safe**: Full type hints with mypy strict mode
 
 ## Quick Example
 
@@ -59,10 +59,10 @@ Traditional documentation tools are often limited to single languages or require
 
 ## Community
 
-- **GitHub**: [github.com/docgenie/docgenie](https://github.com/docgenie/docgenie)
-- **Issues**: Report bugs and request features
-- **Contributing**: We welcome contributions!
+- **Repository**: [github.com/ch1kim0n1/DocGenie](https://github.com/ch1kim0n1/DocGenie)
+- **Issues**: Report bugs and request features on GitHub
+- **Contributing**: Contributions are welcome; see the repository for guidelines
 
 ## License
 
-DocGenie is licensed under the MIT License. See [LICENSE](https://github.com/docgenie/docgenie/blob/main/LICENSE) for details.
+DocGenie is licensed under the MIT License. See the [LICENSE](https://github.com/ch1kim0n1/DocGenie/blob/main/LICENSE) file in the repository for details.

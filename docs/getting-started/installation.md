@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip package manager
 
 ## Basic Installation
@@ -34,8 +34,8 @@ This includes:
 If you want to contribute to DocGenie:
 
 ```bash
-git clone https://github.com/docgenie/docgenie.git
-cd docgenie
+git clone https://github.com/ch1kim0n1/DocGenie.git
+cd DocGenie
 pip install -e ".[dev]"
 ```
 

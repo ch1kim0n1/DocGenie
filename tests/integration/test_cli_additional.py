@@ -142,7 +142,7 @@ def test_generate_and_init_and_html_commands(tmp_path: Path, monkeypatch: pytest
     assert idx_stats.exit_code == 0
     idx_rebuild = runner.invoke(app, ["index", "rebuild", str(tmp_path)])
     assert idx_rebuild.exit_code == 0
-    diff_res = runner.invoke(app, ["diff", str(tmp_path), "--since", "1"])
+    diff_res = runner.invoke(app, ["diff-index", str(tmp_path), "--since", "1"])
     # may fail on first run depending on available runs but command should not crash
     assert diff_res.exit_code in {0, 1}
 

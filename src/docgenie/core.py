@@ -26,6 +26,7 @@ from .utils import (
     extract_git_info,
     get_file_language,
     is_path_ignored_by_gitignore,
+    is_probably_generated_file,
     is_website_project,
     load_gitignore_spec,
     should_ignore_file,
@@ -167,6 +168,16 @@ class CodebaseAnalyzer:
             return "gitignore"
         if should_ignore_file(rel, self.ignore_patterns or None):
             return "ignore_pattern"
+        if not self.include_hidden and any(
+            part.startswith(".") for part in Path(rel).parts if part not in ("", ".")
+        ):
+            return "hidden"
+        if (
+            not is_dir
+            and self.exclude_generated
+            and is_probably_generated_file(rel, self.generated_patterns or None)
+        ):
+            return "generated"
         if (not is_dir) and self.max_file_size_kb is not None:
             try:
                 if path.stat().st_size > self.max_file_size_kb * 1024:

@@ -99,6 +99,7 @@ class HTMLGenerator:
 </head>
 <body>
   <a class=\"skip-link\" href=\"#main-content\">Skip to main content</a>
+  <button type=\"button\" class=\"mobile-menu-btn\" aria-label=\"Toggle menu\"></button>
   <div class=\"layout\">
     <aside class=\"sidebar\" aria-label=\"Table of contents\">
       <div class=\"brand\">{safe_project_name}</div>
@@ -113,6 +114,7 @@ class HTMLGenerator:
       </header>
       {impact_block}
       <article class=\"markdown-content\">{content}</article>
+      <a href=\"#main-content\" class=\"back-to-top\" aria-label=\"Back to top\">Back to top</a>
     </main>
   </div>
   <script>{self._get_javascript()}</script>
@@ -265,6 +267,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   });
 });
 
+// TOC filter: filter table-of-contents by search term
 const filter = document.getElementById('toc-filter');
 if (filter) {
   filter.addEventListener('input', (event) => {

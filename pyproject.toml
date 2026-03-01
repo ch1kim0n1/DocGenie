@@ -4,13 +4,13 @@
 
  [project]
  name = "docgenie-cli"
- version = "1.1.0"
+ version = "1.1.5"
  description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
  readme = "README.md"
  license = { file = "LICENSE" }
- authors = [
-   { name = "DocGenie Team", email = "contact@docgenie.dev" },
- ]
+authors = [
+  { name = "ch1kim0n1", email = "vxk230059@utdallas.edu" },
+]
 requires-python = ">=3.10"
 dependencies = [
   "click>=8.1",

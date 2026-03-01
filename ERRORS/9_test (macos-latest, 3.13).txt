@@ -1,0 +1,659 @@
+﻿2026-03-01T05:11:32.0608050Z Current runner version: '2.331.0'
+2026-03-01T05:11:32.0622810Z ##[group]Runner Image Provisioner
+2026-03-01T05:11:32.0623300Z Hosted Compute Agent
+2026-03-01T05:11:32.0623640Z Version: 20260213.493
+2026-03-01T05:11:32.0624000Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-03-01T05:11:32.0624430Z Build Date: 2026-02-13T00:28:41Z
+2026-03-01T05:11:32.0624980Z Worker ID: {05890b35-8aff-424b-a1ee-f0686f8e5d6d}
+2026-03-01T05:11:32.0625400Z Azure Region: westus
+2026-03-01T05:11:32.0625720Z ##[endgroup]
+2026-03-01T05:11:32.0626550Z ##[group]Operating System
+2026-03-01T05:11:32.0626900Z macOS
+2026-03-01T05:11:32.0627160Z 15.7.4
+2026-03-01T05:11:32.0627430Z 24G517
+2026-03-01T05:11:32.0627690Z ##[endgroup]
+2026-03-01T05:11:32.0627990Z ##[group]Runner Image
+2026-03-01T05:11:32.0628300Z Image: macos-15-arm64
+2026-03-01T05:11:32.0628610Z Version: 20260224.0170.1
+2026-03-01T05:11:32.0629390Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20260224.0170/images/macos/macos-15-arm64-Readme.md
+2026-03-01T05:11:32.0630360Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20260224.0170
+2026-03-01T05:11:32.0630970Z ##[endgroup]
+2026-03-01T05:11:32.0631670Z ##[group]GITHUB_TOKEN Permissions
+2026-03-01T05:11:32.0632720Z Contents: read
+2026-03-01T05:11:32.0633010Z Metadata: read
+2026-03-01T05:11:32.0633300Z Packages: read
+2026-03-01T05:11:32.0633590Z ##[endgroup]
+2026-03-01T05:11:32.0635070Z Secret source: Actions
+2026-03-01T05:11:32.0635460Z Prepare workflow directory
+2026-03-01T05:11:32.0857930Z Prepare all required actions
+2026-03-01T05:11:32.0884480Z Getting action download info
+2026-03-01T05:11:32.5647860Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-03-01T05:11:32.8450830Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-03-01T05:11:33.1188770Z Complete job name: test (macos-latest, 3.13)
+2026-03-01T05:11:33.1655950Z ##[group]Run actions/checkout@v4
+2026-03-01T05:11:33.1656630Z with:
+2026-03-01T05:11:33.1656930Z   repository: ch1kim0n1/DocGenie
+2026-03-01T05:11:33.1657510Z   token: ***
+2026-03-01T05:11:33.1657780Z   ssh-strict: true
+2026-03-01T05:11:33.1658070Z   ssh-user: git
+2026-03-01T05:11:33.1658350Z   persist-credentials: true
+2026-03-01T05:11:33.1658670Z   clean: true
+2026-03-01T05:11:33.1658960Z   sparse-checkout-cone-mode: true
+2026-03-01T05:11:33.1659300Z   fetch-depth: 1
+2026-03-01T05:11:33.1659580Z   fetch-tags: false
+2026-03-01T05:11:33.1659870Z   show-progress: true
+2026-03-01T05:11:33.1660170Z   lfs: false
+2026-03-01T05:11:33.1660430Z   submodules: false
+2026-03-01T05:11:33.1660730Z   set-safe-directory: true
+2026-03-01T05:11:33.1661170Z ##[endgroup]
+2026-03-01T05:11:33.5205700Z Syncing repository: ch1kim0n1/DocGenie
+2026-03-01T05:11:33.5207000Z ##[group]Getting Git version info
+2026-03-01T05:11:33.5207480Z Working directory is '/Users/runner/work/DocGenie/DocGenie'
+2026-03-01T05:11:33.5208310Z [command]/opt/homebrew/bin/git version
+2026-03-01T05:11:33.5648000Z git version 2.53.0
+2026-03-01T05:11:33.5699620Z ##[endgroup]
+2026-03-01T05:11:33.5716340Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/b9028448-9942-46a0-aa67-d6bff59029e7/.gitconfig'
+2026-03-01T05:11:33.5724210Z Temporarily overriding HOME='/Users/runner/work/_temp/b9028448-9942-46a0-aa67-d6bff59029e7' before making global git config changes
+2026-03-01T05:11:33.5725160Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-01T05:11:33.5729660Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:11:33.5834950Z Deleting the contents of '/Users/runner/work/DocGenie/DocGenie'
+2026-03-01T05:11:33.5837600Z ##[group]Initializing the repository
+2026-03-01T05:11:33.5843150Z [command]/opt/homebrew/bin/git init /Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:11:33.6376850Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-03-01T05:11:33.6379820Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-03-01T05:11:33.6380700Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-03-01T05:11:33.6381400Z hint: call:
+2026-03-01T05:11:33.6381780Z hint:
+2026-03-01T05:11:33.6382840Z hint: 	git config --global init.defaultBranch <name>
+2026-03-01T05:11:33.6383380Z hint:
+2026-03-01T05:11:33.6383880Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-03-01T05:11:33.6384600Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-03-01T05:11:33.6385210Z hint:
+2026-03-01T05:11:33.6385870Z hint: 	git branch -m <name>
+2026-03-01T05:11:33.6386610Z hint:
+2026-03-01T05:11:33.6387250Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-03-01T05:11:33.6388210Z Initialized empty Git repository in /Users/runner/work/DocGenie/DocGenie/.git/
+2026-03-01T05:11:33.6389870Z [command]/opt/homebrew/bin/git remote add origin https://github.com/ch1kim0n1/DocGenie
+2026-03-01T05:11:33.6471180Z ##[endgroup]
+2026-03-01T05:11:33.6471760Z ##[group]Disabling automatic garbage collection
+2026-03-01T05:11:33.6474030Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-03-01T05:11:33.6536530Z ##[endgroup]
+2026-03-01T05:11:33.6537070Z ##[group]Setting up auth
+2026-03-01T05:11:33.6541980Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-01T05:11:33.6640400Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-01T05:11:33.8257910Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-01T05:11:33.8325900Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-01T05:11:33.9211390Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-01T05:11:33.9296800Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-01T05:11:34.0115040Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-03-01T05:11:34.0181110Z ##[endgroup]
+2026-03-01T05:11:34.0181760Z ##[group]Fetching the repository
+2026-03-01T05:11:34.0186360Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +66ce8f0aa9da1218540de6d3981b7d19e48968b7:refs/remotes/origin/nav-new-ui
+2026-03-01T05:11:34.4279080Z From https://github.com/ch1kim0n1/DocGenie
+2026-03-01T05:11:34.4305900Z  * [new ref]         66ce8f0aa9da1218540de6d3981b7d19e48968b7 -> origin/nav-new-ui
+2026-03-01T05:11:34.4385050Z ##[endgroup]
+2026-03-01T05:11:34.4385790Z ##[group]Determining the checkout info
+2026-03-01T05:11:34.4386500Z ##[endgroup]
+2026-03-01T05:11:34.4387160Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-03-01T05:11:34.4459590Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-03-01T05:11:34.4520340Z ##[group]Checking out the ref
+2026-03-01T05:11:34.4521890Z [command]/opt/homebrew/bin/git checkout --progress --force -B nav-new-ui refs/remotes/origin/nav-new-ui
+2026-03-01T05:11:34.4718590Z Switched to a new branch 'nav-new-ui'
+2026-03-01T05:11:34.4720620Z branch 'nav-new-ui' set up to track 'origin/nav-new-ui'.
+2026-03-01T05:11:34.4726000Z ##[endgroup]
+2026-03-01T05:11:34.4793430Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-03-01T05:11:34.4848390Z 66ce8f0aa9da1218540de6d3981b7d19e48968b7
+2026-03-01T05:11:34.5099070Z ##[group]Run actions/setup-python@v5
+2026-03-01T05:11:34.5099640Z with:
+2026-03-01T05:11:34.5099950Z   python-version: 3.13
+2026-03-01T05:11:34.5100560Z   check-latest: false
+2026-03-01T05:11:34.5101340Z   token: ***
+2026-03-01T05:11:34.5101690Z   update-environment: true
+2026-03-01T05:11:34.5102120Z   allow-prereleases: false
+2026-03-01T05:11:34.5102550Z   freethreaded: false
+2026-03-01T05:11:34.5102920Z ##[endgroup]
+2026-03-01T05:11:34.6441320Z ##[group]Installed versions
+2026-03-01T05:11:34.6526740Z Successfully set up CPython (3.13.12)
+2026-03-01T05:11:34.6528010Z ##[endgroup]
+2026-03-01T05:11:34.6620320Z ##[group]Run python -m pip install --upgrade pip
+2026-03-01T05:11:34.6621100Z [36;1mpython -m pip install --upgrade pip[0m
+2026-03-01T05:11:34.6621790Z [36;1mpip install -e .[dev][0m
+2026-03-01T05:11:34.6673730Z shell: /bin/bash -e {0}
+2026-03-01T05:11:34.6674210Z env:
+2026-03-01T05:11:34.6674790Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:34.6675880Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.13.12/arm64/lib/pkgconfig
+2026-03-01T05:11:34.6676960Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:34.6677980Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:34.6678930Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:34.6679670Z ##[endgroup]
+2026-03-01T05:11:35.8670350Z Requirement already satisfied: pip in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (26.0.1)
+2026-03-01T05:11:36.2547010Z Obtaining file:///Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:11:36.2563730Z   Installing build dependencies: started
+2026-03-01T05:11:36.8546350Z   Installing build dependencies: finished with status 'done'
+2026-03-01T05:11:36.8553180Z   Checking if build backend supports build_editable: started
+2026-03-01T05:11:36.8922180Z   Checking if build backend supports build_editable: finished with status 'done'
+2026-03-01T05:11:36.8929440Z   Getting requirements to build editable: started
+2026-03-01T05:11:37.0136790Z   Getting requirements to build editable: finished with status 'done'
+2026-03-01T05:11:37.0150790Z   Installing backend dependencies: started
+2026-03-01T05:11:37.3847440Z   Installing backend dependencies: finished with status 'done'
+2026-03-01T05:11:37.3855850Z   Preparing editable metadata (pyproject.toml): started
+2026-03-01T05:11:37.4987200Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+2026-03-01T05:11:37.5488140Z Collecting click>=8.1 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.5760040Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+2026-03-01T05:11:37.5928910Z Collecting gitpython>=3.1 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.5973140Z   Downloading gitpython-3.1.46-py3-none-any.whl.metadata (13 kB)
+2026-03-01T05:11:37.6153800Z Collecting jinja2>=3.1 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.6198980Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-03-01T05:11:37.6417790Z Collecting markdown>=3.3 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.6472110Z   Downloading markdown-3.10.2-py3-none-any.whl.metadata (5.1 kB)
+2026-03-01T05:11:37.6587540Z Collecting pathspec>=0.9 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.6623050Z   Using cached pathspec-1.0.4-py3-none-any.whl.metadata (13 kB)
+2026-03-01T05:11:37.6729500Z Collecting pygments>=2.10 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.6823890Z   Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+2026-03-01T05:11:37.7058660Z Collecting pyyaml>=6.0 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.7099800Z   Downloading pyyaml-6.0.3-cp313-cp313-macosx_11_0_arm64.whl.metadata (2.4 kB)
+2026-03-01T05:11:37.7283680Z Collecting requests>=2.25 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.7324730Z   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+2026-03-01T05:11:37.7633210Z Collecting rich>=13.7 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.7683110Z   Downloading rich-14.3.3-py3-none-any.whl.metadata (18 kB)
+2026-03-01T05:11:37.7836210Z Collecting structlog>=24.1 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.7885320Z   Downloading structlog-25.5.0-py3-none-any.whl.metadata (9.5 kB)
+2026-03-01T05:11:37.8036160Z Collecting toml>=0.10 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.8074640Z   Downloading toml-0.10.2-py2.py3-none-any.whl.metadata (7.1 kB)
+2026-03-01T05:11:37.8281360Z Collecting tree-sitter-language-pack>=0.13.0 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.8342510Z   Downloading tree_sitter_language_pack-0.13.0-cp310-abi3-macosx_10_15_universal2.whl.metadata (19 kB)
+2026-03-01T05:11:37.8532020Z Collecting typer>=0.12 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.8621400Z   Downloading typer-0.24.1-py3-none-any.whl.metadata (16 kB)
+2026-03-01T05:11:37.8751740Z Collecting bandit>=1.7 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:37.8785000Z   Downloading bandit-1.9.4-py3-none-any.whl.metadata (7.1 kB)
+2026-03-01T05:11:38.0042790Z Collecting hypothesis>=6.0 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.0082840Z   Downloading hypothesis-6.151.9-py3-none-any.whl.metadata (5.6 kB)
+2026-03-01T05:11:38.0679590Z Collecting mkdocs-material>=9.5 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.0721740Z   Downloading mkdocs_material-9.7.3-py3-none-any.whl.metadata (19 kB)
+2026-03-01T05:11:38.1016350Z Collecting mkdocs>=1.5 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.1051350Z   Downloading mkdocs-1.6.1-py3-none-any.whl.metadata (6.0 kB)
+2026-03-01T05:11:38.1303230Z Collecting mkdocstrings>=0.24 (from mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.1385250Z   Downloading mkdocstrings-1.0.3-py3-none-any.whl.metadata (15 kB)
+2026-03-01T05:11:38.2030750Z Collecting mypy>=1.10 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.2071300Z   Downloading mypy-1.19.1-cp313-cp313-macosx_11_0_arm64.whl.metadata (2.2 kB)
+2026-03-01T05:11:38.2341110Z Collecting pre-commit>=3.6 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.2370700Z   Downloading pre_commit-4.5.1-py2.py3-none-any.whl.metadata (1.2 kB)
+2026-03-01T05:11:38.2550690Z Collecting pytest-cov>=4.0 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.2580000Z   Downloading pytest_cov-7.0.0-py3-none-any.whl.metadata (31 kB)
+2026-03-01T05:11:38.2792270Z Collecting pytest>=8.0 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.2821090Z   Downloading pytest-9.0.2-py3-none-any.whl.metadata (7.6 kB)
+2026-03-01T05:11:38.4514830Z Collecting ruff>=0.6 (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.4557970Z   Downloading ruff-0.15.4-py3-none-macosx_11_0_arm64.whl.metadata (26 kB)
+2026-03-01T05:11:38.4723530Z Collecting types-markdown (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.4775380Z   Downloading types_markdown-3.10.2.20260211-py3-none-any.whl.metadata (1.8 kB)
+2026-03-01T05:11:38.4925260Z Collecting types-pyyaml (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.4964270Z   Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl.metadata (1.7 kB)
+2026-03-01T05:11:38.5102300Z Collecting types-toml (from docgenie-cli==1.1.0)
+2026-03-01T05:11:38.5151970Z   Downloading types_toml-0.10.8.20240310-py3-none-any.whl.metadata (1.5 kB)
+2026-03-01T05:11:38.5316920Z Collecting stevedore>=1.20.0 (from bandit>=1.7->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.5348470Z   Downloading stevedore-5.7.0-py3-none-any.whl.metadata (2.4 kB)
+2026-03-01T05:11:38.5464280Z Collecting gitdb<5,>=4.0.1 (from gitpython>=3.1->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.5502140Z   Downloading gitdb-4.0.12-py3-none-any.whl.metadata (1.2 kB)
+2026-03-01T05:11:38.5610040Z Collecting smmap<6,>=3.0.1 (from gitdb<5,>=4.0.1->gitpython>=3.1->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.5644310Z   Downloading smmap-5.0.2-py3-none-any.whl.metadata (4.3 kB)
+2026-03-01T05:11:38.5780520Z Collecting sortedcontainers<3.0.0,>=2.1.0 (from hypothesis>=6.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.5810640Z   Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+2026-03-01T05:11:38.6119180Z Collecting MarkupSafe>=2.0 (from jinja2>=3.1->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.6152150Z   Downloading markupsafe-3.0.3-cp313-cp313-macosx_11_0_arm64.whl.metadata (2.7 kB)
+2026-03-01T05:11:38.6379000Z Collecting ghp-import>=1.0 (from mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.6405170Z   Downloading ghp_import-2.1.0-py3-none-any.whl.metadata (7.2 kB)
+2026-03-01T05:11:38.6517290Z Collecting mergedeep>=1.3.4 (from mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.6549800Z   Downloading mergedeep-1.3.4-py3-none-any.whl.metadata (4.3 kB)
+2026-03-01T05:11:38.7305240Z Collecting mkdocs-get-deps>=0.2.0 (from mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.7344500Z   Downloading mkdocs_get_deps-0.2.0-py3-none-any.whl.metadata (4.0 kB)
+2026-03-01T05:11:38.7649640Z Collecting packaging>=20.5 (from mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.7660260Z   Using cached packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+2026-03-01T05:11:38.8546920Z Collecting pyyaml-env-tag>=0.1 (from mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.8580640Z   Downloading pyyaml_env_tag-1.1-py3-none-any.whl.metadata (5.5 kB)
+2026-03-01T05:11:38.8880220Z Collecting watchdog>=2.0 (from mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.8935460Z   Downloading watchdog-6.0.0-cp313-cp313-macosx_11_0_arm64.whl.metadata (44 kB)
+2026-03-01T05:11:38.9083970Z Collecting python-dateutil>=2.8.1 (from ghp-import>=1.0->mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.9112360Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-03-01T05:11:38.9309930Z Collecting platformdirs>=2.2.0 (from mkdocs-get-deps>=0.2.0->mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.9342150Z   Downloading platformdirs-4.9.2-py3-none-any.whl.metadata (4.7 kB)
+2026-03-01T05:11:38.9500890Z Collecting babel>=2.10 (from mkdocs-material>=9.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.9535660Z   Downloading babel-2.18.0-py3-none-any.whl.metadata (2.2 kB)
+2026-03-01T05:11:38.9734480Z Collecting backrefs>=5.7.post1 (from mkdocs-material>=9.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:38.9785300Z   Downloading backrefs-6.2-py313-none-any.whl.metadata (3.0 kB)
+2026-03-01T05:11:39.0138420Z Collecting colorama>=0.4 (from mkdocs-material>=9.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.0174380Z   Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+2026-03-01T05:11:39.0768070Z Collecting mkdocs-material-extensions>=1.3 (from mkdocs-material>=9.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.1036980Z   Downloading mkdocs_material_extensions-1.3.1-py3-none-any.whl.metadata (6.9 kB)
+2026-03-01T05:11:39.1328820Z Collecting paginate>=0.5 (from mkdocs-material>=9.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.1398210Z   Downloading paginate-0.5.7-py2.py3-none-any.whl.metadata (11 kB)
+2026-03-01T05:11:39.1721400Z Collecting pymdown-extensions>=10.2 (from mkdocs-material>=9.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.1784090Z   Downloading pymdown_extensions-10.21-py3-none-any.whl.metadata (3.1 kB)
+2026-03-01T05:11:39.2087850Z Collecting mkdocs-autorefs>=1.4 (from mkdocstrings>=0.24->mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.2122230Z   Downloading mkdocs_autorefs-1.4.4-py3-none-any.whl.metadata (14 kB)
+2026-03-01T05:11:39.2350050Z Collecting mkdocstrings-python>=1.16.2 (from mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.2554920Z   Downloading mkdocstrings_python-2.0.3-py3-none-any.whl.metadata (12 kB)
+2026-03-01T05:11:39.2728430Z Collecting griffelib>=2.0 (from mkdocstrings-python>=1.16.2->mkdocstrings[python]>=0.24; extra == "dev"->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.2916780Z   Downloading griffelib-2.0.0-py3-none-any.whl.metadata (1.3 kB)
+2026-03-01T05:11:39.3091350Z Collecting typing_extensions>=4.6.0 (from mypy>=1.10->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.3203060Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2026-03-01T05:11:39.3329590Z Collecting mypy_extensions>=1.0.0 (from mypy>=1.10->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.3440140Z   Downloading mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+2026-03-01T05:11:39.3974020Z Collecting librt>=0.6.2 (from mypy>=1.10->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.4053580Z   Downloading librt-0.8.1-cp313-cp313-macosx_11_0_arm64.whl.metadata (1.3 kB)
+2026-03-01T05:11:39.4224840Z Collecting cfgv>=2.0.0 (from pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.4283410Z   Downloading cfgv-3.5.0-py2.py3-none-any.whl.metadata (8.9 kB)
+2026-03-01T05:11:39.4803020Z Collecting identify>=1.0.0 (from pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.4834310Z   Downloading identify-2.6.16-py2.py3-none-any.whl.metadata (4.4 kB)
+2026-03-01T05:11:39.4959450Z Collecting nodeenv>=0.11.1 (from pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.5002360Z   Downloading nodeenv-1.10.0-py2.py3-none-any.whl.metadata (24 kB)
+2026-03-01T05:11:39.5339980Z Collecting virtualenv>=20.10.0 (from pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.5372380Z   Downloading virtualenv-21.1.0-py3-none-any.whl.metadata (3.5 kB)
+2026-03-01T05:11:39.5490060Z Collecting iniconfig>=1.0.1 (from pytest>=8.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.5615420Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+2026-03-01T05:11:39.5715440Z Collecting pluggy<2,>=1.5 (from pytest>=8.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.5725750Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+2026-03-01T05:11:39.7524090Z Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov>=4.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.7587810Z   Downloading coverage-7.13.4-cp313-cp313-macosx_11_0_arm64.whl.metadata (8.5 kB)
+2026-03-01T05:11:39.7761040Z Collecting six>=1.5 (from python-dateutil>=2.8.1->ghp-import>=1.0->mkdocs>=1.5->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.7843560Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-03-01T05:11:39.8288040Z Collecting charset_normalizer<4,>=2 (from requests>=2.25->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.8329640Z   Downloading charset_normalizer-3.4.4-cp313-cp313-macosx_10_13_universal2.whl.metadata (37 kB)
+2026-03-01T05:11:39.8464640Z Collecting idna<4,>=2.5 (from requests>=2.25->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.8494520Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+2026-03-01T05:11:39.8641530Z Collecting urllib3<3,>=1.21.1 (from requests>=2.25->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.8767350Z   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+2026-03-01T05:11:39.8813710Z Requirement already satisfied: certifi>=2017.4.17 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from requests>=2.25->docgenie-cli==1.1.0) (2026.1.4)
+2026-03-01T05:11:39.8910300Z Collecting markdown-it-py>=2.2.0 (from rich>=13.7->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.9012250Z   Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+2026-03-01T05:11:39.9130370Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.7->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.9172480Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+2026-03-01T05:11:39.9464520Z Collecting tree-sitter>=0.25.2 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.9535920Z   Downloading tree_sitter-0.25.2-cp313-cp313-macosx_11_0_arm64.whl.metadata (10.0 kB)
+2026-03-01T05:11:39.9688760Z Collecting tree-sitter-c-sharp>=0.23.1 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.9821120Z   Downloading tree_sitter_c_sharp-0.23.1-cp39-abi3-macosx_11_0_arm64.whl.metadata (2.7 kB)
+2026-03-01T05:11:39.9943410Z Collecting tree-sitter-embedded-template>=0.25.0 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:39.9985120Z   Downloading tree_sitter_embedded_template-0.25.0-cp310-abi3-macosx_11_0_arm64.whl.metadata (2.3 kB)
+2026-03-01T05:11:40.0093030Z Collecting tree-sitter-yaml>=0.7.2 (from tree-sitter-language-pack>=0.13.0->docgenie-cli==1.1.0)
+2026-03-01T05:11:40.0149070Z   Downloading tree_sitter_yaml-0.7.2-cp310-abi3-macosx_11_0_arm64.whl.metadata (1.8 kB)
+2026-03-01T05:11:40.0273990Z Collecting shellingham>=1.3.0 (from typer>=0.12->docgenie-cli==1.1.0)
+2026-03-01T05:11:40.0306090Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-03-01T05:11:40.0414480Z Collecting annotated-doc>=0.0.2 (from typer>=0.12->docgenie-cli==1.1.0)
+2026-03-01T05:11:40.0456250Z   Downloading annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+2026-03-01T05:11:40.0562490Z Collecting distlib<1,>=0.3.7 (from virtualenv>=20.10.0->pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:40.0595030Z   Downloading distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
+2026-03-01T05:11:40.0722730Z Collecting filelock<4,>=3.24.2 (from virtualenv>=20.10.0->pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:40.0799660Z   Downloading filelock-3.24.3-py3-none-any.whl.metadata (2.0 kB)
+2026-03-01T05:11:40.0902040Z Collecting python-discovery>=1 (from virtualenv>=20.10.0->pre-commit>=3.6->docgenie-cli==1.1.0)
+2026-03-01T05:11:40.0935170Z   Downloading python_discovery-1.1.0-py3-none-any.whl.metadata (4.0 kB)
+2026-03-01T05:11:40.1059080Z Downloading bandit-1.9.4-py3-none-any.whl (134 kB)
+2026-03-01T05:11:40.1139870Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+2026-03-01T05:11:40.1219070Z Downloading gitpython-3.1.46-py3-none-any.whl (208 kB)
+2026-03-01T05:11:40.1280500Z Downloading gitdb-4.0.12-py3-none-any.whl (62 kB)
+2026-03-01T05:11:40.1345850Z Downloading smmap-5.0.2-py3-none-any.whl (24 kB)
+2026-03-01T05:11:40.1430300Z Downloading hypothesis-6.151.9-py3-none-any.whl (529 kB)
+2026-03-01T05:11:40.1508060Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 529.3/529.3 kB 63.8 MB/s  0:00:00
+2026-03-01T05:11:40.1538010Z Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+2026-03-01T05:11:40.1589750Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+2026-03-01T05:11:40.1665500Z Downloading markdown-3.10.2-py3-none-any.whl (108 kB)
+2026-03-01T05:11:40.1747230Z Downloading markupsafe-3.0.3-cp313-cp313-macosx_11_0_arm64.whl (12 kB)
+2026-03-01T05:11:40.1853740Z Downloading mkdocs-1.6.1-py3-none-any.whl (3.9 MB)
+2026-03-01T05:11:40.2145730Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.9/3.9 MB 154.0 MB/s  0:00:00
+2026-03-01T05:11:40.2192210Z Downloading ghp_import-2.1.0-py3-none-any.whl (11 kB)
+2026-03-01T05:11:40.2254040Z Downloading mergedeep-1.3.4-py3-none-any.whl (6.4 kB)
+2026-03-01T05:11:40.2309510Z Downloading mkdocs_get_deps-0.2.0-py3-none-any.whl (9.5 kB)
+2026-03-01T05:11:40.2361650Z Downloading mkdocs_material-9.7.3-py3-none-any.whl (9.3 MB)
+2026-03-01T05:11:40.3150580Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.3/9.3 MB 121.0 MB/s  0:00:00
+2026-03-01T05:11:40.3203940Z Downloading babel-2.18.0-py3-none-any.whl (10.2 MB)
+2026-03-01T05:11:40.3712320Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 205.1 MB/s  0:00:00
+2026-03-01T05:11:40.3796800Z Downloading backrefs-6.2-py313-none-any.whl (400 kB)
+2026-03-01T05:11:40.3887260Z Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+2026-03-01T05:11:40.3964010Z Downloading mkdocs_material_extensions-1.3.1-py3-none-any.whl (8.7 kB)
+2026-03-01T05:11:40.4038360Z Downloading mkdocstrings-1.0.3-py3-none-any.whl (35 kB)
+2026-03-01T05:11:40.4103400Z Downloading mkdocs_autorefs-1.4.4-py3-none-any.whl (25 kB)
+2026-03-01T05:11:40.4188700Z Downloading mkdocstrings_python-2.0.3-py3-none-any.whl (104 kB)
+2026-03-01T05:11:40.4254830Z Downloading griffelib-2.0.0-py3-none-any.whl (142 kB)
+2026-03-01T05:11:40.4374380Z Downloading mypy-1.19.1-cp313-cp313-macosx_11_0_arm64.whl (12.2 MB)
+2026-03-01T05:11:40.5968460Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.2/12.2 MB 75.8 MB/s  0:00:00
+2026-03-01T05:11:40.6035750Z Downloading librt-0.8.1-cp313-cp313-macosx_11_0_arm64.whl (68 kB)
+2026-03-01T05:11:40.6187380Z Downloading mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+2026-03-01T05:11:40.6223370Z Using cached packaging-26.0-py3-none-any.whl (74 kB)
+2026-03-01T05:11:40.6260480Z Downloading paginate-0.5.7-py2.py3-none-any.whl (13 kB)
+2026-03-01T05:11:40.6295430Z Using cached pathspec-1.0.4-py3-none-any.whl (55 kB)
+2026-03-01T05:11:40.6344130Z Downloading platformdirs-4.9.2-py3-none-any.whl (21 kB)
+2026-03-01T05:11:40.6412660Z Downloading pre_commit-4.5.1-py2.py3-none-any.whl (226 kB)
+2026-03-01T05:11:40.6486870Z Downloading cfgv-3.5.0-py2.py3-none-any.whl (7.4 kB)
+2026-03-01T05:11:40.6571150Z Downloading identify-2.6.16-py2.py3-none-any.whl (99 kB)
+2026-03-01T05:11:40.6642260Z Downloading nodeenv-1.10.0-py2.py3-none-any.whl (23 kB)
+2026-03-01T05:11:40.6700300Z Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+2026-03-01T05:11:40.6771690Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 166.4 MB/s  0:00:00
+2026-03-01T05:11:40.6805450Z Downloading pymdown_extensions-10.21-py3-none-any.whl (268 kB)
+2026-03-01T05:11:40.6904840Z Downloading pytest-9.0.2-py3-none-any.whl (374 kB)
+2026-03-01T05:11:40.6951140Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+2026-03-01T05:11:40.6984340Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+2026-03-01T05:11:40.7044400Z Downloading pytest_cov-7.0.0-py3-none-any.whl (22 kB)
+2026-03-01T05:11:40.7121680Z Downloading coverage-7.13.4-cp313-cp313-macosx_11_0_arm64.whl (219 kB)
+2026-03-01T05:11:40.7229680Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2026-03-01T05:11:40.7338440Z Downloading pyyaml-6.0.3-cp313-cp313-macosx_11_0_arm64.whl (173 kB)
+2026-03-01T05:11:40.7407760Z Downloading pyyaml_env_tag-1.1-py3-none-any.whl (4.7 kB)
+2026-03-01T05:11:40.7457540Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+2026-03-01T05:11:40.7614080Z Downloading charset_normalizer-3.4.4-cp313-cp313-macosx_10_13_universal2.whl (208 kB)
+2026-03-01T05:11:40.7718340Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+2026-03-01T05:11:40.7786500Z Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+2026-03-01T05:11:40.7840870Z Downloading rich-14.3.3-py3-none-any.whl (310 kB)
+2026-03-01T05:11:40.7912480Z Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+2026-03-01T05:11:40.7969110Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+2026-03-01T05:11:40.8029830Z Downloading ruff-0.15.4-py3-none-macosx_11_0_arm64.whl (10.2 MB)
+2026-03-01T05:11:40.8754020Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 149.6 MB/s  0:00:00
+2026-03-01T05:11:40.8824720Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-03-01T05:11:40.8883120Z Downloading stevedore-5.7.0-py3-none-any.whl (54 kB)
+2026-03-01T05:11:40.8943920Z Downloading structlog-25.5.0-py3-none-any.whl (72 kB)
+2026-03-01T05:11:40.9023840Z Downloading toml-0.10.2-py2.py3-none-any.whl (16 kB)
+2026-03-01T05:11:40.9108300Z Downloading tree_sitter_language_pack-0.13.0-cp310-abi3-macosx_10_15_universal2.whl (33.0 MB)
+2026-03-01T05:11:41.4204600Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 33.0/33.0 MB 64.8 MB/s  0:00:00
+2026-03-01T05:11:41.4297640Z Downloading tree_sitter-0.25.2-cp313-cp313-macosx_11_0_arm64.whl (137 kB)
+2026-03-01T05:11:41.4468440Z Downloading tree_sitter_c_sharp-0.23.1-cp39-abi3-macosx_11_0_arm64.whl (419 kB)
+2026-03-01T05:11:41.4561740Z Downloading tree_sitter_embedded_template-0.25.0-cp310-abi3-macosx_11_0_arm64.whl (10 kB)
+2026-03-01T05:11:41.4684440Z Downloading tree_sitter_yaml-0.7.2-cp310-abi3-macosx_11_0_arm64.whl (44 kB)
+2026-03-01T05:11:41.4738750Z Downloading typer-0.24.1-py3-none-any.whl (56 kB)
+2026-03-01T05:11:41.4867410Z Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+2026-03-01T05:11:41.4968960Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+2026-03-01T05:11:41.5002210Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2026-03-01T05:11:41.5084410Z Downloading virtualenv-21.1.0-py3-none-any.whl (5.8 MB)
+2026-03-01T05:11:41.5355780Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/5.8 MB 217.9 MB/s  0:00:00
+2026-03-01T05:11:41.5395010Z Downloading distlib-0.4.0-py2.py3-none-any.whl (469 kB)
+2026-03-01T05:11:41.5464170Z Downloading filelock-3.24.3-py3-none-any.whl (24 kB)
+2026-03-01T05:11:41.5517910Z Downloading python_discovery-1.1.0-py3-none-any.whl (30 kB)
+2026-03-01T05:11:41.5593100Z Downloading watchdog-6.0.0-cp313-cp313-macosx_11_0_arm64.whl (89 kB)
+2026-03-01T05:11:41.5673870Z Downloading types_markdown-3.10.2.20260211-py3-none-any.whl (25 kB)
+2026-03-01T05:11:41.5761700Z Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl (20 kB)
+2026-03-01T05:11:41.5810280Z Downloading types_toml-0.10.8.20240310-py3-none-any.whl (4.8 kB)
+2026-03-01T05:11:41.6971990Z Building wheels for collected packages: docgenie-cli
+2026-03-01T05:11:41.6978650Z   Building editable for docgenie-cli (pyproject.toml): started
+2026-03-01T05:11:41.7354170Z   Building editable for docgenie-cli (pyproject.toml): finished with status 'done'
+2026-03-01T05:11:41.7364200Z   Created wheel for docgenie-cli: filename=docgenie_cli-1.1.0-py3-none-any.whl size=5581 sha256=fbe4025352952a32af2ac1ab0078b27f94b754acaa7fb2a776513bfc6d4c799a
+2026-03-01T05:11:41.7365340Z   Stored in directory: /private/var/folders/q_/pk8v8g4n3qq2gcnsvqjc3sd40000gn/T/pip-ephem-wheel-cache-0psdh6ht/wheels/27/47/3f/ce187ad521639e65095d5be7cf6482dd2644c3e2a953a71f37
+2026-03-01T05:11:41.7385620Z Successfully built docgenie-cli
+2026-03-01T05:11:41.8411900Z Installing collected packages: sortedcontainers, paginate, distlib, watchdog, urllib3, typing_extensions, types-toml, types-pyyaml, types-markdown, tree-sitter-yaml, tree-sitter-embedded-template, tree-sitter-c-sharp, tree-sitter, toml, structlog, stevedore, smmap, six, shellingham, ruff, pyyaml, pygments, pluggy, platformdirs, pathspec, packaging, nodeenv, mypy_extensions, mkdocs-material-extensions, mergedeep, mdurl, MarkupSafe, markdown, librt, iniconfig, idna, identify, hypothesis, griffelib, filelock, coverage, colorama, click, charset_normalizer, cfgv, backrefs, babel, annotated-doc, tree-sitter-language-pack, requests, pyyaml-env-tag, python-discovery, python-dateutil, pytest, pymdown-extensions, mypy, mkdocs-get-deps, markdown-it-py, jinja2, gitdb, virtualenv, rich, pytest-cov, gitpython, ghp-import, typer, pre-commit, mkdocs, bandit, mkdocs-material, mkdocs-autorefs, docgenie-cli, mkdocstrings, mkdocstrings-python
+2026-03-01T05:11:48.6868080Z 
+2026-03-01T05:11:48.6922820Z Successfully installed MarkupSafe-3.0.3 annotated-doc-0.0.4 babel-2.18.0 backrefs-6.2 bandit-1.9.4 cfgv-3.5.0 charset_normalizer-3.4.4 click-8.3.1 colorama-0.4.6 coverage-7.13.4 distlib-0.4.0 docgenie-cli-1.1.0 filelock-3.24.3 ghp-import-2.1.0 gitdb-4.0.12 gitpython-3.1.46 griffelib-2.0.0 hypothesis-6.151.9 identify-2.6.16 idna-3.11 iniconfig-2.3.0 jinja2-3.1.6 librt-0.8.1 markdown-3.10.2 markdown-it-py-4.0.0 mdurl-0.1.2 mergedeep-1.3.4 mkdocs-1.6.1 mkdocs-autorefs-1.4.4 mkdocs-get-deps-0.2.0 mkdocs-material-9.7.3 mkdocs-material-extensions-1.3.1 mkdocstrings-1.0.3 mkdocstrings-python-2.0.3 mypy-1.19.1 mypy_extensions-1.1.0 nodeenv-1.10.0 packaging-26.0 paginate-0.5.7 pathspec-1.0.4 platformdirs-4.9.2 pluggy-1.6.0 pre-commit-4.5.1 pygments-2.19.2 pymdown-extensions-10.21 pytest-9.0.2 pytest-cov-7.0.0 python-dateutil-2.9.0.post0 python-discovery-1.1.0 pyyaml-6.0.3 pyyaml-env-tag-1.1 requests-2.32.5 rich-14.3.3 ruff-0.15.4 shellingham-1.5.4 six-1.17.0 smmap-5.0.2 sortedcontainers-2.4.0 stevedore-5.7.0 structlog-25.5.0 toml-0.10.2 tree-sitter-0.25.2 tree-sitter-c-sharp-0.23.1 tree-sitter-embedded-template-0.25.0 tree-sitter-language-pack-0.13.0 tree-sitter-yaml-0.7.2 typer-0.24.1 types-markdown-3.10.2.20260211 types-pyyaml-6.0.12.20250915 types-toml-0.10.8.20240310 typing_extensions-4.15.0 urllib3-2.6.3 virtualenv-21.1.0 watchdog-6.0.0
+2026-03-01T05:11:49.0300300Z ##[group]Run ruff check src
+2026-03-01T05:11:49.0300580Z [36;1mruff check src[0m
+2026-03-01T05:11:49.0300890Z [36;1mruff format --check src[0m
+2026-03-01T05:11:49.0301090Z [36;1mmypy src[0m
+2026-03-01T05:11:49.0349180Z shell: /bin/bash -e {0}
+2026-03-01T05:11:49.0349350Z env:
+2026-03-01T05:11:49.0349630Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:49.0350100Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.13.12/arm64/lib/pkgconfig
+2026-03-01T05:11:49.0350520Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:49.0350890Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:49.0351310Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:49.0351610Z ##[endgroup]
+2026-03-01T05:11:49.1811500Z All checks passed!
+2026-03-01T05:11:49.1983970Z 21 files already formatted
+2026-03-01T05:11:51.9539060Z Success: no issues found in 21 source files
+2026-03-01T05:11:51.9596150Z ##[group]Run bandit -r src -c pyproject.toml
+2026-03-01T05:11:51.9656350Z [36;1mbandit -r src -c pyproject.toml[0m
+2026-03-01T05:11:51.9690200Z shell: /bin/bash -e {0}
+2026-03-01T05:11:51.9690360Z env:
+2026-03-01T05:11:51.9690570Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:51.9690950Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.13.12/arm64/lib/pkgconfig
+2026-03-01T05:11:51.9691320Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:51.9691650Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:51.9692070Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:51.9692350Z ##[endgroup]
+2026-03-01T05:11:52.1317830Z [main]	INFO	profile include tests: None
+2026-03-01T05:11:52.1318520Z [main]	INFO	profile exclude tests: B101
+2026-03-01T05:11:52.1319090Z [main]	INFO	cli include tests: None
+2026-03-01T05:11:52.1319610Z [main]	INFO	cli exclude tests: None
+2026-03-01T05:11:52.1319900Z [main]	INFO	using config: pyproject.toml
+2026-03-01T05:11:52.1320170Z [main]	INFO	running on Python 3.13.12
+2026-03-01T05:11:52.3174900Z Run started:2026-03-01 05:11:52.317144+00:00
+2026-03-01T05:11:52.3176520Z 
+2026-03-01T05:11:52.3176750Z Test results:
+2026-03-01T05:11:52.3177080Z 	No issues identified.
+2026-03-01T05:11:52.3177370Z 
+2026-03-01T05:11:52.3177550Z Code scanned:
+2026-03-01T05:11:52.3177830Z 	Total lines of code: 4174
+2026-03-01T05:11:52.3178520Z 	Total lines skipped (#nosec): 0
+2026-03-01T05:11:52.3178930Z 	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+2026-03-01T05:11:52.3179250Z 
+2026-03-01T05:11:52.3179350Z Run metrics:
+2026-03-01T05:11:52.3179640Z 	Total issues (by severity):
+2026-03-01T05:11:52.3179870Z 		Undefined: 0
+2026-03-01T05:11:52.3180280Z 		Low: 0
+2026-03-01T05:11:52.3180840Z 		Medium: 0
+2026-03-01T05:11:52.3181060Z 		High: 0
+2026-03-01T05:11:52.3181430Z 	Total issues (by confidence):
+2026-03-01T05:11:52.3181680Z 		Undefined: 0
+2026-03-01T05:11:52.3181900Z 		Low: 0
+2026-03-01T05:11:52.3182160Z 		Medium: 0
+2026-03-01T05:11:52.3182440Z 		High: 0
+2026-03-01T05:11:52.3182670Z Files skipped (0):
+2026-03-01T05:11:52.3495830Z ##[group]Run pytest
+2026-03-01T05:11:52.3496030Z [36;1mpytest[0m
+2026-03-01T05:11:52.3527760Z shell: /bin/bash -e {0}
+2026-03-01T05:11:52.3527970Z env:
+2026-03-01T05:11:52.3528200Z   pythonLocation: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:52.3528660Z   PKG_CONFIG_PATH: /Users/runner/hostedtoolcache/Python/3.13.12/arm64/lib/pkgconfig
+2026-03-01T05:11:52.3529220Z   Python_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:52.3529630Z   Python2_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:52.3529990Z   Python3_ROOT_DIR: /Users/runner/hostedtoolcache/Python/3.13.12/arm64
+2026-03-01T05:11:52.3530350Z ##[endgroup]
+2026-03-01T05:12:01.7379980Z .....F..........................F...................................F..F [ 59%]
+2026-03-01T05:12:01.8269700Z /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/ast.py:50: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x104d0fc40>
+2026-03-01T05:12:01.8270870Z   return compile(source, filename, mode, flags,
+2026-03-01T05:12:01.8271200Z ResourceWarning: Enable tracemalloc to get the object allocation traceback
+2026-03-01T05:12:02.5215940Z .................................................                        [100%]
+2026-03-01T05:12:02.5216450Z =================================== FAILURES ===================================
+2026-03-01T05:12:02.5216810Z ___________________ test_generate_and_init_and_html_commands ___________________
+2026-03-01T05:12:02.5217050Z 
+2026-03-01T05:12:02.5217410Z tmp_path = PosixPath('/private/var/folders/q_/pk8v8g4n3qq2gcnsvqjc3sd40000gn/T/pytest-of-runner/pytest-0/test_generate_and_init_and_htm0')
+2026-03-01T05:12:02.5218560Z monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1042755b0>
+2026-03-01T05:12:02.5218810Z 
+2026-03-01T05:12:02.5219110Z     def test_generate_and_init_and_html_commands(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+2026-03-01T05:12:02.5220250Z         sample = tmp_path / "main.py"
+2026-03-01T05:12:02.5220580Z         sample.write_text("def hello():\n    return 'world'\n", encoding="utf-8")
+2026-03-01T05:12:02.5220970Z         readme = tmp_path / "README.md"
+2026-03-01T05:12:02.5221230Z         readme.write_text("# Sample\n", encoding="utf-8")
+2026-03-01T05:12:02.5221450Z     
+2026-03-01T05:12:02.5221640Z         runner = CliRunner()
+2026-03-01T05:12:02.5221820Z     
+2026-03-01T05:12:02.5221990Z         # generate markdown saved output + summary table branch
+2026-03-01T05:12:02.5222400Z         result = runner.invoke(app, ["generate", str(tmp_path), "--format", "markdown", "--force"])
+2026-03-01T05:12:02.5222740Z         assert result.exit_code == 0
+2026-03-01T05:12:02.5223100Z         assert (tmp_path / "README.md").exists()
+2026-03-01T05:12:02.5223340Z     
+2026-03-01T05:12:02.5223490Z         # generate html preview branch
+2026-03-01T05:12:02.5223870Z         result_html_preview = runner.invoke(app, ["generate", str(tmp_path), "--format", "html", "--preview"])
+2026-03-01T05:12:02.5224380Z         assert result_html_preview.exit_code == 0
+2026-03-01T05:12:02.5224720Z         assert "HTML Preview" in result_html_preview.stdout
+2026-03-01T05:12:02.5224970Z     
+2026-03-01T05:12:02.5225110Z         # init command branches
+2026-03-01T05:12:02.5225330Z         init_result = runner.invoke(app, ["init", "--force"])
+2026-03-01T05:12:02.5225590Z         assert init_result.exit_code == 0
+2026-03-01T05:12:02.5225830Z         exists_result = runner.invoke(app, ["init"])
+2026-03-01T05:12:02.5226120Z         assert exists_result.exit_code != 0
+2026-03-01T05:12:02.5226310Z     
+2026-03-01T05:12:02.5226460Z         # analyze json and yaml branches
+2026-03-01T05:12:02.5226790Z         analyze_json = runner.invoke(app, ["analyze", str(tmp_path), "--format", "json"])
+2026-03-01T05:12:02.5227220Z         assert analyze_json.exit_code == 0
+2026-03-01T05:12:02.5227450Z         assert "files_analyzed" in analyze_json.stdout
+2026-03-01T05:12:02.5227670Z     
+2026-03-01T05:12:02.5228600Z         analyze_yaml = runner.invoke(app, ["analyze", str(tmp_path), "--format", "yaml"])
+2026-03-01T05:12:02.5228960Z         assert analyze_yaml.exit_code == 0
+2026-03-01T05:12:02.5229200Z         assert "files_analyzed" in analyze_yaml.stdout
+2026-03-01T05:12:02.5229440Z         metrics_path = tmp_path / "metrics.json"
+2026-03-01T05:12:02.5229680Z         analyze_metrics = runner.invoke(
+2026-03-01T05:12:02.5230020Z             app, ["analyze", str(tmp_path), "--format", "json", "--metrics-json", str(metrics_path)]
+2026-03-01T05:12:02.5230340Z         )
+2026-03-01T05:12:02.5230500Z         assert analyze_metrics.exit_code == 0
+2026-03-01T05:12:02.5230790Z         assert metrics_path.exists()
+2026-03-01T05:12:02.5230980Z     
+2026-03-01T05:12:02.5231110Z         # html command readme source
+2026-03-01T05:12:02.5231390Z         html_out = tmp_path / "out.html"
+2026-03-01T05:12:02.5231780Z         html_result = runner.invoke(app, ["html", str(readme), "--source", "readme", "--output", str(html_out), "--force"])
+2026-03-01T05:12:02.5232180Z         assert html_result.exit_code == 0
+2026-03-01T05:12:02.5232500Z         assert html_out.exists()
+2026-03-01T05:12:02.5232690Z     
+2026-03-01T05:12:02.5232830Z         html_dir_result = runner.invoke(
+2026-03-01T05:12:02.5233140Z             app, ["html", str(readme), "--source", "readme", "--output", str(tmp_path), "--force"]
+2026-03-01T05:12:02.5233450Z         )
+2026-03-01T05:12:02.5233590Z         assert html_dir_result.exit_code == 0
+2026-03-01T05:12:02.5233790Z     
+2026-03-01T05:12:02.5233960Z         existing = tmp_path / "exists.html"
+2026-03-01T05:12:02.5234310Z         existing.write_text("<h1>x</h1>", encoding="utf-8")
+2026-03-01T05:12:02.5234830Z         monkeypatch.setattr(cli.typer, "confirm", lambda _msg: False)
+2026-03-01T05:12:02.5235100Z         exists_result = runner.invoke(
+2026-03-01T05:12:02.5235400Z             app, ["html", str(readme), "--source", "readme", "--output", str(existing)]
+2026-03-01T05:12:02.5235670Z         )
+2026-03-01T05:12:02.5235830Z         assert exists_result.exit_code != 0
+2026-03-01T05:12:02.5236020Z     
+2026-03-01T05:12:02.5236180Z         # html command invalid readme input
+2026-03-01T05:12:02.5236500Z         bad_result = runner.invoke(app, ["html", str(tmp_path), "--source", "readme"])
+2026-03-01T05:12:02.5236840Z         assert bad_result.exit_code != 0
+2026-03-01T05:12:02.5237320Z     
+2026-03-01T05:12:02.5237490Z         # html command codebase source + open browser
+2026-03-01T05:12:02.5237720Z         opened: list[str] = []
+2026-03-01T05:12:02.5238020Z         monkeypatch.setattr(cli.webbrowser, "open", lambda url: opened.append(url))
+2026-03-01T05:12:02.5238550Z         code_result = runner.invoke(app, ["html", str(tmp_path), "--source", "codebase", "--open-browser", "--force", "--verbose"])
+2026-03-01T05:12:02.5238970Z         assert code_result.exit_code == 0
+2026-03-01T05:12:02.5239250Z         assert opened
+2026-03-01T05:12:02.5239430Z     
+2026-03-01T05:12:02.5239570Z         # New commands
+2026-03-01T05:12:02.5239790Z         idx_stats = runner.invoke(app, ["index", "stats", str(tmp_path)])
+2026-03-01T05:12:02.5240170Z         assert idx_stats.exit_code == 0
+2026-03-01T05:12:02.5240450Z         idx_rebuild = runner.invoke(app, ["index", "rebuild", str(tmp_path)])
+2026-03-01T05:12:02.5240830Z         assert idx_rebuild.exit_code == 0
+2026-03-01T05:12:02.5241160Z         diff_res = runner.invoke(app, ["diff", str(tmp_path), "--since", "1"])
+2026-03-01T05:12:02.5241660Z         # may fail on first run depending on available runs but command should not crash
+2026-03-01T05:12:02.5241970Z >       assert diff_res.exit_code in {0, 1}
+2026-03-01T05:12:02.5242230Z E       assert 2 in {0, 1}
+2026-03-01T05:12:02.5242430Z E        +  where 2 = <Result SystemExit(2)>.exit_code
+2026-03-01T05:12:02.5242680Z 
+2026-03-01T05:12:02.5242800Z tests/integration/test_cli_additional.py:147: AssertionError
+2026-03-01T05:12:02.5243180Z ______ test_iter_source_files_honors_gitignore_generated_hidden_and_size _______
+2026-03-01T05:12:02.5243600Z 
+2026-03-01T05:12:02.5243960Z tmp_path = PosixPath('/private/var/folders/q_/pk8v8g4n3qq2gcnsvqjc3sd40000gn/T/pytest-of-runner/pytest-0/test_iter_source_files_honors_0')
+2026-03-01T05:12:02.5244410Z 
+2026-03-01T05:12:02.5244610Z     def test_iter_source_files_honors_gitignore_generated_hidden_and_size(tmp_path: Path) -> None:
+2026-03-01T05:12:02.5245100Z         (tmp_path / ".gitignore").write_text("ignored_dir/\nignored.py\n", encoding="utf-8")
+2026-03-01T05:12:02.5245510Z         (tmp_path / "ignored.py").write_text("def x(): pass\n", encoding="utf-8")
+2026-03-01T05:12:02.5245810Z         (tmp_path / "ignored_dir").mkdir()
+2026-03-01T05:12:02.5246120Z         (tmp_path / "ignored_dir" / "a.py").write_text("def x(): pass\n", encoding="utf-8")
+2026-03-01T05:12:02.5246600Z         (tmp_path / ".hidden.py").write_text("def x(): pass\n", encoding="utf-8")
+2026-03-01T05:12:02.5246970Z         (tmp_path / "generated.lock").write_text("lock", encoding="utf-8")
+2026-03-01T05:12:02.5247290Z         (tmp_path / "big.py").write_text("x" * 4096, encoding="utf-8")
+2026-03-01T05:12:02.5247670Z         (tmp_path / "ok.py").write_text("def ok():\n    return 1\n", encoding="utf-8")
+2026-03-01T05:12:02.5247950Z     
+2026-03-01T05:12:02.5248090Z         analyzer = CodebaseAnalyzer(
+2026-03-01T05:12:02.5248280Z             str(tmp_path),
+2026-03-01T05:12:02.5248480Z             enable_tree_sitter=False,
+2026-03-01T05:12:02.5248670Z             config={
+2026-03-01T05:12:02.5248890Z                 "analysis": {
+2026-03-01T05:12:02.5249110Z                     "use_gitignore": True,
+2026-03-01T05:12:02.5249330Z                     "exclude_generated": True,
+2026-03-01T05:12:02.5249770Z                     "include_hidden": False,
+2026-03-01T05:12:02.5250010Z                     "max_file_size_kb": 1,
+2026-03-01T05:12:02.5250260Z                     "generated_patterns": [],
+2026-03-01T05:12:02.5250460Z                 }
+2026-03-01T05:12:02.5250590Z             },
+2026-03-01T05:12:02.5250720Z         )
+2026-03-01T05:12:02.5250930Z         files = {p.name for p in analyzer._iter_source_files()}
+2026-03-01T05:12:02.5251230Z         assert "ok.py" in files
+2026-03-01T05:12:02.5251440Z         assert "ignored.py" not in files
+2026-03-01T05:12:02.5251850Z         assert "a.py" not in files
+2026-03-01T05:12:02.5252130Z >       assert ".hidden.py" not in files
+2026-03-01T05:12:02.5252500Z E       AssertionError: assert '.hidden.py' not in {'.gitignore', '.hidden.py', 'generated.lock', 'ok.py'}
+2026-03-01T05:12:02.5267350Z 
+2026-03-01T05:12:02.5267500Z tests/unit/test_core_additional.py:84: AssertionError
+2026-03-01T05:12:02.5267830Z __________________________ test_html_generator_paths ___________________________
+2026-03-01T05:12:02.5268090Z 
+2026-03-01T05:12:02.5268270Z monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x104a97110>
+2026-03-01T05:12:02.5268840Z tmp_path = PosixPath('/private/var/folders/q_/pk8v8g4n3qq2gcnsvqjc3sd40000gn/T/pytest-of-runner/pytest-0/test_html_generator_paths0')
+2026-03-01T05:12:02.5269250Z 
+2026-03-01T05:12:02.5269440Z     def test_html_generator_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+2026-03-01T05:12:02.5269800Z         gen = HTMLGenerator()
+2026-03-01T05:12:02.5270000Z         out = tmp_path / "docs.html"
+2026-03-01T05:12:02.5270290Z         html = gen.generate_from_readme("# Title\n\nBody", str(out), "<My Project>")
+2026-03-01T05:12:02.5270580Z         assert out.exists()
+2026-03-01T05:12:02.5270820Z         assert "&lt;My Project&gt;" in html
+2026-03-01T05:12:02.5271040Z         assert "Skip to main content" in html
+2026-03-01T05:12:02.5271240Z         assert "toc-filter" in html
+2026-03-01T05:12:02.5271430Z >       assert "mobile-menu-btn" in html
+2026-03-01T05:12:02.5272140Z E       assert 'mobile-menu-btn' in '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-wi... + \'</title></g>\';\n    })\n    .join(\'\');\n\n  svg.innerHTML = edgeSvg + nodeSvg;\n}\n</script>\n</body>\n</html>'
+2026-03-01T05:12:02.5272810Z 
+2026-03-01T05:12:02.5273470Z tests/unit/test_html_logging_models_entrypoints.py:77: AssertionError
+2026-03-01T05:12:02.5273820Z __________________________ test_index_store_lifecycle __________________________
+2026-03-01T05:12:02.5274050Z 
+2026-03-01T05:12:02.5274370Z tmp_path = PosixPath('/private/var/folders/q_/pk8v8g4n3qq2gcnsvqjc3sd40000gn/T/pytest-of-runner/pytest-0/test_index_store_lifecycle0')
+2026-03-01T05:12:02.5274760Z 
+2026-03-01T05:12:02.5274870Z     def test_index_store_lifecycle(tmp_path: Path) -> None:
+2026-03-01T05:12:02.5275120Z         store = IndexStore(tmp_path)
+2026-03-01T05:12:02.5275420Z >       run_id = store.start_run(mode="auto", engine="hybrid_index", incremental=True)
+2026-03-01T05:12:02.5275760Z                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-03-01T05:12:02.5276130Z E       TypeError: IndexStore.start_run() got an unexpected keyword argument 'engine'
+2026-03-01T05:12:02.5276370Z 
+2026-03-01T05:12:02.5276450Z tests/unit/test_index_store.py:8: TypeError
+2026-03-01T05:12:02.5276700Z =============================== warnings summary ===============================
+2026-03-01T05:12:02.5277270Z tests/integration/test_cli_additional.py::test_cli_module_main_guard
+2026-03-01T05:12:02.5277940Z   <frozen runpy>:128: RuntimeWarning: 'docgenie.cli' found in sys.modules after import of package 'docgenie', but prior to execution of 'docgenie.cli'; this may result in unpredictable behaviour
+2026-03-01T05:12:02.5278460Z 
+2026-03-01T05:12:02.5278600Z tests/unit/test_html_logging_models_entrypoints.py::test_entrypoints
+2026-03-01T05:12:02.5279290Z   <frozen runpy>:128: RuntimeWarning: 'docgenie.__main__' found in sys.modules after import of package 'docgenie', but prior to execution of 'docgenie.__main__'; this may result in unpredictable behaviour
+2026-03-01T05:12:02.5280320Z 
+2026-03-01T05:12:02.5280460Z tests/unit/test_html_logging_models_entrypoints.py::test_entrypoints
+2026-03-01T05:12:02.5281280Z   <frozen runpy>:128: RuntimeWarning: 'docgenie.convert_to_html' found in sys.modules after import of package 'docgenie', but prior to execution of 'docgenie.convert_to_html'; this may result in unpredictable behaviour
+2026-03-01T05:12:02.5281870Z 
+2026-03-01T05:12:02.5282110Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2026-03-01T05:12:02.5282470Z ================================ tests coverage ================================
+2026-03-01T05:12:02.5282820Z ______________ coverage: platform darwin, python 3.13.12-final-0 _______________
+2026-03-01T05:12:02.5283030Z 
+2026-03-01T05:12:02.5283150Z Name                              Stmts   Miss  Cover   Missing
+2026-03-01T05:12:02.5283420Z ---------------------------------------------------------------
+2026-03-01T05:12:02.5283710Z src/docgenie/__init__.py              6      0   100%
+2026-03-01T05:12:02.5283960Z src/docgenie/__main__.py              6      0   100%
+2026-03-01T05:12:02.5284300Z src/docgenie/cli.py                 271     42    85%   103, 107-113, 117-131, 348-364, 395-401, 548-578
+2026-03-01T05:12:02.5284640Z src/docgenie/config.py               23      0   100%
+2026-03-01T05:12:02.5284940Z src/docgenie/convert_to_html.py       7      0   100%
+2026-03-01T05:12:02.5285250Z src/docgenie/core.py                320      9    97%   164-165, 236, 238, 251, 262, 276, 303-304
+2026-03-01T05:12:02.5285670Z src/docgenie/diff_engine.py          87     20    77%   32-33, 40, 46-49, 72-77, 86, 92-93, 111, 121, 123, 125
+2026-03-01T05:12:02.5286050Z src/docgenie/exceptions.py           34      0   100%
+2026-03-01T05:12:02.5286330Z src/docgenie/generator.py           382      2    99%   171, 542
+2026-03-01T05:12:02.5286700Z src/docgenie/html_generator.py       91     30    67%   64, 359-360, 365-371, 374-382, 387-389, 397-404
+2026-03-01T05:12:02.5287130Z src/docgenie/index_store.py          66     17    74%   107, 125-131, 144-146, 165-166, 176, 191-206
+2026-03-01T05:12:02.5287590Z src/docgenie/logging.py              37      0   100%
+2026-03-01T05:12:02.5288100Z src/docgenie/models.py              106      0   100%
+2026-03-01T05:12:02.5288410Z src/docgenie/output_links.py         81      7    91%   28-29, 55-56, 87-89
+2026-03-01T05:12:02.5288710Z src/docgenie/parsers.py             183      0   100%
+2026-03-01T05:12:02.5288950Z src/docgenie/pr_summary.py           45      0   100%
+2026-03-01T05:12:02.5289200Z src/docgenie/readme_gate.py          33      1    97%   54
+2026-03-01T05:12:02.5289470Z src/docgenie/redaction.py            24      2    92%   29-30
+2026-03-01T05:12:02.5289770Z src/docgenie/review_engine.py        63      2    97%   15, 35
+2026-03-01T05:12:02.5290050Z src/docgenie/sanitize.py             33      0   100%
+2026-03-01T05:12:02.5290310Z src/docgenie/utils.py               227      2    99%   578, 589
+2026-03-01T05:12:02.5290600Z ---------------------------------------------------------------
+2026-03-01T05:12:02.5290870Z TOTAL                              2125    134    94%
+2026-03-01T05:12:02.5291110Z =========================== short test summary info ============================
+2026-03-01T05:12:02.5291570Z FAILED tests/integration/test_cli_additional.py::test_generate_and_init_and_html_commands - assert 2 in {0, 1}
+2026-03-01T05:12:02.5291990Z  +  where 2 = <Result SystemExit(2)>.exit_code
+2026-03-01T05:12:02.5292640Z FAILED tests/unit/test_core_additional.py::test_iter_source_files_honors_gitignore_generated_hidden_and_size - AssertionError: assert '.hidden.py' not in {'.gitignore', '.hidden.py', 'generated.lock', 'ok.py'}
+2026-03-01T05:12:02.5294000Z FAILED tests/unit/test_html_logging_models_entrypoints.py::test_html_generator_paths - assert 'mobile-menu-btn' in '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-wi... + \'</title></g>\';\n    })\n    .join(\'\');\n\n  svg.innerHTML = edgeSvg + nodeSvg;\n}\n</script>\n</body>\n</html>'
+2026-03-01T05:12:02.5295600Z FAILED tests/unit/test_index_store.py::test_index_store_lifecycle - TypeError: IndexStore.start_run() got an unexpected keyword argument 'engine'
+2026-03-01T05:12:02.5296120Z 4 failed, 117 passed, 3 warnings in 9.75s
+2026-03-01T05:12:02.6706060Z ##[error]Process completed with exit code 1.
+2026-03-01T05:12:02.6793650Z Post job cleanup.
+2026-03-01T05:12:02.8931850Z [command]/opt/homebrew/bin/git version
+2026-03-01T05:12:02.9004120Z git version 2.53.0
+2026-03-01T05:12:02.9040150Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/234efd3c-876a-4c2c-9cc1-87c7d1360d22/.gitconfig'
+2026-03-01T05:12:02.9046670Z Temporarily overriding HOME='/Users/runner/work/_temp/234efd3c-876a-4c2c-9cc1-87c7d1360d22' before making global git config changes
+2026-03-01T05:12:02.9047250Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-01T05:12:02.9055520Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/DocGenie/DocGenie
+2026-03-01T05:12:02.9126860Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-01T05:12:02.9187000Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-01T05:12:02.9965040Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-01T05:12:03.0016450Z http.https://github.com/.extraheader
+2026-03-01T05:12:03.0026360Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-03-01T05:12:03.0086630Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-01T05:12:03.0849520Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-01T05:12:03.0914990Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-01T05:12:03.1804320Z Cleaning up orphan processes

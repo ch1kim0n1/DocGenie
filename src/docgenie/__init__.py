@@ -5,9 +5,9 @@ A powerful Python library that automatically generates comprehensive README docu
 for any codebase by analyzing source code, dependencies, and project structure.
 """
 
-__version__ = "1.1.0"
-__author__ = "DocGenie Team"
-__email__ = "contact@docgenie.dev"
+__version__ = "1.1.5"
+__author__ = "ch1kim0n1"
+__email__ = "vxk230059@utdallas.edu"
 
 from .core import CodebaseAnalyzer
 from .generator import ReadmeGenerator

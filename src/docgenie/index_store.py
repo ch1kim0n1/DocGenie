@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class IndexStore:
@@ -73,6 +73,16 @@ class IndexStore:
                 evidence_snippet TEXT,
                 FOREIGN KEY(run_id) REFERENCES runs(id)
             );
+
+            CREATE TABLE IF NOT EXISTS doc_artifacts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL,
+                artifact_path TEXT NOT NULL,
+                target TEXT,
+                content_hash TEXT,
+                section_hashes_json TEXT,
+                FOREIGN KEY(run_id) REFERENCES runs(id)
+            );
             """
         )
         self._conn.execute(
@@ -92,7 +102,10 @@ class IndexStore:
             "INSERT INTO runs(started_at,mode) VALUES(?,?)",
             (time.time(), mode),
         )
-        return int(cur.lastrowid)
+        row_id = cur.lastrowid
+        if row_id is None:
+            raise RuntimeError("INSERT into runs returned no lastrowid")
+        return row_id
 
     def finish_run(self, run_id: int, metrics: dict[str, Any] | None = None) -> None:
         self._conn.execute(
@@ -147,3 +160,68 @@ class IndexStore:
                     link.get("evidence_snippet", ""),
                 ),
             )
+
+    def latest_run_id(self) -> int | None:
+        row = self._conn.execute("SELECT id FROM runs ORDER BY id DESC LIMIT 1").fetchone()
+        return int(row["id"]) if row else None
+
+    def add_doc_artifact(
+        self,
+        run_id: int,
+        artifact_path: str,
+        target: str,
+        content_hash: str,
+        section_hashes: dict[str, str],
+    ) -> None:
+        self._conn.execute(
+            """
+            INSERT INTO doc_artifacts(run_id,artifact_path,target,content_hash,section_hashes_json)
+            VALUES(?,?,?,?,?)
+            """,
+            (
+                run_id,
+                artifact_path,
+                target,
+                content_hash,
+                json.dumps(section_hashes, sort_keys=True),
+            ),
+        )
+
+    def list_artifacts_for_run(self, run_id: int) -> list[dict[str, Any]]:
+        query = (
+            "SELECT artifact_path, target, content_hash, section_hashes_json"
+            " FROM doc_artifacts WHERE run_id=?"
+        )
+        rows = self._conn.execute(query, (run_id,)).fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            result.append(
+                {
+                    "artifact_path": row["artifact_path"],
+                    "target": row["target"],
+                    "content_hash": row["content_hash"],
+                    "section_hashes": json.loads(row["section_hashes_json"] or "{}"),
+                }
+            )
+        return result
+
+    def clear_all(self) -> None:
+        self._conn.executescript(
+            """
+            DELETE FROM doc_artifacts;
+            DELETE FROM output_links;
+            DELETE FROM file_reviews;
+            DELETE FROM diff_runs;
+            DELETE FROM runs;
+            """
+        )
+
+    def stats(self) -> dict[str, Any]:
+        run_count = self._conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0]
+        artifact_count = self._conn.execute("SELECT COUNT(*) FROM doc_artifacts").fetchone()[0]
+        review_count = self._conn.execute("SELECT COUNT(*) FROM file_reviews").fetchone()[0]
+        return {
+            "runs": int(run_count),
+            "doc_artifacts": int(artifact_count),
+            "file_reviews": int(review_count),
+        }

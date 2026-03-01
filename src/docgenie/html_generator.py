@@ -16,8 +16,10 @@ try:
     from .redaction import redact_text
 except ModuleNotFoundError:  # pragma: no cover - optional in trimmed installs
 
-    def redact_text(content: str, _mode: str = "strict", _patterns: list[str] | None = None) -> str:
-        return content
+    def redact_text(
+        text: str, mode: str = "strict", custom_patterns: list[str] | None = None
+    ) -> str:
+        return text
 
 
 class HTMLGenerator:

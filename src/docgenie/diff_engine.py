@@ -15,7 +15,7 @@ MIN_TAGS_FOR_PREV = 2
 NUMSTAT_PARTS = 3
 
 
-_DIFF_UNAVAILABLE = {
+_DIFF_UNAVAILABLE: dict[str, Any] = {
     "available": False,
     "from_ref": None,
     "to_ref": None,
@@ -76,8 +76,7 @@ def compute_git_diff_summary(  # noqa: PLR0915
         unavailable["to_ref"] = to_ref
         return unavailable
 
-    diff_args = {"R": rename_detection, "create_patch": False}
-    diff_index = left.diff(right, **diff_args)
+    diff_index = left.diff(right, create_patch=False, R=rename_detection)
 
     numstat_map: dict[str, tuple[int, int]] = {}
     try:

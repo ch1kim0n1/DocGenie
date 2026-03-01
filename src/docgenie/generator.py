@@ -78,6 +78,7 @@ class ReadmeGenerator:
 
         include_directory_tree = template_customizations.get("include_directory_tree", True)
         include_api_docs = template_customizations.get("include_api_docs", True)
+        include_trust_badges = template_customizations.get("include_trust_badges", True)
 
         # Language statistics
         languages = analysis_data.get("languages", {})
@@ -104,7 +105,6 @@ class ReadmeGenerator:
 
         quality_config = config.get("quality", {}) if isinstance(config, dict) else {}
         quality_enabled = bool(quality_config.get("confidence_enabled", True))
-        include_warnings = bool(quality_config.get("include_warnings", True))
         min_confidence = str(quality_config.get("min_confidence_for_api_docs", "low")).lower()
         quality = (
             self._build_quality_report(analysis_data)
@@ -153,9 +153,12 @@ class ReadmeGenerator:
             "packages": analysis_data.get("packages", []),
             "run_metrics": analysis_data.get("run_metrics", {}),
             "website_info": self._get_website_info(analysis_data) if is_website else None,
-            "analysis_quality": quality["score"],
-            "confidence_level": quality["confidence"],
-            "analysis_warnings": quality["warnings"] if include_warnings else [],
+            "diff_summary": analysis_data.get("diff_summary", {}),
+            "folder_reviews": analysis_data.get("folder_reviews", []),
+            "file_reviews": analysis_data.get("file_reviews", []),
+            "output_links": analysis_data.get("output_links", []),
+            "readme_readiness": analysis_data.get("readme_readiness", {}),
+            "trust": self._build_trust_badges(analysis_data, enabled=bool(include_trust_badges)),
         }
 
     def generate_package_docs(
@@ -530,6 +533,89 @@ class ReadmeGenerator:
                 return True
         return False
 
+    def _build_trust_badges(
+        self, analysis_data: Dict[str, Any], *, enabled: bool
+    ) -> Dict[str, Dict[str, Any]]:
+        """Build trust/citation metadata for major README sections."""
+        empty = {"level": "n/a", "sources": []}
+        if not enabled:
+            return {
+                "features": empty,
+                "installation": empty,
+                "usage": empty,
+                "architecture": empty,
+                "api": empty,
+                "dependencies": empty,
+                "testing": empty,
+                "diffs": empty,
+                "reviews": empty,
+                "output_links": empty,
+                "readiness": empty,
+            }
+
+        functions = analysis_data.get("functions", [])
+        classes = analysis_data.get("classes", [])
+        dependencies = analysis_data.get("dependencies", {})
+        diff_summary = analysis_data.get("diff_summary", {})
+        file_reviews = analysis_data.get("file_reviews", [])
+        output_links = analysis_data.get("output_links", [])
+        structure = analysis_data.get("project_structure", {})
+        root_path = Path(str(analysis_data.get("root_path", ".")))
+
+        def source_from_symbol(item: Dict[str, Any]) -> str:
+            file_path = str(item.get("file", ""))
+            line = item.get("line")
+            if not file_path:
+                return ""
+            try:
+                rel = Path(file_path).resolve().relative_to(root_path).as_posix()
+            except ValueError:
+                rel = Path(file_path).as_posix()
+            return f"{rel}:{line}" if line else rel
+
+        def badge(level: str, sources: list[str]) -> Dict[str, Any]:
+            return {"level": level, "sources": [s for s in sources if s][:5]}
+
+        api_sources = [source_from_symbol(item) for item in (functions[:3] + classes[:2])]
+        dep_sources = list(dependencies.keys())[:5]
+        usage_sources = [source_from_symbol(item) for item in functions[:3]]
+        diff_sources = [str(item.get("path", "")) for item in diff_summary.get("files", [])[:5]]
+        review_sources = [str(item.get("path", "")) for item in file_reviews[:5]]
+        output_sources = [
+            f"{item.get('source_file')}:{item.get('source_line')}" for item in output_links[:5]
+        ]
+        testing_sources = []
+        for key in structure:
+            lowered = str(key).lower()
+            if "test" in lowered or "spec" in lowered:
+                testing_sources.append(str(key))
+
+        return {
+            "features": badge("inferred", dep_sources + usage_sources[:2]),
+            "installation": badge(
+                "verified" if dep_sources else "low-confidence",
+                dep_sources,
+            ),
+            "usage": badge("verified" if usage_sources else "inferred", usage_sources),
+            "architecture": badge("verified", [str(analysis_data.get("root_path", "."))]),
+            "api": badge("verified" if api_sources else "low-confidence", api_sources),
+            "dependencies": badge("verified" if dep_sources else "low-confidence", dep_sources),
+            "testing": badge(
+                "verified" if testing_sources else "inferred",
+                testing_sources[:5],
+            ),
+            "diffs": badge(
+                "verified" if diff_summary.get("available") else "low-confidence",
+                diff_sources,
+            ),
+            "reviews": badge("inferred" if file_reviews else "low-confidence", review_sources),
+            "output_links": badge(
+                "inferred" if output_links else "low-confidence",
+                output_sources,
+            ),
+            "readiness": badge("inferred", output_sources[:2] + review_sources[:2]),
+        }
+
     def _get_template(self) -> Template:
         """Get the README template."""
         template_content = """# {{ project_name }}
@@ -559,6 +645,7 @@ Website project detected. Documentation format optimized for web applications.
 {% endif %}
 
 ## Features
+> Trust: **{{ trust.features.level }}** | Sources: {% if trust.features.sources %}{{ trust.features.sources|join(', ') }}{% else %}n/a{% endif %}
 
 {% for feature in features %}
 - {{ feature }}
@@ -578,6 +665,7 @@ Website project detected. Documentation format optimized for web applications.
 {% endfor %}
 
 ## Installation
+> Trust: **{{ trust.installation.level }}** | Sources: {% if trust.installation.sources %}{{ trust.installation.sources|join(', ') }}{% else %}n/a{% endif %}
 
 {% for cmd in install_commands %}
 ### {{ cmd.title }}
@@ -639,6 +727,7 @@ This website is configured for deployment on:
 
 {% else %}
 ## Usage
+> Trust: **{{ trust.usage.level }}** | Sources: {% if trust.usage.sources %}{{ trust.usage.sources|join(', ') }}{% else %}n/a{% endif %}
 
 {% for example in usage_examples %}
 ### {{ example.title }}
@@ -669,6 +758,7 @@ This website is configured for deployment on:
 {% endif %}
 
 ## Architecture
+> Trust: **{{ trust.architecture.level }}** | Sources: {% if trust.architecture.sources %}{{ trust.architecture.sources|join(', ') }}{% else %}n/a{% endif %}
 
 This {{ project_type.lower() }} is built with {{ main_language }} and consists of:
 
@@ -706,6 +796,7 @@ This {{ project_type.lower() }} is built with {{ main_language }} and consists o
 
 {% if api_docs.functions and not is_website %}
 ## API Reference
+> Trust: **{{ trust.api.level }}** | Sources: {% if trust.api.sources %}{{ trust.api.sources|join(', ') }}{% else %}n/a{% endif %}
 
 ### Functions
 
@@ -745,6 +836,7 @@ Class defined in `{{ cls.file }}` at line {{ cls.line }}.
 
 {% if dependencies %}
 ## Dependencies
+> Trust: **{{ trust.dependencies.level }}** | Sources: {% if trust.dependencies.sources %}{{ trust.dependencies.sources|join(', ') }}{% else %}n/a{% endif %}
 
 {% for dep_file, deps in dependencies.items() %}
 ### {{ dep_file }}
@@ -767,6 +859,7 @@ Class defined in `{{ cls.file }}` at line {{ cls.line }}.
 
 {% if has_tests %}
 ## Testing
+> Trust: **{{ trust.testing.level }}** | Sources: {% if trust.testing.sources %}{{ trust.testing.sources|join(', ') }}{% else %}n/a{% endif %}
 
 This project includes comprehensive tests. Run them with:
 
@@ -794,6 +887,69 @@ Configuration files:
 {% for config in config_files %}
 - `{{ config }}`
 {% endfor %}
+{% endif %}
+
+{% if diff_summary and diff_summary.available %}
+## Version Diff Overview
+> Trust: **{{ trust.diffs.level }}** | Sources: {% if trust.diffs.sources %}{{ trust.diffs.sources|join(', ') }}{% else %}n/a{% endif %}
+
+Comparing `{{ diff_summary.from_ref }}` to `{{ diff_summary.to_ref }}`.
+
+- Added files: {{ diff_summary.totals.added }}
+- Modified files: {{ diff_summary.totals.modified }}
+- Deleted files: {{ diff_summary.totals.deleted }}
+- Renamed files: {{ diff_summary.totals.renamed }}
+- Total line churn: {{ diff_summary.totals.changes }}
+{% endif %}
+
+{% if folder_reviews %}
+## Folder Reviews
+
+{% for folder in folder_reviews %}
+### `{{ folder.folder }}`
+
+- Files changed: {{ folder.files_changed }}
+- Risk distribution: low={{ folder.risk_distribution.low }}, medium={{ folder.risk_distribution.medium }}, high={{ folder.risk_distribution.high }}
+{% endfor %}
+{% endif %}
+
+{% if file_reviews %}
+## File Reviews
+> Trust: **{{ trust.reviews.level }}** | Sources: {% if trust.reviews.sources %}{{ trust.reviews.sources|join(', ') }}{% else %}n/a{% endif %}
+
+{% for review in file_reviews %}
+### `{{ review.path }}`
+
+- Risk: **{{ review.risk_level }}** (score: {{ review.risk_score }})
+- Change type: {{ review.change_type }}
+- Churn: {{ review.churn }} lines
+{% for reason in review.rationale %}
+- {{ reason }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if output_links %}
+## Output Flow Links
+> Trust: **{{ trust.output_links.level }}** | Sources: {% if trust.output_links.sources %}{{ trust.output_links.sources|join(', ') }}{% else %}n/a{% endif %}
+
+{% for item in output_links %}
+- `{{ item.source_file }}:{{ item.source_line }}` writes to {% if item.target_file %}`{{ item.target_file }}`{% else %}unresolved target{% endif %} ({{ item.operation }}, confidence={{ item.confidence }})
+{% endfor %}
+{% endif %}
+
+{% if readme_readiness %}
+## README Readiness
+> Trust: **{{ trust.readiness.level }}** | Sources: {% if trust.readiness.sources %}{{ trust.readiness.sources|join(', ') }}{% else %}n/a{% endif %}
+
+- Status: **{{ readme_readiness.status }}**
+- Score: {{ readme_readiness.score }}/100
+{% if readme_readiness.reasons %}
+Issues:
+{% for reason in readme_readiness.reasons %}
+- {{ reason }}
+{% endfor %}
+{% endif %}
 {% endif %}
 
 ## Contributing

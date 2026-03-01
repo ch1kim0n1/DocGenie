@@ -48,6 +48,7 @@ def test_readme_generation_basic(sample_analysis: dict, tmp_path: Path) -> None:
     assert "TestProject" in content
     assert "python" in content.lower()
     assert "Installation" in content
+    assert "Trust:" in content
 
 
 def test_readme_includes_dependencies(sample_analysis: dict) -> None:

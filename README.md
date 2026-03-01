@@ -73,13 +73,18 @@ MIT License. See LICENSE file for details.
 
 ## What DocGenie Analyzes
 
-- **Project Structure**: Directory tree and file organization
-- **Source Code**: Functions, classes, methods, and documentation
-- **Dependencies**: Package files (requirements.txt, package.json, etc.)
-- **Configuration**: Config files and project settings
-- **Documentation**: Existing docs and README files
-- **Git Information**: Repository details, branches, contributors
-- **Statistics**: Language distribution, code metrics
+- **📁 Project Structure**: Directory tree and file organization
+- **💻 Source Code**: Functions, classes, methods, and documentation
+- **📦 Dependencies**: Package files (requirements.txt, package.json, etc.)
+- **🔧 Configuration**: Config files and project settings
+- **📝 Documentation**: Existing docs and README files
+- **🌿 Git Information**: Repository details, branches, contributors
+- **📊 Statistics**: Language distribution, code metrics
+- **🔀 Version Diffs**: Git ref/tag aware file-level changes
+- **🧭 File Reviews**: Risk-scored file and folder review cards
+- **🔗 Output Links**: Heuristic source-to-output file tracing
+- **🕸️ Impact Graph**: HTML visualization of file dependency and output impact
+- **🛡️ Trust Badges**: Section-level trust markers with source citations
 
 ## Example Output
 
@@ -104,9 +109,9 @@ docgenie generate . --verbose                   # Enable detailed output
 docgenie generate . --force                     # Overwrite existing files
 
 # Format options
-docgenie generate . --format markdown           # README.md only (default)
+docgenie generate . --format markdown           # README.md only
 docgenie generate . --format html               # HTML documentation only
-docgenie generate . --format both               # Generate both README.md and HTML
+docgenie generate . --format both               # Generate both README.md and HTML (default)
 
 # Output options
 docgenie generate . --output custom_path        # Custom output location
@@ -118,7 +123,14 @@ docgenie html . --source codebase               # Generate HTML from code
 
 # Analysis tools
 docgenie analyze . --format json                # Output analysis as JSON
+docgenie diff . --from-ref v1.0.0 --to-ref HEAD --format json
+docgenie pr-summary . --from-ref v1.0.0 --to-ref HEAD --format markdown
 docgenie init                                   # Create basic README template
+
+# Pro documentation controls
+docgenie generate . --from-ref v1.0.0 --to-ref HEAD --include-diffs
+docgenie generate . --strict-readme
+docgenie generate . --template-profile pro
 ```
 
 ### Configuration
@@ -135,6 +147,7 @@ template_customizations:
   include_api_docs: true
   include_directory_tree: true
   max_functions_documented: 20
+  include_trust_badges: true
 ```
 
 ## Architecture

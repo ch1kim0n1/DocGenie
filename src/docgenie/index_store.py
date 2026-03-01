@@ -1,4 +1,4 @@
-"""Persistent SQLite index for scalable/incremental DocGenie analysis."""
+"""Persistent SQLite store for diff/review artifacts."""
 
 from __future__ import annotations
 
@@ -8,24 +8,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 1
-RESET_TABLES = ("docs_artifacts", "symbols", "imports", "files", "packages", "runs")
-RESET_QUERIES = {
-    "docs_artifacts": "DELETE FROM docs_artifacts",
-    "symbols": "DELETE FROM symbols",
-    "imports": "DELETE FROM imports",
-    "files": "DELETE FROM files",
-    "packages": "DELETE FROM packages",
-    "runs": "DELETE FROM runs",
-}
-TABLE_COUNT_QUERIES = {
-    "files": "SELECT COUNT(*) AS c FROM files",
-    "symbols": "SELECT COUNT(*) AS c FROM symbols",
-    "imports": "SELECT COUNT(*) AS c FROM imports",
-    "packages": "SELECT COUNT(*) AS c FROM packages",
-    "runs": "SELECT COUNT(*) AS c FROM runs",
-    "docs_artifacts": "SELECT COUNT(*) AS c FROM docs_artifacts",
-}
+SCHEMA_VERSION = 3
 
 
 class IndexStore:
@@ -35,12 +18,7 @@ class IndexStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(self.db_path)
         self._conn.row_factory = sqlite3.Row
-        self._conn.execute("PRAGMA journal_mode=WAL;")
-        self._conn.execute("PRAGMA foreign_keys=ON;")
         self._migrate()
-
-    def close(self) -> None:
-        self._conn.close()
 
     def _migrate(self) -> None:
         self._conn.execute(
@@ -55,64 +33,54 @@ class IndexStore:
 
         self._conn.executescript(
             """
-            CREATE TABLE IF NOT EXISTS files (
-                path TEXT PRIMARY KEY,
-                size INTEGER NOT NULL,
-                mtime_ns INTEGER NOT NULL,
-                hash TEXT NOT NULL,
-                language TEXT,
-                is_generated INTEGER NOT NULL DEFAULT 0,
-                is_hidden INTEGER NOT NULL DEFAULT 0,
-                ignored_reason TEXT,
-                updated_at REAL NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS symbols (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                symbol_type TEXT NOT NULL,
-                qualified_name TEXT NOT NULL,
-                path TEXT NOT NULL,
-                line INTEGER,
-                signature_hash TEXT,
-                UNIQUE(symbol_type, qualified_name, path, line)
-            );
-
-            CREATE TABLE IF NOT EXISTS imports (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                path TEXT NOT NULL,
-                language TEXT,
-                imported TEXT NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS packages (
-                path TEXT PRIMARY KEY,
-                package_type TEXT NOT NULL,
-                manifest TEXT,
-                parent_path TEXT
-            );
-
             CREATE TABLE IF NOT EXISTS runs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 started_at REAL NOT NULL,
                 finished_at REAL,
                 mode TEXT,
-                engine TEXT,
-                incremental INTEGER NOT NULL,
-                scanned_files INTEGER NOT NULL DEFAULT 0,
-                changed_files INTEGER NOT NULL DEFAULT 0,
-                skipped_files INTEGER NOT NULL DEFAULT 0,
-                duration_sec REAL,
-                cache_hit_ratio REAL,
                 metrics_json TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS docs_artifacts (
+            CREATE TABLE IF NOT EXISTS diff_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL,
+                from_ref TEXT,
+                to_ref TEXT,
+                summary_json TEXT,
+                FOREIGN KEY(run_id) REFERENCES runs(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS file_reviews (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL,
+                path TEXT NOT NULL,
+                folder TEXT,
+                risk_level TEXT,
+                risk_score REAL,
+                review_json TEXT,
+                FOREIGN KEY(run_id) REFERENCES runs(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS output_links (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL,
+                source_file TEXT NOT NULL,
+                source_line INTEGER,
+                target_file TEXT,
+                operation TEXT,
+                confidence TEXT,
+                resolved INTEGER NOT NULL DEFAULT 0,
+                evidence_snippet TEXT,
+                FOREIGN KEY(run_id) REFERENCES runs(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS doc_artifacts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 run_id INTEGER NOT NULL,
                 artifact_path TEXT NOT NULL,
-                target TEXT NOT NULL,
-                content_hash TEXT NOT NULL,
-                section_hashes TEXT,
+                target TEXT,
+                content_hash TEXT,
+                section_hashes_json TEXT,
                 FOREIGN KEY(run_id) REFERENCES runs(id)
             );
             """
@@ -123,200 +91,137 @@ class IndexStore:
         )
         self._conn.commit()
 
-    def clear_all(self) -> None:
-        for table in RESET_TABLES:
-            self._conn.execute(RESET_QUERIES[table])
+    def close(self) -> None:
+        self._conn.close()
+
+    def commit(self) -> None:
         self._conn.commit()
 
-    def get_file_record(self, path: str) -> dict[str, Any] | None:
-        row = self._conn.execute(
-            (
-                "SELECT path,size,mtime_ns,hash,language,is_generated,is_hidden,ignored_reason "
-                "FROM files WHERE path=?"
-            ),
-            (path,),
-        ).fetchone()
-        return dict(row) if row else None
-
-    def upsert_file(  # noqa: PLR0913
-        self,
-        *,
-        path: str,
-        size: int,
-        mtime_ns: int,
-        digest: str,
-        language: str | None,
-        is_generated: bool,
-        is_hidden: bool,
-        ignored_reason: str | None,
-    ) -> None:
-        self._conn.execute(
-            (
-                "INSERT INTO files("
-                "path,size,mtime_ns,hash,language,is_generated,is_hidden,ignored_reason,updated_at"
-                ") VALUES(?,?,?,?,?,?,?,?,?) "
-                "ON CONFLICT(path) DO UPDATE SET "
-                "size=excluded.size, "
-                "mtime_ns=excluded.mtime_ns, "
-                "hash=excluded.hash, "
-                "language=excluded.language, "
-                "is_generated=excluded.is_generated, "
-                "is_hidden=excluded.is_hidden, "
-                "ignored_reason=excluded.ignored_reason, "
-                "updated_at=excluded.updated_at"
-            ),
-            (
-                path,
-                size,
-                mtime_ns,
-                digest,
-                language,
-                1 if is_generated else 0,
-                1 if is_hidden else 0,
-                ignored_reason,
-                time.time(),
-            ),
-        )
-
-    def replace_packages(self, packages: list[dict[str, Any]]) -> None:
-        self._conn.execute("DELETE FROM packages")
-        for pkg in packages:
-            self._conn.execute(
-                "INSERT INTO packages(path,package_type,manifest,parent_path) VALUES(?,?,?,?)",
-                (
-                    pkg.get("path", ""),
-                    pkg.get("package_type", "unknown"),
-                    pkg.get("manifest"),
-                    pkg.get("parent_path"),
-                ),
-            )
-
-    def replace_symbols_and_imports(
-        self,
-        path: str,
-        symbols: list[dict[str, Any]],
-        imports: list[str],
-        language: str,
-    ) -> None:
-        self._conn.execute("DELETE FROM symbols WHERE path=?", (path,))
-        self._conn.execute("DELETE FROM imports WHERE path=?", (path,))
-        for sym in symbols:
-            self._conn.execute(
-                (
-                    "INSERT OR IGNORE INTO symbols("
-                    "symbol_type,qualified_name,path,line,signature_hash"
-                    ") VALUES(?,?,?,?,?)"
-                ),
-                (
-                    sym.get("symbol_type", "function"),
-                    sym.get("qualified_name") or sym.get("name", ""),
-                    path,
-                    int(sym.get("line", 0) or 0),
-                    sym.get("signature_hash"),
-                ),
-            )
-        for imp in imports:
-            self._conn.execute(
-                "INSERT INTO imports(path,language,imported) VALUES(?,?,?)",
-                (path, language, imp),
-            )
-
-    def start_run(self, *, mode: str, engine: str, incremental: bool) -> int:
+    def start_run(self, *, mode: str = "generate") -> int:
         cur = self._conn.execute(
-            "INSERT INTO runs(started_at,mode,engine,incremental) VALUES(?,?,?,?)",
-            (time.time(), mode, engine, 1 if incremental else 0),
+            "INSERT INTO runs(started_at,mode) VALUES(?,?)",
+            (time.time(), mode),
         )
-        if cur.lastrowid is None:
-            raise RuntimeError("SQLite did not return lastrowid for runs insert")
-        return cur.lastrowid
+        row_id = cur.lastrowid
+        if row_id is None:
+            raise RuntimeError("INSERT into runs returned no lastrowid")
+        return row_id
 
-    def finish_run(self, run_id: int, metrics: dict[str, Any]) -> None:
+    def finish_run(self, run_id: int, metrics: dict[str, Any] | None = None) -> None:
         self._conn.execute(
-            """
-            UPDATE runs
-               SET finished_at=?,
-                   scanned_files=?,
-                   changed_files=?,
-                   skipped_files=?,
-                   duration_sec=?,
-                   cache_hit_ratio=?,
-                   metrics_json=?
-             WHERE id=?
-            """,
-            (
-                time.time(),
-                int(metrics.get("scanned_files", 0)),
-                int(metrics.get("changed_files", 0)),
-                int(metrics.get("skipped_files", 0)),
-                float(metrics.get("duration_sec", 0.0)),
-                float(metrics.get("cache_hit_ratio", 0.0)),
-                json.dumps(metrics, sort_keys=True),
-                run_id,
-            ),
+            "UPDATE runs SET finished_at=?, metrics_json=? WHERE id=?",
+            (time.time(), json.dumps(metrics or {}, sort_keys=True), run_id),
         )
 
-    def add_doc_artifact(
-        self,
-        *,
-        run_id: int,
-        artifact_path: str,
-        target: str,
-        content_hash: str,
-        section_hashes: dict[str, str] | None,
+    def add_diff_run(
+        self, run_id: int, from_ref: str | None, to_ref: str | None, summary: dict[str, Any]
     ) -> None:
         self._conn.execute(
-            (
-                "INSERT INTO docs_artifacts("
-                "run_id,artifact_path,target,content_hash,section_hashes"
-                ") "
-                "VALUES(?,?,?,?,?)"
-            ),
-            (
-                run_id,
-                artifact_path,
-                target,
-                content_hash,
-                json.dumps(section_hashes or {}, sort_keys=True),
-            ),
+            "INSERT INTO diff_runs(run_id,from_ref,to_ref,summary_json) VALUES(?,?,?,?)",
+            (run_id, from_ref, to_ref, json.dumps(summary, sort_keys=True)),
         )
+
+    def replace_file_reviews(self, run_id: int, reviews: list[dict[str, Any]]) -> None:
+        self._conn.execute("DELETE FROM file_reviews WHERE run_id=?", (run_id,))
+        stmt = (
+            "INSERT INTO file_reviews(run_id,path,folder,risk_level,risk_score,review_json) "
+            "VALUES(?,?,?,?,?,?)"
+        )
+        for review in reviews:
+            self._conn.execute(
+                stmt,
+                (
+                    run_id,
+                    review.get("path", ""),
+                    review.get("folder", "."),
+                    review.get("risk_level", "low"),
+                    float(review.get("risk_score", 0.0)),
+                    json.dumps(review, sort_keys=True),
+                ),
+            )
+
+    def replace_output_links(self, run_id: int, links: list[dict[str, Any]]) -> None:
+        self._conn.execute("DELETE FROM output_links WHERE run_id=?", (run_id,))
+        for link in links:
+            self._conn.execute(
+                """
+                INSERT INTO output_links(
+                    run_id,source_file,source_line,target_file,operation,confidence,resolved,evidence_snippet
+                ) VALUES(?,?,?,?,?,?,?,?)
+                """,
+                (
+                    run_id,
+                    link.get("source_file", ""),
+                    int(link.get("source_line", 0)),
+                    link.get("target_file"),
+                    link.get("operation", ""),
+                    link.get("confidence", "low"),
+                    1 if link.get("resolved") else 0,
+                    link.get("evidence_snippet", ""),
+                ),
+            )
 
     def latest_run_id(self) -> int | None:
         row = self._conn.execute("SELECT id FROM runs ORDER BY id DESC LIMIT 1").fetchone()
         return int(row["id"]) if row else None
 
-    def get_run(self, run_id: int) -> dict[str, Any] | None:
-        row = self._conn.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
-        return dict(row) if row else None
+    def add_doc_artifact(
+        self,
+        run_id: int,
+        artifact_path: str,
+        target: str,
+        content_hash: str,
+        section_hashes: dict[str, str],
+    ) -> None:
+        self._conn.execute(
+            """
+            INSERT INTO doc_artifacts(run_id,artifact_path,target,content_hash,section_hashes_json)
+            VALUES(?,?,?,?,?)
+            """,
+            (
+                run_id,
+                artifact_path,
+                target,
+                content_hash,
+                json.dumps(section_hashes, sort_keys=True),
+            ),
+        )
 
     def list_artifacts_for_run(self, run_id: int) -> list[dict[str, Any]]:
-        rows = self._conn.execute(
-            (
-                "SELECT artifact_path,target,content_hash,section_hashes "
-                "FROM docs_artifacts WHERE run_id=?"
-            ),
-            (run_id,),
-        ).fetchall()
-        return [dict(r) for r in rows]
+        query = (
+            "SELECT artifact_path, target, content_hash, section_hashes_json"
+            " FROM doc_artifacts WHERE run_id=?"
+        )
+        rows = self._conn.execute(query, (run_id,)).fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            result.append(
+                {
+                    "artifact_path": row["artifact_path"],
+                    "target": row["target"],
+                    "content_hash": row["content_hash"],
+                    "section_hashes": json.loads(row["section_hashes_json"] or "{}"),
+                }
+            )
+        return result
+
+    def clear_all(self) -> None:
+        self._conn.executescript(
+            """
+            DELETE FROM doc_artifacts;
+            DELETE FROM output_links;
+            DELETE FROM file_reviews;
+            DELETE FROM diff_runs;
+            DELETE FROM runs;
+            """
+        )
 
     def stats(self) -> dict[str, Any]:
-        def count(table: str) -> int:
-            query = TABLE_COUNT_QUERIES[table]
-            row = self._conn.execute(query).fetchone()
-            return int(row["c"] if row else 0)
-
-        latest = self.latest_run_id()
-        latest_run = self.get_run(latest) if latest else None
+        run_count = self._conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0]
+        artifact_count = self._conn.execute("SELECT COUNT(*) FROM doc_artifacts").fetchone()[0]
+        review_count = self._conn.execute("SELECT COUNT(*) FROM file_reviews").fetchone()[0]
         return {
-            "db_path": str(self.db_path),
-            "schema_version": SCHEMA_VERSION,
-            "files": count("files"),
-            "symbols": count("symbols"),
-            "imports": count("imports"),
-            "packages": count("packages"),
-            "runs": count("runs"),
-            "docs_artifacts": count("docs_artifacts"),
-            "latest_run": latest_run,
+            "runs": int(run_count),
+            "doc_artifacts": int(artifact_count),
+            "file_reviews": int(review_count),
         }
-
-    def commit(self) -> None:
-        self._conn.commit()

@@ -4,7 +4,7 @@
 
  [project]
  name = "docgenie-cli"
- version = "1.1.6"
+ version = "1.1.7"
  description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
  readme = "README.md"
  license = { file = "LICENSE" }
@@ -60,9 +60,8 @@ dev = [
 ]
 
  [project.urls]
- Homepage = "https://github.com/ch1kim0n1/DocGenie"
  Repository = "https://github.com/ch1kim0n1/DocGenie"
- Documentation = "https://github.com/ch1kim0n1/DocGenie"
+ Documentation = "https://github.com/ch1kim0n1/DocGenie/tree/main/docs"
  Changelog = "https://github.com/ch1kim0n1/DocGenie/blob/main/CHANGELOG.md"
 
 [project.scripts]

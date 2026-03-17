@@ -4,7 +4,7 @@
 
  [project]
  name = "docgenie-cli"
- version = "1.1.8"
+ version = "1.1.85"
  description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
  readme = "README.md"
  license = { file = "LICENSE" }

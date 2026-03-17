@@ -20,13 +20,9 @@ def impact_graph_block(graph_data: dict[str, Any] | None) -> str:
     total_edges_default = len(payload_dict.get("edges", [])) or 0
     total_edges = int(payload_dict.get("total_edges", total_edges_default))
     nodes_list = payload_dict.get("nodes", [])
-    shown_nodes = (
-        len(nodes_list) if isinstance(nodes_list, list) else 0
-    )
+    shown_nodes = len(nodes_list) if isinstance(nodes_list, list) else 0
     edges_list = payload_dict.get("edges", [])
-    shown_edges = (
-        len(edges_list) if isinstance(edges_list, list) else 0
-    )
+    shown_edges = len(edges_list) if isinstance(edges_list, list) else 0
     truncated = bool(payload_dict.get("truncated", False))
     summary = (
         f"Showing {shown_nodes}/{total_nodes} nodes and {shown_edges}/{total_edges} edges"
@@ -34,19 +30,19 @@ def impact_graph_block(graph_data: dict[str, Any] | None) -> str:
         else f"{shown_nodes} nodes and {shown_edges} edges"
     )
     return (
-        "<section class=\"impact-graph-card\">"
-        "<div class=\"impact-graph-header\"><h2>Impact Graph</h2></div>"
-        "<p class=\"impact-graph-hint\">Dependency and output-flow impact for changed files.</p>"
-        "<div class=\"impact-graph-controls\">"
-        "<button id=\"impact-reset\" type=\"button\" class=\"impact-btn\">Reset View</button>"
-        "<button id=\"impact-layout\" type=\"button\" "
-        "class=\"impact-btn\">Hierarchical view</button>"
+        '<section class="impact-graph-card">'
+        '<div class="impact-graph-header"><h2>Impact Graph</h2></div>'
+        '<p class="impact-graph-hint">Dependency and output-flow impact for changed files.</p>'
+        '<div class="impact-graph-controls">'
+        '<button id="impact-reset" type="button" class="impact-btn">Reset View</button>'
+        '<button id="impact-layout" type="button" '
+        'class="impact-btn">Hierarchical view</button>'
         "</div>"
-        "<svg id=\"impact-graph\" aria-label=\"Impact graph\"></svg>"
-        "<div class=\"impact-graph-legend\">"
+        '<svg id="impact-graph" aria-label="Impact graph"></svg>'
+        '<div class="impact-graph-legend">'
         f"Blue: files, Teal: modules, Amber: output targets. {summary}."
         "</div>"
-        f"<script id=\"impact-graph-data\" type=\"application/json\">{payload}</script>"
+        f'<script id="impact-graph-data" type="application/json">{payload}</script>'
         "</section>"
     )
 
@@ -97,15 +93,9 @@ def build_impact_graph_data(analysis_data: dict[str, Any]) -> dict[str, Any]:
     render_edges = [
         e
         for e in all_edges
-        if (
-            str(e.get("source", "")) in allowed_ids
-            and str(e.get("target", "")) in allowed_ids
-        )
+        if (str(e.get("source", "")) in allowed_ids and str(e.get("target", "")) in allowed_ids)
     ][:max_edges]
-    truncated = (
-        len(all_nodes) > len(render_nodes)
-        or len(all_edges) > len(render_edges)
-    )
+    truncated = len(all_nodes) > len(render_nodes) or len(all_edges) > len(render_edges)
     return {
         "nodes": render_nodes,
         "edges": render_edges,

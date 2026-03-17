@@ -86,9 +86,7 @@ def _score_languages(languages: dict[str, int], warnings: list[str]) -> int:
     return 0
 
 
-def _score_symbols(
-    functions: list[Any], classes: list[Any], warnings: list[str]
-) -> int:
+def _score_symbols(functions: list[Any], classes: list[Any], warnings: list[str]) -> int:
     """Return score based on code symbol count."""
     symbol_count = len(functions) + len(classes)
     if symbol_count >= MIN_SYMBOLS:

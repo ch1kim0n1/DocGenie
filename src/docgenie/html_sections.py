@@ -8,12 +8,25 @@ from typing import Any
 
 
 def impact_graph_block(graph_data: dict[str, Any] | None) -> str:
-    payload_dict = graph_data or {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
+    payload_dict = graph_data or {
+        "nodes": [],
+        "edges": [],
+        "total_nodes": 0,
+        "total_edges": 0,
+    }
     payload = json.dumps(payload_dict, sort_keys=True)
-    total_nodes = int(payload_dict.get("total_nodes", len(payload_dict.get("nodes", [])) or 0))
-    total_edges = int(payload_dict.get("total_edges", len(payload_dict.get("edges", [])) or 0))
-    shown_nodes = len(payload_dict.get("nodes", [])) if isinstance(payload_dict.get("nodes"), list) else 0
-    shown_edges = len(payload_dict.get("edges", [])) if isinstance(payload_dict.get("edges"), list) else 0
+    total_nodes_default = len(payload_dict.get("nodes", [])) or 0
+    total_nodes = int(payload_dict.get("total_nodes", total_nodes_default))
+    total_edges_default = len(payload_dict.get("edges", [])) or 0
+    total_edges = int(payload_dict.get("total_edges", total_edges_default))
+    nodes_list = payload_dict.get("nodes", [])
+    shown_nodes = (
+        len(nodes_list) if isinstance(nodes_list, list) else 0
+    )
+    edges_list = payload_dict.get("edges", [])
+    shown_edges = (
+        len(edges_list) if isinstance(edges_list, list) else 0
+    )
     truncated = bool(payload_dict.get("truncated", False))
     summary = (
         f"Showing {shown_nodes}/{total_nodes} nodes and {shown_edges}/{total_edges} edges"
@@ -26,7 +39,8 @@ def impact_graph_block(graph_data: dict[str, Any] | None) -> str:
         "<p class=\"impact-graph-hint\">Dependency and output-flow impact for changed files.</p>"
         "<div class=\"impact-graph-controls\">"
         "<button id=\"impact-reset\" type=\"button\" class=\"impact-btn\">Reset View</button>"
-        "<button id=\"impact-layout\" type=\"button\" class=\"impact-btn\">Hierarchical view</button>"
+        "<button id=\"impact-layout\" type=\"button\" "
+        "class=\"impact-btn\">Hierarchical view</button>"
         "</div>"
         "<svg id=\"impact-graph\" aria-label=\"Impact graph\"></svg>"
         "<div class=\"impact-graph-legend\">"
@@ -81,9 +95,17 @@ def build_impact_graph_data(analysis_data: dict[str, Any]) -> dict[str, Any]:
     render_nodes = all_nodes[:max_nodes]
     allowed_ids = {n.get("id", "") for n in render_nodes}
     render_edges = [
-        e for e in all_edges if str(e.get("source", "")) in allowed_ids and str(e.get("target", "")) in allowed_ids
+        e
+        for e in all_edges
+        if (
+            str(e.get("source", "")) in allowed_ids
+            and str(e.get("target", "")) in allowed_ids
+        )
     ][:max_edges]
-    truncated = len(all_nodes) > len(render_nodes) or len(all_edges) > len(render_edges)
+    truncated = (
+        len(all_nodes) > len(render_nodes)
+        or len(all_edges) > len(render_edges)
+    )
     return {
         "nodes": render_nodes,
         "edges": render_edges,

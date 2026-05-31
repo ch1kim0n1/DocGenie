@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import logging
 import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
@@ -13,8 +14,6 @@ from typing import Any, cast
 from tree_sitter_language_pack import get_parser as ts_get_parser
 
 from .models import ClassDoc, FunctionDoc, MethodDoc, ParseResult
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +50,7 @@ class PythonAstParser(ParserPlugin):
         imports: set[str] = set()
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 functions.append(
                     FunctionDoc(
                         name=node.name,
@@ -75,7 +74,7 @@ class PythonAstParser(ParserPlugin):
                         decorators=[_get_decorator_name(dec) for dec in item.decorator_list],
                     )
                     for item in node.body
-                    if isinstance(item, ast.FunctionDef)
+                    if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef)
                 ]
 
                 classes.append(
@@ -161,7 +160,6 @@ class TreeSitterParser(ParserPlugin):
 
     def __init__(self) -> None:
         super().__init__(name="tree-sitter", languages=self.SUPPORTED, priority=50)
-        self.available = ts_get_parser is not None
 
     def parse(self, content: str, path: Path, language: str) -> ParseResult:
         parser = ts_get_parser(language)
@@ -401,14 +399,17 @@ def _load_external_plugins() -> Iterable[ParserPlugin]:
             eps = cast(Any, eps_any).select(group="docgenie.parsers")
         else:
             eps = cast(Any, eps_any).get("docgenie.parsers", [])
-    except (ImportError, AttributeError, TypeError) as e:  # pragma: no cover
-        logger.debug("Failed to load parser plugin: %s", e)
+    except Exception as e:  # noqa: BLE001 - plugin discovery is best-effort
+        logger.debug("Failed to discover parser plugins: %s", e)
         return []
     plugins: list[ParserPlugin] = []
-    for ep in eps:
-        plugin_obj = _safe_load_entry_point(ep)
-        if isinstance(plugin_obj, ParserPlugin):
-            plugins.append(plugin_obj)
+    try:
+        for ep in eps:
+            plugin_obj = _safe_load_entry_point(ep)
+            if isinstance(plugin_obj, ParserPlugin):
+                plugins.append(plugin_obj)
+    except Exception as e:  # noqa: BLE001 - never let a bad plugin crash the registry
+        logger.debug("Failed to iterate parser plugins: %s", e)
     return plugins
 
 
@@ -416,5 +417,6 @@ def _safe_load_entry_point(ep: Any) -> Any:
     """Best-effort external plugin loader."""
     try:
         return cast(Any, ep).load()
-    except (ImportError, AttributeError, TypeError, ValueError):
+    except Exception as e:  # noqa: BLE001 - a bad plugin must not crash loading
+        logger.debug("Failed to load parser entry point: %s", e)
         return None

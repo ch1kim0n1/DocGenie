@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import re
 from collections import Counter, defaultdict
@@ -31,6 +32,8 @@ from .utils import (
     load_gitignore_spec,
     should_ignore_file,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _hash_file(path: Path) -> str:
@@ -211,12 +214,17 @@ class CodebaseAnalyzer:
             tasks.append((str(file_path), self.ignore_patterns, self.enable_tree_sitter))
 
         if tasks:
-            with ProcessPoolExecutor() as executor:
+            with ProcessPoolExecutor(max_workers=min(4, (os.cpu_count() or 1))) as executor:
                 futures = {
                     executor.submit(_analyze_file_task, payload): payload[0] for payload in tasks
                 }
                 for future in as_completed(futures):
-                    file_path_str, language, parsed, file_hash = future.result()
+                    try:
+                        file_path_str, language, parsed, file_hash = future.result(timeout=60)
+                    except TimeoutError:
+                        file_path = futures[future]
+                        logger.warning("File analysis timed out, skipping: %s", file_path)
+                        continue
                     if not language or parsed is None:
                         continue
                     self._apply_parsed_data(parsed, Path(file_path_str), cached_language=language)
@@ -430,9 +438,13 @@ class CodebaseAnalyzer:
                 in_require = False
                 continue
             if in_require and line:
-                deps.append(line.split()[0])
+                parts = line.split()
+                if len(parts) >= 1:
+                    deps.append(parts[0])
             elif line.startswith("require ") and not in_require:
-                deps.append(line.split()[1])
+                parts = line.split()
+                if len(parts) >= 2:
+                    deps.append(parts[1])
         return deps
 
     def _parse_pom_xml(self, file_path: Path) -> list[str]:

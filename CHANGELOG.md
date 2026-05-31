@@ -7,13 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.6] - 2026-03-01
+## [1.1.6] - 2025-03-01
 
 ### Changed
 
 - Version bump to 1.1.6.
 
-## [1.1.5] - 2026-03-01
+## [1.1.5] - 2025-03-01
 
 ### Fixed
 
@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Documentation: removed emojis and updated wording for a professional tone across README, docs, and changelog.
 
-## [1.1.0] - 2026-01-24
+## [1.1.0] - 2025-01-24
 
 ### Fixed
 

@@ -4,8 +4,9 @@
 
  [project]
  name = "docgenie-cli"
- version = "1.1.85"
+ version = "1.1.85"  # Keep in sync with src/docgenie/__init__.py
  description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
+keywords = ["documentation", "readme", "auto-documentation", "code-analysis", "cli", "llm", "ai"]
  readme = "README.md"
  license = { file = "LICENSE" }
 authors = [
@@ -13,7 +14,6 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "click>=8.1",
   "typer>=0.12",
   "rich>=13.7",
   "structlog>=24.1",
@@ -24,7 +24,6 @@ dependencies = [
   "toml>=0.10",
   "pygments>=2.10",
   "pathspec>=0.9",
-  "requests>=2.25",
   "markdown>=3.3",
 ]
  classifiers = [
@@ -40,6 +39,8 @@ dependencies = [
    "Programming Language :: Python :: 3.13",
    "Topic :: Software Development :: Documentation",
    "Topic :: Software Development :: Libraries :: Python Modules",
+   "Natural Language :: English",
+   "Typing :: Typed",
  ]
 
 [project.optional-dependencies]
@@ -80,7 +81,7 @@ target-version = "py310"
  line-length = 100
  lint.select = ["E", "F", "I", "B", "UP", "S", "N", "A", "C4", "TID", "T20", "RET", "SIM", "PL"]
  lint.ignore = ["B008"]
-lint.per-file-ignores = { "src/docgenie/cli.py" = ["PLR0913"], "src/docgenie/generator.py" = ["UP006", "UP035", "PLR0912", "E501", "PLR2004"], "src/docgenie/html_generator.py" = ["UP006", "UP035", "E501"], "src/docgenie/utils.py" = ["UP006", "UP035", "PLR0911", "PLR0912", "PLR2004"] }
+lint.per-file-ignores = { "src/docgenie/cli.py" = ["PLR0913"], "src/docgenie/generator.py" = ["PLR0912", "E501", "PLR2004"], "src/docgenie/html_generator.py" = ["E501"], "src/docgenie/utils.py" = ["PLR0911", "PLR0912", "PLR2004"] }
 
  [tool.mypy]
 python_version = "3.10"

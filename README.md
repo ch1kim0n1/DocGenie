@@ -7,7 +7,7 @@ Auto-documentation tool that generates `README.md` and HTML docs for a codebase.
 ### Installation
 
 ```bash
-python3 -m pip install "docgenie"
+python3 -m pip install "docgenie-cli"
 ```
 
 Requirements: **Python 3.10+**

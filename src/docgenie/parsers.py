@@ -14,6 +14,10 @@ from tree_sitter_language_pack import get_parser as ts_get_parser
 
 from .models import ClassDoc, FunctionDoc, MethodDoc, ParseResult
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class ParserPlugin:
@@ -397,7 +401,8 @@ def _load_external_plugins() -> Iterable[ParserPlugin]:
             eps = cast(Any, eps_any).select(group="docgenie.parsers")
         else:
             eps = cast(Any, eps_any).get("docgenie.parsers", [])
-    except Exception:  # pragma: no cover - best effort only
+    except (ImportError, AttributeError, TypeError) as e:  # pragma: no cover
+        logger.debug("Failed to load parser plugin: %s", e)
         return []
     plugins: list[ParserPlugin] = []
     for ep in eps:

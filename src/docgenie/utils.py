@@ -11,6 +11,10 @@ from typing import Any, Dict, List
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
 from pathspec import PathSpec
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Default ignore patterns
 DEFAULT_IGNORE_PATTERNS = [
     ".git",
@@ -254,15 +258,15 @@ def extract_git_info(repo_path: Path) -> Dict[str, Any]:
         remote_url = origin.url
         git_info["remote_url"] = remote_url
         git_info["repo_name"] = extract_repo_name_from_url(remote_url)
-    except (AttributeError, IndexError, GitCommandError):
-        pass
+    except (AttributeError, IndexError, GitCommandError) as e:
+        logger.debug("Git operation failed: %s", e)
 
     # Current branch
     try:
         if not repo.head.is_detached:
             git_info["current_branch"] = repo.active_branch.name
-    except (TypeError, GitCommandError):
-        pass
+    except (TypeError, GitCommandError) as e:
+        logger.debug("Git operation failed: %s", e)
 
     # Latest commit info
     try:
@@ -274,16 +278,16 @@ def extract_git_info(repo_path: Path) -> Dict[str, Any]:
             "date": str(commit.committed_datetime),
             "message": commit.message.strip(),
         }
-    except (ValueError, GitCommandError, AttributeError):
-        pass
+    except (ValueError, GitCommandError, AttributeError) as e:
+        logger.debug("Git operation failed: %s", e)
 
     # Contributor count (best-effort)
     try:
         shortlog = repo.git.shortlog("-sn")
         contributors = [line for line in shortlog.split("\n") if line.strip()]
         git_info["contributor_count"] = len(contributors)
-    except GitCommandError:
-        pass
+    except GitCommandError as e:
+        logger.debug("Git operation failed: %s", e)
 
     return git_info
 

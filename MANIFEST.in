@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+recursive-include src *.py *.pyi *.typed
+include src/docgenie/py.typed

@@ -24,6 +24,10 @@ from .logging import configure_logging, get_logger
 from .pr_summary import render_pr_summary
 from .readme_gate import evaluate_readme_readiness
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 app = typer.Typer(add_completion=False, help="DocGenie - Auto-documentation for any codebase.")
 index_app = typer.Typer(add_completion=False, help="Manage persistent DocGenie index store.")
 app.add_typer(index_app, name="index")
@@ -127,8 +131,8 @@ def _record_artifact(path: Path, target: str, content: str, root: Path) -> None:
             )
             store.commit()
         store.close()
-    except OSError:
-        pass
+    except OSError as e:
+        logger.warning("Failed to record artifact %s: %s", path, e)
 
 
 def _build_outputs(target_formats: str, output: Path | None, base: Path) -> list[OutputSpec]:

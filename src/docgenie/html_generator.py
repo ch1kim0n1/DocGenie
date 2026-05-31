@@ -95,6 +95,11 @@ class HTMLGenerator:
   <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">
   <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>
   <link href=\"https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">
+  <!-- Offline fallback: system fonts used if Google Fonts unavailable -->
+  <style>
+  body {{ font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }}
+  code, pre {{ font-family: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace; }}
+  </style>
   <style>{self._get_css_styles()}</style>
 </head>
 <body>

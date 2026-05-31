@@ -50,7 +50,7 @@ class DependencyError(DocGenieError):
         self.extra = extra
         message = f"Missing required dependency: {dependency}"
         if extra:
-            message += f" (install with: pip install docgenie[{extra}])"
+            message += f" (install with: pip install docgenie-cli[{extra}])"
         else:
             message += f" (install with: pip install {dependency})"
         super().__init__(message)

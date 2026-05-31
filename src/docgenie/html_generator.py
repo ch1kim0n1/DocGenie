@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -10,16 +9,13 @@ from typing import Any
 import markdown
 
 from .generator import ReadmeGenerator
-from .sanitize import sanitize_html
-
-try:
-    from .redaction import redact_text
-except ModuleNotFoundError:  # pragma: no cover - optional in trimmed installs
-
-    def redact_text(
-        text: str, mode: str = "strict", custom_patterns: list[str] | None = None
-    ) -> str:
-        return text
+from .html_sections import (
+    build_impact_graph_data,
+    impact_graph_block,
+    normalize_heading_ids,
+)
+from .redaction import redact_text
+from .sanitize import sanitize_html, sanitize_markdown_html
 
 
 class HTMLGenerator:
@@ -44,8 +40,20 @@ class HTMLGenerator:
         graph_data: dict[str, Any] | None = None,
     ) -> str:
         safe_readme = redact_text(readme_content, redaction_mode, redact_patterns or [])
-        content = self.markdown_processor.convert(safe_readme)
-        full_html = self._create_html_document(content, project_name, graph_data=graph_data)
+        # Reset converter state so `toc` reflects only this document.
+        self.markdown_processor.reset()
+        raw_content = self.markdown_processor.convert(safe_readme)
+        toc_html = getattr(self.markdown_processor, "toc", "")
+        # Normalize heading IDs (and matching TOC anchors) before sanitizing.
+        raw_content, toc_html = normalize_heading_ids(raw_content, toc_html)
+        # SECURITY: sanitize the converted body to strip executable content
+        # (<script>, event handlers, javascript:/data: URLs) that may originate
+        # from analyzed source (docstrings, identifiers, dependency names).
+        content = sanitize_markdown_html(raw_content)
+        safe_toc = sanitize_markdown_html(toc_html)
+        full_html = self._create_html_document(
+            content, project_name, graph_data=graph_data, toc_html=safe_toc
+        )
         if output_path:
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write(full_html)
@@ -64,7 +72,7 @@ class HTMLGenerator:
             redact_patterns = []
 
         project_name = self._extract_project_name(analysis_data)
-        graph_data = self._build_impact_graph_data(analysis_data)
+        graph_data = build_impact_graph_data(analysis_data)
         return self.generate_from_readme(
             readme_content,
             output_path,
@@ -80,11 +88,11 @@ class HTMLGenerator:
         project_name: str,
         *,
         graph_data: dict[str, Any] | None = None,
+        toc_html: str = "",
     ) -> str:
         safe_project_name = sanitize_html(project_name)
-        toc_html = getattr(self.markdown_processor, "toc", "")
         generated_on = datetime.now().strftime("%B %d, %Y")
-        impact_block = self._impact_graph_block(graph_data)
+        impact_block = impact_graph_block(graph_data)
 
         return f"""<!DOCTYPE html>
 <html lang=\"en\">
@@ -344,59 +352,6 @@ function renderImpactGraph(svg, payload) {
   svg.innerHTML = edgeSvg + nodeSvg;
 }
 """
-
-    def _impact_graph_block(self, graph_data: dict[str, Any] | None) -> str:
-        payload = json.dumps(graph_data or {"nodes": [], "edges": []}, sort_keys=True)
-        return (
-            '<section class="impact-graph-card">'
-            '<div class="impact-graph-header"><h2>Impact Graph</h2></div>'
-            '<p class="impact-graph-hint">Dependency and output-flow impact for changed files.</p>'
-            '<svg id="impact-graph" aria-label="Impact graph"></svg>'
-            '<div class="impact-graph-legend">'
-            "Blue: files, Teal: modules, Amber: output targets"
-            "</div>"
-            f'<script id="impact-graph-data" type="application/json">{payload}</script>'
-            "</section>"
-        )
-
-    def _build_impact_graph_data(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
-        nodes: dict[str, dict[str, str]] = {}
-        edges: list[dict[str, str]] = []
-
-        def add_node(node_id: str, label: str, node_type: str) -> None:
-            if node_id not in nodes:
-                nodes[node_id] = {"id": node_id, "label": label, "type": node_type}
-
-        file_imports = analysis_data.get("file_imports", {})
-        if isinstance(file_imports, dict):
-            for path, imports in file_imports.items():
-                file_id = f"file:{path}"
-                add_node(file_id, str(path), "file")
-                if isinstance(imports, list):
-                    for imported in imports[:8]:
-                        module_id = f"module:{imported}"
-                        add_node(module_id, str(imported), "module")
-                        edges.append({"source": file_id, "target": module_id, "kind": "import"})
-
-        for link in analysis_data.get("output_links", [])[:60]:
-            source = str(link.get("source_file", ""))
-            target = str(link.get("target_file") or "unresolved-output")
-            if not source:
-                continue
-            src_id = f"file:{source}"
-            tgt_id = f"output:{target}"
-            add_node(src_id, source, "file")
-            add_node(tgt_id, target, "output")
-            edges.append({"source": src_id, "target": tgt_id, "kind": "output"})
-
-        diff_summary = analysis_data.get("diff_summary", {})
-        if isinstance(diff_summary, dict):
-            for item in diff_summary.get("files", [])[:40]:
-                path = str(item.get("path", ""))
-                if path:
-                    add_node(f"file:{path}", path, "file")
-
-        return {"nodes": list(nodes.values())[:120], "edges": edges[:220]}
 
     def _extract_project_name(self, analysis_data: dict[str, Any]) -> str:
         project_name = analysis_data.get("project_name")

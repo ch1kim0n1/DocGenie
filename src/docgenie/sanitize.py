@@ -6,6 +6,114 @@ import html
 import re
 from typing import Any
 
+import nh3
+
+# Tags allowed in rendered documentation bodies. This is the markdown output
+# surface (headings, lists, tables, code blocks, links, images, etc.). Raw
+# <script>/<style>/<iframe>/event-handler attributes are NOT in this set and are
+# therefore stripped by nh3.
+_ALLOWED_TAGS: set[str] = {
+    "a",
+    "abbr",
+    "b",
+    "blockquote",
+    "br",
+    "caption",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "dd",
+    "del",
+    "details",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "figcaption",
+    "figure",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "i",
+    "img",
+    "ins",
+    "kbd",
+    "li",
+    "mark",
+    "ol",
+    "p",
+    "pre",
+    "q",
+    "s",
+    "samp",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "summary",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "ul",
+    "var",
+}
+
+_ALLOWED_ATTRIBUTES: dict[str, set[str]] = {
+    "a": {"href", "title", "id", "name"},
+    "img": {"src", "alt", "title", "width", "height"},
+    "code": {"class"},
+    "pre": {"class"},
+    "span": {"class", "id"},
+    "div": {"class", "id"},
+    "td": {"align"},
+    "th": {"align", "scope"},
+    "ol": {"start"},
+    "h1": {"id"},
+    "h2": {"id"},
+    "h3": {"id"},
+    "h4": {"id"},
+    "h5": {"id"},
+    "h6": {"id"},
+}
+
+# Only safe link/image protocols survive sanitization; javascript:/data:/vbscript:
+# URLs are dropped by nh3 because they are not in this allow-list.
+_ALLOWED_URL_SCHEMES: set[str] = {"http", "https", "mailto", "tel", "ftp"}
+
+
+def sanitize_markdown_html(html_body: str) -> str:
+    """
+    Sanitize HTML produced from markdown using an allow-list cleaner.
+
+    Removes executable/dangerous content (``<script>``, event handlers,
+    ``javascript:``/``data:`` URLs, etc.) while preserving normal documentation
+    markup. Used on the rendered README body before inlining it into the
+    generated HTML document to prevent stored XSS from analyzed source content.
+
+    Args:
+        html_body: HTML produced by the markdown converter.
+
+    Returns:
+        Sanitized HTML safe to inline into a document body.
+    """
+    return nh3.clean(
+        html_body,
+        tags=_ALLOWED_TAGS,
+        attributes=_ALLOWED_ATTRIBUTES,
+        url_schemes=_ALLOWED_URL_SCHEMES,
+        link_rel="nofollow noopener noreferrer",
+    )
+
 
 def sanitize_html(text: str) -> str:
     """

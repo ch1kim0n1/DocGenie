@@ -4,7 +4,7 @@
 
  [project]
  name = "docgenie-cli"
- version = "1.1.85"  # Keep in sync with src/docgenie/__init__.py
+ dynamic = ["version"]
  description = "Auto-documentation tool that generates comprehensive README and HTML docs for any codebase."
 keywords = ["documentation", "readme", "auto-documentation", "code-analysis", "cli", "llm", "ai"]
  readme = "README.md"
@@ -25,6 +25,7 @@ dependencies = [
   "pygments>=2.10",
   "pathspec>=0.9",
   "markdown>=3.3",
+  "nh3>=0.2",
 ]
  classifiers = [
    "Development Status :: 4 - Beta",
@@ -66,8 +67,12 @@ dev = [
  Changelog = "https://github.com/ch1kim0n1/DocGenie/blob/main/CHANGELOG.md"
 
 [project.scripts]
+docgenie = "docgenie.cli:app"
 docgenie-cli = "docgenie.cli:app"
 docgenie-html = "docgenie.convert_to_html:main"
+
+ [tool.hatch.version]
+ path = "src/docgenie/__init__.py"
 
  [tool.hatch.build]
  include = ["src/docgenie", "README.md", "LICENSE"]

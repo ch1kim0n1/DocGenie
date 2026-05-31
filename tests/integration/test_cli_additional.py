@@ -147,6 +147,51 @@ def test_generate_and_init_and_html_commands(tmp_path: Path, monkeypatch: pytest
     assert diff_res.exit_code in {0, 1}
 
 
+def test_generate_records_artifacts_and_diff_index_detects_change(tmp_path: Path) -> None:
+    """Issue #37: generate must record artifacts so diff-index sees doc changes."""
+    import json
+
+    sample = tmp_path / "main.py"
+    sample.write_text("def hello():\n    return 'world'\n", encoding="utf-8")
+    runner = CliRunner()
+
+    # First generate run.
+    r1 = runner.invoke(app, ["generate", str(tmp_path), "--format", "markdown", "--force"])
+    assert r1.exit_code == 0
+
+    # Change the codebase so the second README differs.
+    (tmp_path / "extra.py").write_text(
+        "def added():\n    return 1\n\nclass Thing:\n    pass\n", encoding="utf-8"
+    )
+    r2 = runner.invoke(app, ["generate", str(tmp_path), "--format", "markdown", "--force"])
+    assert r2.exit_code == 0
+
+    diff_res = runner.invoke(app, ["diff-index", str(tmp_path), "--since", "1"])
+    assert diff_res.exit_code == 0
+    payload = json.loads(diff_res.stdout)
+    assert payload["changed_count"] >= 1
+    assert any("README.md" in p for p in payload["changed_artifacts"])
+
+
+def test_analyze_metrics_json_is_populated(tmp_path: Path) -> None:
+    """Issue #38: --metrics-json must write real, non-empty metrics."""
+    import json
+
+    (tmp_path / "main.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+    metrics_path = tmp_path / "m.json"
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["analyze", str(tmp_path), "--format", "json", "--metrics-json", str(metrics_path)],
+    )
+    assert result.exit_code == 0
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    assert metrics != {}
+    assert metrics["scanned_files"] >= 1
+    assert "cache_hit_ratio" in metrics
+    assert "duration_sec" in metrics
+
+
 def test_render_outputs_direct(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     analysis = {
         "project_name": "P",

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+import sqlite3
 import webbrowser
 from pathlib import Path
 from typing import Any
@@ -23,8 +25,6 @@ from .index_store import IndexStore
 from .logging import configure_logging, get_logger
 from .pr_summary import render_pr_summary
 from .readme_gate import evaluate_readme_readiness
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -119,19 +119,18 @@ def _section_hashes(content: str) -> dict[str, str]:
 
 def _record_artifact(path: Path, target: str, content: str, root: Path) -> None:
     try:
-        store = IndexStore(root)
-        run_id = store.latest_run_id()
-        if run_id is not None:
-            store.add_doc_artifact(
-                run_id=run_id,
-                artifact_path=str(path),
-                target=target,
-                content_hash=_content_hash(content),
-                section_hashes=_section_hashes(content),
-            )
-            store.commit()
-        store.close()
-    except OSError as e:
+        with IndexStore(root) as store:
+            run_id = store.latest_run_id()
+            if run_id is not None:
+                store.add_doc_artifact(
+                    run_id=run_id,
+                    artifact_path=str(path),
+                    target=target,
+                    content_hash=_content_hash(content),
+                    section_hashes=_section_hashes(content),
+                )
+                store.commit()
+    except (OSError, sqlite3.Error) as e:
         logger.warning("Failed to record artifact %s: %s", path, e)
 
 
@@ -197,6 +196,9 @@ def _render_outputs(
                 typer.echo(content)
             else:
                 console.log(f"[green]README generated:[/green] {output_path}")
+                _record_artifact(
+                    output_path, "markdown", content, Path(str(analysis_data.get("root_path", ".")))
+                )
 
             if readiness["status"] != "pass":
                 console.log("[yellow]README readiness warning[/yellow]")
@@ -214,6 +216,9 @@ def _render_outputs(
                 typer.echo("\n".join(content.splitlines()[:80]))
             else:
                 console.log(f"[green]HTML generated:[/green] {output_path}")
+                _record_artifact(
+                    output_path, "html", content, Path(str(analysis_data.get("root_path", ".")))
+                )
 
 
 @app.command("generate")

@@ -44,7 +44,7 @@ def test_dependency_error_with_extra() -> None:
     """Test dependency error with installation hint."""
     err = DependencyError("tree-sitter", "full")
     assert "tree-sitter" in str(err)
-    assert "pip install docgenie[full]" in str(err)
+    assert "pip install docgenie-cli[full]" in str(err)
 
 
 def test_dependency_error_without_extra() -> None:

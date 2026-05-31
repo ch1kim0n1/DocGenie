@@ -49,7 +49,7 @@ def _default_from_ref(repo: Repo) -> str:
     return "HEAD~1"
 
 
-def compute_git_diff_summary(  # noqa: PLR0915
+def compute_git_diff_summary(  # noqa: PLR0915, PLR0912
     root_path: Path,
     *,
     from_ref: str | None,
@@ -76,7 +76,14 @@ def compute_git_diff_summary(  # noqa: PLR0915
         unavailable["to_ref"] = to_ref
         return unavailable
 
-    diff_index = left.diff(right, create_patch=False, R=rename_detection)
+    # Control rename detection explicitly. Do NOT use ``R`` here: in GitPython/git
+    # ``R`` maps to ``-R`` (reverse the diff), not rename detection. ``find_renames``
+    # enables git's ``-M``; ``no_renames`` disables rename detection so renames show
+    # as an add + delete pair, consistent with the un-reversed numstat below.
+    if rename_detection:
+        diff_index = left.diff(right, create_patch=False, find_renames=True)
+    else:
+        diff_index = left.diff(right, create_patch=False, no_renames=True)
 
     numstat_map: dict[str, tuple[int, int]] = {}
     try:

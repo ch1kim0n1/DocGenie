@@ -2,13 +2,16 @@
 README generation functionality for DocGenie.
 """
 
+import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
+import toml
 from jinja2 import Template
 
 from .logging import get_logger
+from .readme_quality import build_quality_report
 from .redaction import redact_text
 from .utils import create_directory_tree, get_project_type, is_website_project
 
@@ -21,7 +24,7 @@ class ReadmeGenerator:
     def __init__(self) -> None:
         self.template = self._get_template()
 
-    def generate(self, analysis_data: Dict[str, Any], output_path: str | None = None) -> str:
+    def generate(self, analysis_data: dict[str, Any], output_path: str | None = None) -> str:
         """
         Generate README content based on analysis data.
 
@@ -62,7 +65,7 @@ class ReadmeGenerator:
 
         return readme_content
 
-    def _prepare_context(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_context(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
         """Prepare template context from analysis data."""
         # Basic project info
         project_name = self._get_project_name(analysis_data)
@@ -116,9 +119,14 @@ class ReadmeGenerator:
             }
         )
         confidence_rank = {"low": 0, "medium": 1, "high": 2}
-        allow_api = confidence_rank.get(
-            str(quality["confidence"]).lower(), 0
-        ) >= confidence_rank.get(min_confidence, 0)
+        confidence_level = str(quality["confidence"]).lower()
+        allow_api = confidence_rank.get(confidence_level, 0) >= confidence_rank.get(
+            min_confidence, 0
+        )
+        # Surface the computed confidence on analysis_data so downstream consumers
+        # (e.g. readme_gate.evaluate_readme_readiness) see the real value instead
+        # of defaulting to "low".
+        analysis_data["confidence_level"] = confidence_level
 
         # API documentation
         if include_api_docs and not is_website and allow_api:
@@ -145,12 +153,15 @@ class ReadmeGenerator:
             "usage_examples": usage_examples,
             "api_docs": api_docs,
             "features": self._extract_features(analysis_data),
-            "requirements": self._extract_requirements(dependencies),
+            "requirements": self._extract_requirements(analysis_data, dependencies),
             "generated_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "has_tests": self._has_tests(analysis_data),
             "has_docs": len(analysis_data.get("documentation_files", [])) > 0,
             "config_files": analysis_data.get("config_files", []),
             "packages": analysis_data.get("packages", []),
+            "analysis_quality": quality["score"],
+            "confidence_level": quality["confidence"],
+            "analysis_warnings": quality["warnings"],
             "run_metrics": analysis_data.get("run_metrics", {}),
             "website_info": self._get_website_info(analysis_data) if is_website else None,
             "diff_summary": analysis_data.get("diff_summary", {}),
@@ -162,7 +173,7 @@ class ReadmeGenerator:
         }
 
     def generate_package_docs(
-        self, analysis_data: Dict[str, Any], output_dir: Path
+        self, analysis_data: dict[str, Any], output_dir: Path
     ) -> dict[str, str]:
         """Generate per-package README docs for monorepos."""
         artifacts: dict[str, str] = {}
@@ -196,58 +207,15 @@ class ReadmeGenerator:
             artifacts[pkg_path] = content
         return artifacts
 
-    def _build_quality_report(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Compute simple quality/confidence signals for generated docs."""
-        files_analyzed = int(analysis_data.get("files_analyzed", 0) or 0)
-        languages = analysis_data.get("languages", {})
-        functions = analysis_data.get("functions", [])
-        classes = analysis_data.get("classes", [])
-        dependencies = analysis_data.get("dependencies", {})
+    def _build_quality_report(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
+        """Compute simple quality/confidence signals for generated docs.
 
-        score = 30
-        warnings: list[str] = []
+        Delegates to the single shared implementation in ``readme_quality`` so
+        the two scoring paths cannot drift.
+        """
+        return build_quality_report(analysis_data, has_tests=self._has_tests(analysis_data))
 
-        if files_analyzed >= 20:
-            score += 20
-        elif files_analyzed >= 5:
-            score += 10
-        else:
-            warnings.append("Low file count analyzed. Results may be incomplete.")
-
-        if len(languages) >= 2:
-            score += 15
-        elif len(languages) == 1:
-            score += 8
-        else:
-            warnings.append("No recognized source languages detected.")
-
-        if len(functions) + len(classes) >= 10:
-            score += 20
-        elif len(functions) + len(classes) >= 1:
-            score += 10
-        else:
-            warnings.append("No functions/classes were extracted from source files.")
-
-        if dependencies:
-            score += 10
-        else:
-            warnings.append("No dependency metadata files were detected.")
-
-        if self._has_tests(analysis_data):
-            score += 5
-        else:
-            warnings.append("No tests detected. Generated usage guidance may need manual review.")
-
-        score = max(0, min(score, 100))
-        if score >= 75:
-            confidence = "High"
-        elif score >= 50:
-            confidence = "Medium"
-        else:
-            confidence = "Low"
-        return {"score": score, "confidence": confidence, "warnings": warnings}
-
-    def _get_project_name(self, analysis_data: Dict[str, Any]) -> str:
+    def _get_project_name(self, analysis_data: dict[str, Any]) -> str:
         """Extract project name from various sources."""
         # First check if project_name is directly provided
         if "project_name" in analysis_data:
@@ -266,7 +234,7 @@ class ReadmeGenerator:
 
         return "Project"
 
-    def _generate_description(self, analysis_data: Dict[str, Any]) -> str:
+    def _generate_description(self, analysis_data: dict[str, Any]) -> str:
         """Generate a project description based on analysis."""
         main_language = analysis_data.get("main_language", "unknown")
 
@@ -325,7 +293,7 @@ class ReadmeGenerator:
 
         return f"A {main_language.lower()} {purpose} with comprehensive functionality and modern architecture."
 
-    def _generate_install_commands(self, analysis_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _generate_install_commands(self, analysis_data: dict[str, Any]) -> list[dict[str, str]]:
         """Generate installation commands based on project type."""
         commands = []
         structure = analysis_data.get("project_structure", {})
@@ -364,7 +332,7 @@ class ReadmeGenerator:
 
         return commands
 
-    def _generate_usage_examples(self, analysis_data: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _generate_usage_examples(self, analysis_data: dict[str, Any]) -> list[dict[str, str]]:
         """Generate usage examples based on project analysis."""
         examples = []
         main_language = analysis_data.get("main_language", "unknown")
@@ -406,10 +374,10 @@ class ReadmeGenerator:
         return examples
 
     def _generate_api_docs(
-        self, functions: List[Dict], classes: List[Dict], config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, functions: list[dict], classes: list[dict], config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate API documentation from functions and classes."""
-        api_docs: Dict[str, Any] = {"functions": [], "classes": []}
+        api_docs: dict[str, Any] = {"functions": [], "classes": []}
 
         max_funcs = config.get("template_customizations", {}).get("max_functions_documented", 10)
 
@@ -441,7 +409,7 @@ class ReadmeGenerator:
 
         return api_docs
 
-    def _extract_features(self, analysis_data: Dict[str, Any]) -> List[str]:
+    def _extract_features(self, analysis_data: dict[str, Any]) -> list[str]:
         """Extract key features from the codebase analysis."""
         features = []
         dependencies = analysis_data.get("dependencies", {})
@@ -489,35 +457,126 @@ class ReadmeGenerator:
 
         return features
 
-    def _extract_requirements(self, dependencies: Dict[str, Any]) -> List[str]:
-        """Extract system requirements."""
-        requirements = []
+    def _extract_requirements(
+        self, analysis_data: dict[str, Any], dependencies: dict[str, Any]
+    ) -> list[str]:
+        """Extract system requirements from the analyzed project's own metadata.
 
-        if "package.json" in dependencies:
-            requirements.append("Node.js 14.0 or higher")
-            requirements.append("npm or yarn")
+        Avoids fabricating version minimums: a requirement is only emitted when a
+        concrete version constraint is found in a manifest (``requires-python``,
+        package.json ``engines``, Cargo ``rust-version``, go directive). When a
+        manifest is present but declares no version, a generic, non-fabricated
+        line is emitted instead.
+        """
+        requirements: list[str] = []
+        root = Path(str(analysis_data.get("root_path", ".")))
 
-        if any(key in dependencies for key in ["requirements.txt", "pyproject.toml", "setup.py"]):
-            requirements.append("Python 3.8 or higher")
+        # Python
+        has_python = any(
+            key in dependencies for key in ["requirements.txt", "pyproject.toml", "setup.py"]
+        )
+        if has_python:
+            py_version = self._read_requires_python(root)
+            if py_version:
+                requirements.append(f"Python {py_version}")
+            else:
+                requirements.append("Python (see project metadata)")
             requirements.append("pip")
 
+        # Node.js
+        if "package.json" in dependencies:
+            node_version = self._read_node_engine(root)
+            if node_version:
+                requirements.append(f"Node.js {node_version}")
+            else:
+                requirements.append("Node.js (see package.json engines)")
+            requirements.append("npm or yarn")
+
+        # Rust
         if "Cargo.toml" in dependencies:
-            requirements.append("Rust 1.60 or higher")
+            rust_version = self._read_rust_version(root)
+            if rust_version:
+                requirements.append(f"Rust {rust_version}")
+            else:
+                requirements.append("Rust (see Cargo.toml rust-version)")
             requirements.append("Cargo")
 
+        # Go
         if "go.mod" in dependencies:
-            requirements.append("Go 1.18 or higher")
+            go_version = self._read_go_version(root)
+            if go_version:
+                requirements.append(f"Go {go_version}")
+            else:
+                requirements.append("Go (see go.mod)")
 
+        # Java
         if "pom.xml" in dependencies:
-            requirements.append("Java 11 or higher")
-            requirements.append("Maven 3.6 or higher")
+            requirements.append("Java (see pom.xml)")
+            requirements.append("Maven")
 
         if not requirements:
             requirements.append("See installation instructions below")
 
         return requirements
 
-    def _has_tests(self, analysis_data: Dict[str, Any]) -> bool:
+    @staticmethod
+    def _read_requires_python(root: Path) -> str | None:
+        path = root / "pyproject.toml"
+        if not path.exists():
+            return None
+        try:
+            data = toml.load(path)
+        except (OSError, ValueError, toml.TomlDecodeError):
+            return None
+        requires = data.get("project", {}).get("requires-python")
+        if isinstance(requires, str) and requires.strip():
+            return requires.strip()
+        poetry = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+        py = poetry.get("python") if isinstance(poetry, dict) else None
+        return str(py).strip() if isinstance(py, str) and py.strip() else None
+
+    @staticmethod
+    def _read_node_engine(root: Path) -> str | None:
+        path = root / "package.json"
+        if not path.exists():
+            return None
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        engines = data.get("engines") if isinstance(data, dict) else None
+        node = engines.get("node") if isinstance(engines, dict) else None
+        return str(node).strip() if isinstance(node, str) and node.strip() else None
+
+    @staticmethod
+    def _read_rust_version(root: Path) -> str | None:
+        path = root / "Cargo.toml"
+        if not path.exists():
+            return None
+        try:
+            data = toml.load(path)
+        except (OSError, ValueError, toml.TomlDecodeError):
+            return None
+        version = data.get("package", {}).get("rust-version")
+        return str(version).strip() if isinstance(version, str) and version.strip() else None
+
+    @staticmethod
+    def _read_go_version(root: Path) -> str | None:
+        path = root / "go.mod"
+        if not path.exists():
+            return None
+        try:
+            for raw_line in path.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if line.startswith("go "):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        return parts[1]
+        except OSError:
+            return None
+        return None
+
+    def _has_tests(self, analysis_data: dict[str, Any]) -> bool:
         """Check if the project has tests."""
         structure = analysis_data.get("project_structure", {})
 
@@ -534,8 +593,8 @@ class ReadmeGenerator:
         return False
 
     def _build_trust_badges(
-        self, analysis_data: Dict[str, Any], *, enabled: bool
-    ) -> Dict[str, Dict[str, Any]]:
+        self, analysis_data: dict[str, Any], *, enabled: bool
+    ) -> dict[str, dict[str, Any]]:
         """Build trust/citation metadata for major README sections."""
         empty = {"level": "n/a", "sources": []}
         if not enabled:
@@ -562,7 +621,7 @@ class ReadmeGenerator:
         structure = analysis_data.get("project_structure", {})
         root_path = Path(str(analysis_data.get("root_path", ".")))
 
-        def source_from_symbol(item: Dict[str, Any]) -> str:
+        def source_from_symbol(item: dict[str, Any]) -> str:
             file_path = str(item.get("file", ""))
             line = item.get("line")
             if not file_path:
@@ -573,7 +632,7 @@ class ReadmeGenerator:
                 rel = Path(file_path).as_posix()
             return f"{rel}:{line}" if line else rel
 
-        def badge(level: str, sources: list[str]) -> Dict[str, Any]:
+        def badge(level: str, sources: list[str]) -> dict[str, Any]:
             return {"level": level, "sources": [s for s in sources if s][:5]}
 
         api_sources = [source_from_symbol(item) for item in (functions[:3] + classes[:2])]
@@ -981,12 +1040,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*This README was automatically generated by [DocGenie](https://github.com/docgenie/docgenie) on {{ generated_date }}*
+*This README was automatically generated by [DocGenie](https://github.com/ch1kim0n1/DocGenie) on {{ generated_date }}*
 """
 
         return Template(template_content)
 
-    def _get_website_info(self, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _get_website_info(self, analysis_data: dict[str, Any]) -> dict[str, Any]:
         """Extract website-specific information."""
         files = analysis_data.get("project_structure", {}).get("root", {}).get("files", [])
         structure = analysis_data.get("project_structure", {})
@@ -1070,7 +1129,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
             "framework_detected": self._detect_frontend_framework(dependencies),
         }
 
-    def _check_responsive_design(self, analysis_data: Dict[str, Any]) -> bool:
+    def _check_responsive_design(self, analysis_data: dict[str, Any]) -> bool:
         """Check if website uses responsive design patterns."""
         # This is a simple heuristic - in practice you'd analyze CSS files
         dependencies = analysis_data.get("dependencies", {})
@@ -1092,7 +1151,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
             for indicator in responsive_indicators
         )
 
-    def _detect_frontend_framework(self, dependencies: Dict[str, Any]) -> str | None:
+    def _detect_frontend_framework(self, dependencies: dict[str, Any]) -> str | None:
         """Detect the primary frontend framework."""
         frameworks = {
             "react": "React",

@@ -153,15 +153,25 @@ def test_api_docs_features_requirements_and_tests_detection() -> None:
         "Configurable",
     ]
 
-    reqs = gen._extract_requirements(
-        {"package.json": {}, "requirements.txt": [], "Cargo.toml": {}, "go.mod": {}, "pom.xml": {}}
-    )
-    assert "Node.js 14.0 or higher" in reqs
-    assert "Python 3.8 or higher" in reqs
-    assert "Rust 1.60 or higher" in reqs
-    assert "Go 1.18 or higher" in reqs
-    assert "Java 11 or higher" in reqs
-    assert gen._extract_requirements({}) == ["See installation instructions below"]
+    # With manifests present but no metadata on disk, requirements are emitted as
+    # generic (non-fabricated) lines rather than hardcoded version minimums.
+    deps = {
+        "package.json": {},
+        "requirements.txt": [],
+        "Cargo.toml": {},
+        "go.mod": {},
+        "pom.xml": {},
+    }
+    reqs = gen._extract_requirements({"root_path": "/nonexistent-proj"}, deps)
+    assert any(r.startswith("Node.js") for r in reqs)
+    assert any(r.startswith("Python") for r in reqs)
+    assert any(r.startswith("Rust") for r in reqs)
+    assert any(r.startswith("Go") for r in reqs)
+    assert any(r.startswith("Java") for r in reqs)
+    # No fabricated minimums should appear.
+    assert "Python 3.8 or higher" not in reqs
+    assert "Node.js 14.0 or higher" not in reqs
+    assert gen._extract_requirements({}, {}) == ["See installation instructions below"]
 
     assert gen._has_tests({"project_structure": {"tests": {}, "root": {"files": [], "dirs": []}}})
     assert gen._has_tests({"project_structure": {"root": {"files": ["test_app.py"], "dirs": []}}})

@@ -7,10 +7,12 @@ import json
 import logging
 import os
 import re
+import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import suppress
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +21,7 @@ from pathspec import PathSpec
 
 from .diff_engine import compute_git_diff_summary
 from .index_store import IndexStore
-from .models import AnalysisResult
+from .models import AnalysisResult, RunMetrics
 from .output_links import scan_output_links
 from .parsers import ParserRegistry
 from .review_engine import build_reviews
@@ -34,6 +36,11 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Payloads of length > 3 carry a precomputed file digest as the 4th element.
+_PAYLOAD_WITH_HASH_LEN = 3
+# `require <module> <version>` in go.mod needs at least 2 tokens after `require`.
+_GO_REQUIRE_MIN_PARTS = 2
 
 
 def _hash_file(path: Path) -> str:
@@ -79,22 +86,33 @@ class CacheManager:
 
 
 def _analyze_file_task(
-    payload: tuple[str, list[str], bool],
+    payload: tuple[Any, ...],
 ) -> tuple[str, str, dict[str, Any] | None, str]:
-    """Worker for concurrent file analysis."""
-    file_path_str, ignore_patterns, enable_tree_sitter = payload
-    _ = ignore_patterns
+    """Worker for concurrent file analysis.
+
+    The payload is ``(file_path, ignore_patterns, enable_tree_sitter[, digest])``.
+    It may carry a precomputed SHA-256 digest (computed once in the main process
+    for the cache lookup) so the worker does not read+hash the file a second time.
+    If no digest is supplied (e.g. tests passing a 3-tuple), the worker hashes from
+    the bytes it reads.
+    """
+    file_path_str = str(payload[0])
+    enable_tree_sitter = bool(payload[2])
+    precomputed_hash = str(payload[3]) if len(payload) > _PAYLOAD_WITH_HASH_LEN else None
     file_path = Path(file_path_str)
     language = get_file_language(file_path)
     if not language:
         return file_path_str, "", None, ""
     try:
-        with open(file_path, encoding="utf-8") as handle:
-            content = handle.read()
-    except (UnicodeDecodeError, PermissionError):
+        with open(file_path, "rb") as handle:
+            raw = handle.read()
+        content = raw.decode("utf-8")
+    except (UnicodeDecodeError, PermissionError, OSError):
         return file_path_str, language, None, ""
 
-    file_hash = _hash_file(file_path)
+    # Reuse the main-process digest when provided; otherwise hash the bytes we
+    # just read (avoids a second full read of the file).
+    file_hash = precomputed_hash or hashlib.sha256(raw).hexdigest()
     parser_registry = ParserRegistry(enable_tree_sitter=enable_tree_sitter)
     parse_result = parser_registry.parse(content, file_path, language)
     return file_path_str, language, parse_result.to_public_dict(), file_hash
@@ -200,18 +218,30 @@ class CodebaseAnalyzer:
 
     def analyze(self) -> dict[str, Any]:  # noqa: PLR0915
         """Perform comprehensive analysis of the codebase."""
+        start_time = time.perf_counter()
+        try:
+            return self._analyze_impl(start_time)
+        finally:
+            # Deterministically release the SQLite handle on success and on error;
+            # do not rely on __del__ (GC timing, Windows file locks).
+            with suppress(Exception):
+                self.index_store.close()
+
+    def _analyze_impl(self, start_time: float) -> dict[str, Any]:  # noqa: PLR0915
         self.active_run_id = self.index_store.start_run(mode="analyze")
         self.git_info = extract_git_info(self.root_path)
         files = list(self._iter_source_files())
 
-        tasks: list[tuple[str, list[str], bool]] = []
+        tasks: list[tuple[str, list[str], bool, str]] = []
         for file_path in files:
             digest = _hash_file(file_path)
             cached = self.cache.get(file_path, digest)
             if cached:
+                self.cache_hits += 1
                 self._apply_parsed_data(cached, file_path, cached_language=cached.get("language"))
                 continue
-            tasks.append((str(file_path), self.ignore_patterns, self.enable_tree_sitter))
+            # Pass the digest we just computed so the worker doesn't re-read+re-hash.
+            tasks.append((str(file_path), self.ignore_patterns, self.enable_tree_sitter, digest))
 
         if tasks:
             with ProcessPoolExecutor(max_workers=min(4, (os.cpu_count() or 1))) as executor:
@@ -222,8 +252,8 @@ class CodebaseAnalyzer:
                     try:
                         file_path_str, language, parsed, file_hash = future.result(timeout=60)
                     except TimeoutError:
-                        file_path = futures[future]
-                        logger.warning("File analysis timed out, skipping: %s", file_path)
+                        timed_out_path = futures[future]
+                        logger.warning("File analysis timed out, skipping: %s", timed_out_path)
                         continue
                     if not language or parsed is None:
                         continue
@@ -259,7 +289,27 @@ class CodebaseAnalyzer:
                 self.index_store.replace_output_links(self.active_run_id, self.output_links)
             self.index_store.commit()
         self.cache.persist()
-        return compiled.to_public_dict()
+        result = compiled.to_public_dict()
+        result["run_metrics"] = self._build_run_metrics(start_time)
+        return result
+
+    def _build_run_metrics(self, start_time: float) -> dict[str, Any]:
+        """Build run metrics from tracked counters (see models.RunMetrics)."""
+        skip_reasons = dict(self.skipped_reasons)
+        skipped_files = sum(self.skipped_reasons.values())
+        # changed_files = files actually parsed this run (cache misses).
+        changed_files = max(0, self.files_analyzed - self.cache_hits)
+        considered = self.cache_hits + changed_files
+        cache_hit_ratio = round(self.cache_hits / considered, 4) if considered else 0.0
+        metrics = RunMetrics(
+            scanned_files=self.files_discovered,
+            changed_files=changed_files,
+            skipped_files=skipped_files,
+            duration_sec=round(time.perf_counter() - start_time, 4),
+            cache_hit_ratio=cache_hit_ratio,
+            skip_reasons=skip_reasons,
+        )
+        return asdict(metrics)
 
     def __del__(self) -> None:
         with suppress(Exception):
@@ -369,8 +419,12 @@ class CodebaseAnalyzer:
                     deps = parser(file_path)
                     if deps:
                         self.dependencies[filename] = deps
-                except (OSError, ValueError, KeyError, toml.TomlDecodeError):
-                    # Silently skip malformed dependency files
+                except (OSError, ValueError, KeyError, toml.TomlDecodeError) as exc:
+                    logger.warning(
+                        "Failed to parse dependency file %s (%s); skipping it.",
+                        file_path,
+                        exc,
+                    )
                     continue
 
     def _parse_requirements_txt(self, file_path: Path) -> list[str]:
@@ -443,7 +497,7 @@ class CodebaseAnalyzer:
                     deps.append(parts[0])
             elif line.startswith("require ") and not in_require:
                 parts = line.split()
-                if len(parts) >= 2:
+                if len(parts) >= _GO_REQUIRE_MIN_PARTS:
                     deps.append(parts[1])
         return deps
 

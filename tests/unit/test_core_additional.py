@@ -173,6 +173,20 @@ def test_dependency_parsers_and_detect_dependencies(tmp_path: Path, monkeypatch:
     assert isinstance(analyzer.dependencies, dict)
 
 
+def test_detect_dependencies_warns_on_malformed_manifest(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Issue #46: malformed dependency files emit a visible warning."""
+    import logging as _logging
+
+    (tmp_path / "package.json").write_text("{not json", encoding="utf-8")
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+    with caplog.at_level(_logging.WARNING, logger="docgenie.core"):
+        analyzer._detect_dependencies()
+    assert any("package.json" in rec.getMessage() for rec in caplog.records)
+    assert "package.json" not in analyzer.dependencies
+
+
 def test_analyze_with_mocked_process_pool(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     (tmp_path / "a.py").write_text("def f():\n    return 1\n", encoding="utf-8")
     analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
@@ -181,10 +195,16 @@ def test_analyze_with_mocked_process_pool(monkeypatch: pytest.MonkeyPatch, tmp_p
         def __init__(self, result):
             self._result = result
 
-        def result(self):
+        def result(self, timeout=None):
+            _ = timeout
             return self._result
 
     class DummyExecutor:
+        def __init__(self, *args, **kwargs):
+            # Mirror ProcessPoolExecutor(max_workers=...) signature.
+            self._args = args
+            self._kwargs = kwargs
+
         def __enter__(self):
             return self
 
@@ -200,3 +220,54 @@ def test_analyze_with_mocked_process_pool(monkeypatch: pytest.MonkeyPatch, tmp_p
     result = analyzer.analyze()
     assert result["files_analyzed"] >= 1
     assert result["website_detection_reason"]
+
+
+def test_analyze_file_task_reuses_precomputed_hash(tmp_path: Path) -> None:
+    """Issue #41: a supplied digest is reused (no second hash) on cache miss."""
+    from docgenie.core import _hash_file
+
+    py = tmp_path / "a.py"
+    py.write_text("def f():\n    return 1\n", encoding="utf-8")
+    digest = _hash_file(py)
+    _p, _lang, _parsed, file_hash = _analyze_file_task((str(py), [], False, digest))
+    assert file_hash == digest
+
+
+def test_analyze_file_task_reads_file_only_once(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Issue #41: the worker reads the file at most once per run."""
+    py = tmp_path / "a.py"
+    py.write_text("def f():\n    return 1\n", encoding="utf-8")
+
+    real_open = builtins.open
+    open_count = {"n": 0}
+
+    def counting_open(file, *args, **kwargs):
+        if str(file) == str(py):
+            open_count["n"] += 1
+        return real_open(file, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", counting_open)
+    from docgenie.core import _hash_file
+
+    digest = _hash_file(py)  # main-process hash (uses its own open)
+    open_count["n"] = 0
+    _analyze_file_task((str(py), [], False, digest))
+    assert open_count["n"] == 1
+
+
+def test_analyze_closes_index_store_on_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Issue #42: the SQLite handle is closed even when analyze() raises."""
+    (tmp_path / "a.py").write_text("def f():\n    return 1\n", encoding="utf-8")
+    analyzer = CodebaseAnalyzer(str(tmp_path), enable_tree_sitter=False)
+
+    def boom() -> None:
+        raise RuntimeError("kaboom")
+
+    monkeypatch.setattr(analyzer, "_analyze_project_structure", boom)
+    with pytest.raises(RuntimeError):
+        analyzer.analyze()
+    assert analyzer.index_store._closed is True

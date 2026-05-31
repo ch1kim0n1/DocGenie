@@ -2,11 +2,30 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from typing import Any
 
 from .utils import get_file_language, should_ignore_file
+
+# Directories never worth traversing during link scanning (vendored/VCS/build).
+_DEFAULT_SKIP_DIRS = {
+    ".git",
+    ".hg",
+    ".svn",
+    "node_modules",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    "dist",
+    "build",
+    ".docgenie",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+}
 
 PY_WRITE_RE = re.compile(r"open\((['\"])([^'\"]+)\1\s*,\s*(['\"])[wax][bt+]?\3")
 PY_PATH_WRITE_RE = re.compile(r"Path\((['\"])([^'\"]+)\1\)\.(write_text|write_bytes)\(")
@@ -41,72 +60,85 @@ def scan_output_links(  # noqa: PLR0912, PLR0915
     links: list[dict[str, Any]] = []
     ignore = ignore_patterns or []
 
-    for path in root_path.rglob("*"):
-        if not path.is_file():
-            continue
-        rel = path.relative_to(root_path).as_posix()
-        if should_ignore_file(rel, ignore):
-            continue
-        language = get_file_language(path)
-        if language not in selected_languages:
-            continue
-        try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except (OSError, UnicodeDecodeError):
-            continue
+    for dirpath, dirnames, filenames in os.walk(root_path):
+        dir_path = Path(dirpath)
+        # Prune ignored/vendored directories in place so we never descend into
+        # them (consistent with CodebaseAnalyzer._iter_source_files).
+        kept_dirs = []
+        for d in dirnames:
+            if d in _DEFAULT_SKIP_DIRS:
+                continue
+            rel_dir = (dir_path / d).relative_to(root_path).as_posix()
+            if should_ignore_file(rel_dir, ignore):
+                continue
+            kept_dirs.append(d)
+        dirnames[:] = kept_dirs
 
-        for idx, line in enumerate(lines, 1):
-            raw_target: str | None = None
-            op = ""
-            confidence = "medium"
+        for filename in filenames:
+            path = dir_path / filename
+            rel = path.relative_to(root_path).as_posix()
+            if should_ignore_file(rel, ignore):
+                continue
+            language = get_file_language(path)
+            if language not in selected_languages:
+                continue
+            try:
+                lines = path.read_text(encoding="utf-8").splitlines()
+            except (OSError, UnicodeDecodeError):
+                continue
 
-            if language == "python":
-                pairs = ((PY_WRITE_RE, "open-write"), (PY_PATH_WRITE_RE, "path-write"))
-                for regex, op_name in pairs:
-                    m = regex.search(line)
+            for idx, line in enumerate(lines, 1):
+                raw_target: str | None = None
+                op = ""
+                confidence = "medium"
+
+                if language == "python":
+                    pairs = ((PY_WRITE_RE, "open-write"), (PY_PATH_WRITE_RE, "path-write"))
+                    for regex, op_name in pairs:
+                        m = regex.search(line)
+                        if m:
+                            raw_target = m.group(2)
+                            op = op_name
+                            confidence = "high"
+                            break
+                    if not raw_target:
+                        dynamic = PY_OPEN_GENERIC_RE.search(line)
+                        if dynamic:
+                            raw_target = "${dynamic}"
+                            op = "open-write"
+                            confidence = "low"
+                elif language in {"javascript", "typescript"}:
+                    m = JS_WRITE_RE.search(line) or JS_STREAM_RE.search(line)
                     if m:
                         raw_target = m.group(2)
-                        op = op_name
+                        op = "fs-write"
                         confidence = "high"
-                        break
-                if not raw_target:
-                    dynamic = PY_OPEN_GENERIC_RE.search(line)
-                    if dynamic:
-                        raw_target = "${dynamic}"
-                        op = "open-write"
-                        confidence = "low"
-            elif language in {"javascript", "typescript"}:
-                m = JS_WRITE_RE.search(line) or JS_STREAM_RE.search(line)
-                if m:
-                    raw_target = m.group(2)
-                    op = "fs-write"
-                    confidence = "high"
-            elif language == "shell":
-                m = SHELL_TEE_RE.search(line)
-                if m:
-                    raw_target = m.group(1)
-                    op = "tee"
-                    confidence = "medium"
-                else:
-                    m2 = SHELL_REDIRECT_RE.search(line)
-                    if m2:
-                        raw_target = m2.group(1) or m2.group(2)
-                        op = "redirect"
+                elif language == "shell":
+                    m = SHELL_TEE_RE.search(line)
+                    if m:
+                        raw_target = m.group(1)
+                        op = "tee"
                         confidence = "medium"
+                    else:
+                        m2 = SHELL_REDIRECT_RE.search(line)
+                        if m2:
+                            raw_target = m2.group(1) or m2.group(2)
+                            op = "redirect"
+                            confidence = "medium"
 
-            if not raw_target:
-                continue
-            target_file, resolved = _normalize_target(root_path, path, raw_target)
-            links.append(
-                {
-                    "source_file": rel,
-                    "source_line": idx,
-                    "target_file": target_file,
-                    "operation": op,
-                    "confidence": confidence,
-                    "resolved": resolved,
-                    "evidence_snippet": line.strip()[:160],
-                }
-            )
+                if not raw_target:
+                    continue
+                target_file, resolved = _normalize_target(root_path, path, raw_target)
+                links.append(
+                    {
+                        "source_file": rel,
+                        "source_line": idx,
+                        "target_file": target_file,
+                        "operation": op,
+                        "confidence": confidence,
+                        "resolved": resolved,
+                        "evidence_snippet": line.strip()[:160],
+                    }
+                )
 
     return links

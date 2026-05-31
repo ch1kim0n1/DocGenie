@@ -6,6 +6,7 @@ import json
 import sqlite3
 import time
 from pathlib import Path
+from types import TracebackType
 from typing import Any
 
 SCHEMA_VERSION = 3
@@ -16,9 +17,22 @@ class IndexStore:
         self.root = root
         self.db_path = root / ".docgenie" / "index.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(self.db_path)
+        # A timeout avoids immediate "database is locked" errors under contention.
+        self._conn = sqlite3.connect(self.db_path, timeout=30.0)
         self._conn.row_factory = sqlite3.Row
+        self._closed = False
         self._migrate()
+
+    def __enter__(self) -> IndexStore:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        self.close()
 
     def _migrate(self) -> None:
         self._conn.execute(
@@ -92,7 +106,9 @@ class IndexStore:
         self._conn.commit()
 
     def close(self) -> None:
-        self._conn.close()
+        if not self._closed:
+            self._conn.close()
+            self._closed = True
 
     def commit(self) -> None:
         self._conn.commit()

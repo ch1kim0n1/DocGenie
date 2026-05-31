@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def load_config(root_path: Path) -> dict[str, Any]:
     """
     Load configuration from .docgenie.yaml in the project root.
     Returns a default configuration if the file doesn't exist.
+
+    If the config file exists but cannot be parsed, a visible warning naming the
+    file is emitted and defaults are used (instead of silently falling back).
     """
     config_path = root_path / ".docgenie.yaml"
     if not config_path.exists():
@@ -21,8 +27,12 @@ def load_config(root_path: Path) -> dict[str, Any]:
         with open(config_path, encoding="utf-8") as f:
             user_config = yaml.safe_load(f) or {}
             return merge_configs(get_default_config(), user_config)
-    except (yaml.YAMLError, OSError):
-        # Return default config if loading fails
+    except (yaml.YAMLError, OSError) as exc:
+        logger.warning(
+            "Failed to parse config %s (%s); using default configuration.",
+            config_path,
+            exc,
+        )
         return get_default_config()
 
 

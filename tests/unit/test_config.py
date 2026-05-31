@@ -1,6 +1,9 @@
 """Tests for DocGenie configuration loading and merging."""
 
+import logging
 from pathlib import Path
+
+import pytest
 
 from docgenie.config import get_default_config, load_config, merge_configs
 
@@ -71,3 +74,14 @@ def test_load_config_valid_yaml_merges_with_defaults(tmp_path: Path) -> None:
 def test_load_config_invalid_yaml_falls_back_to_default(tmp_path: Path) -> None:
     (tmp_path / ".docgenie.yaml").write_text("ignore_patterns: [\n", encoding="utf-8")
     assert load_config(tmp_path) == get_default_config()
+
+
+def test_load_config_invalid_yaml_emits_warning(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Issue #46: malformed config must produce a visible warning naming the file."""
+    config_path = tmp_path / ".docgenie.yaml"
+    config_path.write_text("ignore_patterns: [\n", encoding="utf-8")
+    with caplog.at_level(logging.WARNING, logger="docgenie.config"):
+        load_config(tmp_path)
+    assert any(".docgenie.yaml" in rec.getMessage() for rec in caplog.records)

@@ -25,3 +25,20 @@ def test_scan_output_links_marks_unresolved(tmp_path: Path) -> None:
     assert links
     assert links[0]["target_file"] is None
     assert links[0]["resolved"] is False
+
+
+def test_scan_output_links_prunes_vendored_dirs(tmp_path: Path) -> None:
+    """Issue #40: node_modules/.git/.venv must not be traversed."""
+    (tmp_path / "keep.py").write_text("open('out.txt', 'w')\n", encoding="utf-8")
+    for vendored in ("node_modules", ".git", ".venv"):
+        d = tmp_path / vendored
+        d.mkdir()
+        # A file that WOULD match an output pattern if traversed.
+        (d / "evil.py").write_text("open('vendored.txt', 'w')\n", encoding="utf-8")
+
+    links = scan_output_links(tmp_path)
+    sources = {x["source_file"] for x in links}
+    assert any(s == "keep.py" for s in sources)
+    assert not any("node_modules" in s for s in sources)
+    assert not any(".git" in s for s in sources)
+    assert not any(".venv" in s for s in sources)

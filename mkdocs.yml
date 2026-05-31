@@ -3,8 +3,8 @@ site_description: Auto-documentation tool for any codebase
 site_author: DocGenie Team
 site_url: https://docgenie.readthedocs.io
 
-repo_name: docgenie/docgenie
-repo_url: https://github.com/docgenie/docgenie
+repo_name: ch1kim0n1/DocGenie
+repo_url: https://github.com/ch1kim0n1/DocGenie
 edit_uri: edit/main/docs/
 
 theme:

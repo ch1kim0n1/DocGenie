@@ -51,6 +51,15 @@ def test_readme_generation_basic(sample_analysis: dict, tmp_path: Path) -> None:
     assert "Trust:" in content
 
 
+def test_readme_footer_links_to_current_repository(sample_analysis: dict) -> None:
+    """Generated README attribution should point to this repository."""
+    generator = ReadmeGenerator()
+    content = generator.generate(sample_analysis, None)
+
+    assert "https://github.com/ch1kim0n1/DocGenie" in content
+    assert "https://github.com/docgenie/docgenie" not in content
+
+
 def test_readme_includes_dependencies(sample_analysis: dict) -> None:
     """Test that dependencies are included."""
     generator = ReadmeGenerator()
